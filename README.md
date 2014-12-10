@@ -1,16 +1,16 @@
-convert2singlefile.py
+MCNPtools
 ========
-**Ryan M. Bergmann, Paul Scherrer Institut, Nov. 10, 2014.**
+**Ryan M. Bergmann, Paul Scherrer Institut, Dec. 10, 2014.**
 
-Python script to convert newer MCNP inputs which have 'read file' cards into a single file for use with MCNPX 2.4.0, which is openly distributed. Can be useful in situations where people are waiting for license approval.
+Python scripts that are useful for building MCNP geometries and analyzing results.
 
 ### USAGE:
 
 Arguments:
-- input_file:   name of file to consilidate, required
-- output_file:  name of consolidated output file, optional (script will append an 's' to the input file name preceeding the file extension)
+- input_file:   
+- output_file:   
 
 Example:
 ``` bash
-$ ./convert2singlefile.py input_file [output_file]
+$ ./makeCyl.py
 ```

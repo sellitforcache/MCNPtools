@@ -15,7 +15,7 @@ import re
 print "GQ card form:  Ax^2 + By^2 + Cz^2 + Dxy + Eyz + Fxz + Gx + Hy + Jz + K = 0"
 
 ### cyclinder radius, translation
-rad = 171.2
+rad = 320
 trans_x = 0.0
 trans_y = 0.0
 trans_z = 0.0
@@ -23,7 +23,7 @@ print "radius = ", rad
 print "translation (x,y,z) = ", trans_x, ", ",trans_y, ", ",trans_z
 
 ### define cylinder axis (x,y,z)
-axis_vec=numpy.array([-66.41,0.00000001,540.0])
+axis_vec=numpy.array([0.0000001,-15.65,540.0])
 
 ### normalize
 axis_vec      = numpy.divide(axis_vec,numpy.sqrt(numpy.sum(numpy.multiply(axis_vec,axis_vec))))

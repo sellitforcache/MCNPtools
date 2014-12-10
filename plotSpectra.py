@@ -34,32 +34,56 @@ def get_mcnp_mctal(filepath):
 	vals 	= numpy.array(vals[1:],dtype=float)
 	errs 	= vals[1::2]
 	vals 	= vals[0::2]
-	alldata = numpy.array([ene,vals,errs])
-	return alldata
+	return [ene,vals,errs]
 
-filename   = sys.argv[1]
-tally      = numpy.loadtxt(filename+".tally")
-tallybins  = numpy.loadtxt(filename+".tallybins")
-title = filename
 
-widths=numpy.diff(tallybins);
-avg=(tallybins[:-1]+tallybins[1:])/2;
-newflux=numpy.array(tally[:,0])
-warp_err = numpy.array(tally[:,1])
-newflux=numpy.divide(newflux,widths)
-newflux=numpy.multiply(newflux,avg)
+i=0
+c=['b','r']
+fig = pylab.figure(figsize=(10,6))
+ax = fig.add_subplot(1,1,1)
+datalist = []
+
+for filename in sys.argv[1:]:
+	
+	data  	   = get_mcnp_mctal(filename) 
+	tally      = data[1][:-1] #numpy.loadtxt(filename+".tally")
+	tallybins  = data[0] #numpy.loadtxt(filename+".tallybins")
+	tallyerr   = data[2][:-1]
+	title = filename
+	datalist.append(tally)
+	
+	tallybins=numpy.hstack((numpy.array([0]),tallybins))
+	print tallybins
+	widths=numpy.diff(tallybins)
+	print widths.__len__(), tally.__len__()
+	avg=(tallybins[:-1]+tallybins[1:])/2;
+	newflux=tally
+	newflux=numpy.divide(newflux,widths)
+	#newflux=numpy.multiply(newflux,avg)
+	
+	ax.loglog(avg,newflux,linestyle='steps-mid',label=filename,color=c[i])
+	i=i+1
+	#ax.loglog(avg,np.multiply(newflux,np.add(1.0,tallyerr))     ,'r',linestyle='steps-mid',label='WARP')
+	#ax.loglog(avg,np.multiply(newflux,np.subtract(1.0,tallyerr)),'b',linestyle='steps-mid',label='WARP')
+	
+ax.set_xlabel('Energy (MeV)')
+ax.set_ylabel('Flux4 tally / bin width')
+#ax.set_ylabel('Normalized Flux/Lethary')
+#ax.set_title(title)
+handles, labels = ax.get_legend_handles_labels()
+ax.legend(handles,labels,loc=1)
+ax.set_xlim([1e-11,20])
+ax.grid(True)
+pylab.show()
+
 
 fig = pylab.figure(figsize=(10,6))
 ax = fig.add_subplot(1,1,1)
-ax.semilogx(avg,newflux,'k',linestyle='steps-mid',label='WARP')
-ax.semilogx(avg,np.multiply(newflux,np.add(1.0,warp_err))     ,'r',linestyle='steps-mid',label='WARP')
-ax.semilogx(avg,np.multiply(newflux,np.subtract(1.0,warp_err)),'b',linestyle='steps-mid',label='WARP')
+ax.semilogx(avg,numpy.divide(datalist[1],datalist[0]),linestyle='steps-mid',color='k')
 ax.set_xlabel('Energy (MeV)')
-ax.set_ylabel('Normalized Flux/Lethary')
-ax.set_title(title)
-handles, labels = ax.get_legend_handles_labels()
-ax.legend(handles,labels,loc=2)
+ax.set_ylabel('Ratio '+sys.argv[2]+' / '+sys.argv[1])
 ax.set_xlim([1e-11,20])
+ax.set_ylim([0,2])
 ax.grid(True)
 pylab.show()
 
