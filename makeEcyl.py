@@ -1,6 +1,6 @@
 #! /usr/bin/env python
-# Script to generate a rotated circular cylinder with GQ cards in MCNP
-# Ryan M. Bergmann, Dec 9, 2014.  ryan.bergmann@psi.ch, ryanmbergmann@gmail.com
+# Script to generate a rotated elliptic cylinder with GQ cards in MCNP
+# Ryan M. Bergmann, Dec 11, 2014.  ryan.bergmann@psi.ch, ryanmbergmann@gmail.com
 
 import pylab as pl
 import matplotlib.pyplot as plt
@@ -15,11 +15,14 @@ import re
 print "GQ card form:  Ax^2 + By^2 + Cz^2 + Dxy + Eyz + Fxz + Gx + Hy + Jz + K = 0"
 
 ### cyclinder radius, translation
-rad = 160
+a =    # semimajor axis in x
+b =    # semimajor axis in y
+a_sqi = 1.0 / (a*a)
+b_sqi = 1.0 / (b*b)
 trans_x = 0.0
 trans_y = 0.0
 trans_z = 0.0
-print "radius = ", rad
+print "a (x) =", a,"b (y) =",b
 print "translation (x,y,z) = ", trans_x, ", ",trans_y, ", ",trans_z
 
 ### define cylinder axis (x,y,z)
@@ -42,16 +45,16 @@ sp = numpy.sin(phi)
 cp = numpy.cos(phi)
 
 ### calculate coeffs
-A = ct*ct*cp*cp + sp*sp
-B = ct*ct*sp*sp + cp*cp
-C = st*st
-D = -2.0*sp*cp*st*st
-E = -2.0*st*ct*sp
-F = -2.0*st*ct*cp
-G = 0.0
-H = 0.0
-J = 0.0
-K =  -rad*rad
+A = a_sqi*ct*ct*cp*cp + b_sqi*sp*sp
+B = a_sqi*ct*ct*sp*sp + b_sqi*cp*cp
+C = a_sqi*st*st
+D =  2.0*cp*sp*(a_sqi*ct*ct-b_sqi)
+E = -2.0*a_sqi*st*ct*sp
+F = -2.0*a_sqi*st*ct*cp
+G =  0.0
+H =  0.0
+J =  0.0
+K = -1.0
 
 
 ### do linear translation

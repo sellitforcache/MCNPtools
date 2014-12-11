@@ -42,20 +42,20 @@ c=['b','r']
 fig = pylab.figure(figsize=(10,6))
 ax = fig.add_subplot(1,1,1)
 datalist = []
+sumlist = []
 
 for filename in sys.argv[1:]:
 	
 	data  	   = get_mcnp_mctal(filename) 
 	tally      = data[1][:-1] #numpy.loadtxt(filename+".tally")
+	sumlist.append(data[1][-1])
 	tallybins  = data[0] #numpy.loadtxt(filename+".tallybins")
 	tallyerr   = data[2][:-1]
 	title = filename
 	datalist.append(tally)
 	
 	tallybins=numpy.hstack((numpy.array([0]),tallybins))
-	print tallybins
 	widths=numpy.diff(tallybins)
-	print widths.__len__(), tally.__len__()
 	avg=(tallybins[:-1]+tallybins[1:])/2;
 	newflux=tally
 	newflux=numpy.divide(newflux,widths)
@@ -87,3 +87,10 @@ ax.set_ylim([0,2])
 ax.grid(True)
 pylab.show()
 
+
+### sum and find rel diff
+a = numpy.sum(datalist[0])
+b = numpy.sum(datalist[1])
+print 'summed vector 1 =', a, '||| sum from output 1 =',sumlist[0]
+print 'summed vector 2 =', b, '||| sum from output 2 =',sumlist[1]
+print 'Rel. Diff. '+sys.argv[2]+' / '+sys.argv[1]+' - 1 = ',(b/a-1.0)
