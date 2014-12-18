@@ -15,8 +15,8 @@ import re
 print "GQ card form:  Ax^2 + By^2 + Cz^2 + Dxy + Eyz + Fxz + Gx + Hy + Jz + K = 0"
 
 ### cyclinder radius, translation
-a =    # semimajor axis in x
-b =    # semimajor axis in y
+b = 300   # semimajor axis in x
+a = 467.2   # semimajor axis in y
 a_sqi = 1.0 / (a*a)
 b_sqi = 1.0 / (b*b)
 trans_x = 0.0
@@ -26,8 +26,8 @@ print "a (x) =", a,"b (y) =",b
 print "translation (x,y,z) = ", trans_x, ", ",trans_y, ", ",trans_z
 
 ### define cylinder axis (x,y,z)
-#axis_vec=numpy.array([0.0000001,-15.65,540.0])   # long sides
-axis_vec=numpy.array([3.27,64.91,540.0])   # corner corrections
+axis_vec=numpy.array([0.0000001,-15.65,540.0])   # long sides
+#axis_vec=numpy.array([3.27,64.91,540.0])   # corner corrections
 
 ### normalize
 axis_vec      = numpy.divide(axis_vec,numpy.sqrt(numpy.sum(numpy.multiply(axis_vec,axis_vec))))
@@ -77,6 +77,7 @@ print 'K = ', K      # const
 
 print "MCNP CARD:"
 
-print "XX  gq  ",A,B,C,D
-print "      ",E,F,G
-print "      ",H,J,K
+print "XX  gq  ",A,B,C
+print "      ",D,E,F
+print "      ",G,H,J
+print "      ",K

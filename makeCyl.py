@@ -14,17 +14,46 @@ import re
 ### print misc
 print "GQ card form:  Ax^2 + By^2 + Cz^2 + Dxy + Eyz + Fxz + Gx + Hy + Jz + K = 0"
 
-### cyclinder radius, translation
-rad = 160
+### translation
 trans_x = 0.0
 trans_y = 0.0
 trans_z = 0.0
-print "radius = ", rad
 print "translation (x,y,z) = ", trans_x, ", ",trans_y, ", ",trans_z
 
-### define cylinder axis (x,y,z)
-#axis_vec=numpy.array([0.0000001,-15.65,540.0])   # long sides
-axis_vec=numpy.array([3.27,64.91,540.0])   # corner corrections
+### define cylinder axis (x,y,z) and radius
+## short sides, x, inside
+#rad = 17.152
+#axis_vec=numpy.array([-56.755,0.00000001,540.0])  
+#print "x translation =",(rad-6.9385)
+## long sides, y, inside
+#rad = 46.72
+#axis_vec=numpy.array([0.000000001,-7.19,540.0])
+#print "x translation =",(rad-7.42)
+## corner corrections, inside
+#rad = 29.0  
+#axis_vec=numpy.array([5.83,-0.35,54.0])
+#corner_vec = numpy.array([5.49,7.1])
+#mag = numpy.linalg.norm(corner_vec)
+#cut = 1.0  # amount of overlap, ie the cut
+#print "x/y translation = ",(1.0-(rad+cut)/mag)*corner_vec
+## short sides, x, outside
+#rad = 17.152
+#axis_vec=numpy.array([-62.735,0.00000001,540.0])  
+#print "x translation =",(rad-7.3385)
+## long sides, y, outside
+#rad = 46.72
+#axis_vec=numpy.array([0.000000001,-13.19,540.0])
+#print "x translation =",(rad-7.82)
+## corner corrections, outside
+rad = 29.0  
+axis_vec=numpy.array([6.22,0.12,54.0])
+corner_vec = numpy.array([5.72,7.48])
+mag = numpy.linalg.norm(corner_vec)
+cut = 1.0  # amount of overlap, ie the cut
+print "x/y translation = ",(1.0-(rad+cut)/mag)*corner_vec
+
+### print radius
+print "radius = ", rad
 
 ### normalize
 axis_vec      = numpy.divide(axis_vec,numpy.sqrt(numpy.sum(numpy.multiply(axis_vec,axis_vec))))
