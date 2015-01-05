@@ -22,7 +22,7 @@ print "translation (x,y,z) = ", trans_x, ", ",trans_y, ", ",trans_z
 
 ### define cylinder axis (x,y,z) and radius
 ## short sides, x, inside
-#rad = 17.152
+#rad = 20.0
 #axis_vec=numpy.array([-56.755,0.00000001,540.0])  
 #print "x translation =",(rad-6.9385)
 ## long sides, y, inside
@@ -31,13 +31,13 @@ print "translation (x,y,z) = ", trans_x, ", ",trans_y, ", ",trans_z
 #print "x translation =",(rad-7.42)
 ## corner corrections, inside
 #rad = 29.0  
-#axis_vec=numpy.array([5.83,-0.35,54.0])
-#corner_vec = numpy.array([5.49,7.1])
+#axis_vec=numpy.array([5.82,-0.38,54.0])
+#corner_vec = numpy.array([5.75,7.07])
 #mag = numpy.linalg.norm(corner_vec)
 #cut = 1.0  # amount of overlap, ie the cut
 #print "x/y translation = ",(1.0-(rad+cut)/mag)*corner_vec
 ## short sides, x, outside
-#rad = 17.152
+#rad = 20.0
 #axis_vec=numpy.array([-62.735,0.00000001,540.0])  
 #print "x translation =",(rad-7.3385)
 ## long sides, y, outside
