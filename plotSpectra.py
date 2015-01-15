@@ -38,7 +38,9 @@ def get_mcnp_mctal(filepath):
 
 
 i=0
-c=['b','r']
+c=['b','r','g','k','c','m','y']
+if len(sys.argv)>8:
+	c.append(numpy.random.rand(3,1))
 fig = pylab.figure(figsize=(10,6))
 ax = fig.add_subplot(1,1,1)
 datalist = []
@@ -61,7 +63,7 @@ for filename in sys.argv[1:]:
 	newflux=numpy.divide(newflux,widths)
 	#newflux=numpy.multiply(newflux,avg)
 	
-	ax.loglog(avg,newflux,linestyle='steps-mid',label=filename,color=c[i])
+	ax.semilogx(avg,newflux,linestyle='steps-mid',label=filename,color=c[i])
 	i=i+1
 	#ax.loglog(avg,np.multiply(newflux,np.add(1.0,tallyerr))     ,'r',linestyle='steps-mid',label='WARP')
 	#ax.loglog(avg,np.multiply(newflux,np.subtract(1.0,tallyerr)),'b',linestyle='steps-mid',label='WARP')

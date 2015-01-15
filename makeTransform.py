@@ -8,6 +8,7 @@ def rod_rot(a,b,v='unset'):
 	# Rodrigues' rotation formula, rotate a to b
 	if v=='unset':
 		v = numpy.cross(a, b)
+	print "ortho ",v
 	c  = numpy.dot(a, b)
 	vx = numpy.array([[0.0,-v[2],v[1]],[v[2],0.0,-v[0]],[-v[1],v[0],0.0]])
 	r  = c*numpy.identity(3)+numpy.sqrt(1.0-c*c)*vx + (1.0-c)*numpy.outer(v,v)
@@ -22,12 +23,10 @@ v_l = numpy.array([0.0,0.0,1.0])   # object axis
 v_l = v_l / numpy.linalg.norm(v_l)
 
 ### destination coordinate system
-o_d = numpy.array([22.846,10.229,-15.0])             # new origin
-v_d = numpy.array([22.846-22.87,10.229-10.182,0.0])  # vector to align old axis to
+o_d = numpy.array([-18.6771,15.1242,5.0])             # new origin
+v_d = numpy.array([15.1242,18.6771,0.0])  # vector to align old axis to
 v_d = v_d / numpy.linalg.norm(v_d)
 
-### option to re-align old axis to orthoganal 
-realign = 1
 
 ### origin translation
 origin = o_d-o_l
@@ -37,7 +36,7 @@ mag = 0.0
 origin = origin + mag*v_d
 
 ### do first transform
-r  = rod_rot(numpy.array([0.0,1.0,0.0]),v_d,v_l) 
+r  = rod_rot(numpy.array([0.0,-1.0,0.0]),v_d,v_l) 
 r2 = rod_rot(v_l,v_d) 
 r  = numpy.dot(r2,r)
 
