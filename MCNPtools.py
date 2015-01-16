@@ -1,5 +1,9 @@
+### Python module to help slay the MCNP dragon 
+### Ryan M. Bergmann, Jan 2015
+### ryanmbergmann@gmail.com
+
 class tally:
-	def __init__(self):
+	def __init__(self,verbose=0):
 		self.name 				= 0    # tally name number
 		self.particle_type 		= 0    # i>0 particle type, i<0 i=number of particle type, list following
 		self.detector_type		= 0    # j=type of detector tally (0=none)
@@ -17,9 +21,116 @@ class tally:
 		self.energies 			= []
 		self.time_bins 			= 0
 		self.times 				= []
+		self.total_bins 		= 0
 		self.vals 				= []
 		self.tfc 				= [0,0,0,0,0,0,0,0,0]
 		self.tfc_data 			= []
+		self.verbose 			= verbose
+
+	def _make_steps(self,ax,bins_in,values_in,options=[]):
+		import numpy
+		assert(len(bins_in)==len(values_in)+1)
+
+		plottype='log'
+
+		bins=bins_in[:]
+		values=values_in[:]
+		if 'wavelength' in options:
+			bins=numpy.divide(0.286014369,numpy.sqrt(numpy.array(bins)*1.0e6))
+			plottype='lin'
+
+		x=[]
+		y=[]
+		x.append(bins[0])
+		y.append(0.0)
+		for n in range(len(values)):
+			x.append(bins[n])
+			x.append(bins[n+1])
+			y.append(values[n])
+			y.append(values[n])
+		x.append(bins[len(values)])
+		y.append(0.0)
+
+		if plottype=='lin':
+			ax.plot(x,y)
+			ax.set_xlabel('Wavelength (A)')
+		elif plottype=='log':
+			ax.semilogx(x,y)
+			ax.set_xlabel('Energy (MeV)')
+
+	def _hash(self,obj=0,user=0,seg=0,mult=0,cos=0):
+		# update once multiplier and user are understood
+		assert(obj  < self.object_bins)
+		assert(seg  < self.segment_bins)
+		assert(cos  < self.cosine_bins)
+		dex = 	obj* (self.segment_bins*self.cosine_bins)+seg* (self.cosine_bins)+cos
+		return dex
+
+	def _process_vals(self):
+		# calculate based on binning
+		total_bins = self.object_bins*(self.segment_bins*self.cosine_bins)  ## update for user/multiplier
+
+		# check based on e vec length
+		total_bins_e = len(self.vals)/(2*(len(self.energies)+1))
+		
+		# check consistency (should be thick by now)
+		assert(total_bins == total_bins_e)
+		self.total_bins = total_bins
+		if self.verbose:
+			print "...... %d non-energy bins in tally" % (self.total_bins)
+
+		# make full vector of cosine edges
+		self.cosines.insert(0,-1.0)
+
+		# make ful vector of energy edges
+		self.energies.insert(0,0.0)
+		self.energies.append('total')
+		
+		# bag and tag em
+		# indexing only for segment and cosine bins now, add others once I understand what they mean
+		new_vals = []
+		n = 0
+		for s in range(self.segment_bins):
+			for c in range(self.cosine_bins):
+				if self.verbose:
+					print "...... parsing segment %d cosine bin %d " % (s,c)
+				these_vals 					= {}
+				subset 						= self.vals[n*(self.energy_bins*2):(n+1)*(self.energy_bins*2)]
+				these_vals['segment'] 		= s
+				these_vals['cosine_bin']	= [self.cosines[c],self.cosines[c+1]]
+				these_vals['multiplier_bin']= self.multiplier_bins # replace once understood
+				these_vals['user_bin'] 		= self.user_bins       # replace once understood
+				these_vals['data'] 			= subset[0::2]
+				these_vals['err'] 			= subset[1::2]
+				new_vals.append(these_vals)
+				n = n+1
+		self.vals = new_vals 
+
+
+	def plot(self,obj=0,cos=0,seg=0,lethargy=0):
+		import numpy as np
+		import pylab as pl
+
+		fig = pl.figure(figsize=(10,6))
+		ax = fig.add_subplot(1,1,1)
+
+		dex  		= self._hash(obj=obj,cos=cos,seg=seg)
+		tally 		= self.vals[dex]['data'][:-1]
+		err 		= self.vals[dex]['err'][:-1]
+		bins 		= self.energies[:-1]
+		widths 	 	= np.diff(bins)
+		avg 		= np.divide(np.array(bins[:-1])+np.array(bins[1:]),2.0)
+		tally_norm  = np.divide(tally,widths)
+		if lethargy:
+			tally_norm=np.multiply(tally_norm,avg)
+
+		self._make_steps(ax,bins,tally_norm,options=['wavelength'])
+		ax.set_ylabel('tally / bin width')
+		if lethargy:
+			ax.set_ylabel('tally / bin width unit lethargy')
+		#ax.set_xlim([1e-11,20])
+		ax.grid(True)
+		pl.show()
 
 
 class mctal:
@@ -81,6 +192,7 @@ class mctal:
 		self.tally_n 	= [] # list of tally name numbers
 		self.npert 		= 0  # number of perturbations
 		self.tallies 	= {} # dictionary of tally objects
+		self.verbose 	= 0  # flag if prints are done
 		if filepath:
 			self.read_mctal_file(filepath)
 	
@@ -124,9 +236,10 @@ class mctal:
 		
 		# go through tally data
 		for k in self.tally_n:
-			print "... reading tally "+str(k)
+			if self.verbose:
+				print "... reading tally "+str(k)
 			# init tally object
-			self.tallies[k] = tally()
+			self.tallies[k] = tally(verbose=self.verbose)
 			# get header data, assert things
 			t1 = lines[n].split()
 			n = n+1
@@ -166,10 +279,40 @@ class mctal:
 			#  read tally data
 			n = n+1 #vals has no numbers following it
 			n = read_array(lines,self.tallies[k].vals,n)
+			self.tallies[k]._process_vals()  # parse tally data
 			#  read tfc data
 			for d in lines[n].split()[1:] :
 				self.tallies[k].tfc.append(int(d))
 			n = n+1
 			n = read_array(lines,self.tallies[k].tfc_data,n)
 
-		print "done."
+		if self.verbose:
+			print "... done."
+
+
+def plot_spectra(tally_o,obj=0,cos=0,seg=0,lethargy=0):
+	### general plotting routine given a general number of tally objects
+	import numpy as np
+	import pylab as pl
+
+	fig = pl.figure(figsize=(10,6))
+	ax = fig.add_subplot(1,1,1)
+
+	dex  		= tally_o._hash(obj=obj,cos=cos,seg=seg)
+	tally 		= tally_o.vals[dex]['data'][:-1]
+	err 		= tally_o.vals[dex]['err']
+	bins 		= tally_o.energies[:-1]
+	widths 	 	= np.diff(bins)
+	avg 		= np.divide(bins[:-1]+bins[1:],2.0)
+	tally_norm  = np.divide(tally,widths)
+	if lethargy:
+		tally_norm=np.multiply(tally_norm,avg)
+
+	ax.semilogx(bins[1:],tally_norm,linestyle='steps-post',color='b')
+	ax.set_xlabel('energy (MeV)')
+	ax.set_ylabel('tally / bin width')
+	if lethargy:
+		ax.set_ylabel('tally / bin width unit lethargy')
+	ax.set_xlim([1e-11,20])
+	ax.grid(True)
+	pl.show()
