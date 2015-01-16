@@ -126,6 +126,7 @@ class tally:
 
 		self._make_steps(ax,bins,tally_norm,options=['wavelength'])
 		ax.set_ylabel('tally / bin width')
+		ax.set_title('tally %d segment %d cosine %6.4E to %6.4E'%(self.name,seg,self.vals[dex]['cosine_bin'][0],self.vals[dex]['cosine_bin'][1]))
 		if lethargy:
 			ax.set_ylabel('tally / bin width unit lethargy')
 		#ax.set_xlim([1e-11,20])
