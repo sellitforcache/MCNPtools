@@ -5,6 +5,7 @@ import numpy
 import os
 import re
 import numpy as np
+import MCNPtools
 
 def get_serpent_det(filepath):
 	fobj    = open(filepath)
@@ -26,6 +27,9 @@ def get_serpent_det(filepath):
 def get_mcnp_mctal(filepath):
 	fobj    = open(filepath)
 	fstr    = fobj.read()
+	header	= re.findall('ntal +[0-9.E\+\- \n]+',fstr)
+	header	= header[0].split('\n')
+	print header
 	ene 	= re.findall('et +[0-9.E\+\- \n]+',fstr)
 	ene 	= ene[0].split()
 	ene 	= numpy.array(ene[2:],dtype=float)
