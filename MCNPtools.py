@@ -3,6 +3,59 @@
 ### ryanmbergmann@gmail.com
 
 class tally:
+	### static mappings, shared by all
+	particles={
+		 1 	: ['neutron' 				, 'n' ],
+		-1 	: ['anti-neutron' 			, '-n'],
+		 2 	: ['photon' 				, 'p' ],
+		 3	: ['electron' 				, 'e' ],
+		-3	: ['positron' 				, '-e'],
+		 4	: ['muon-' 					, '|' ],
+		-4 	: ['anti-muon-' 			, '-|'],
+		 5 	: ['tau'					, '*' ],
+		 6 	: ['electron neutrino'		, 'u' ],
+		-6 	: ['anti-electron neutrino'	, '-u'],
+		 7 	: ['muon neutrino'			, 'v' ],
+		 8 	: ['tau neutrino'			, 'w' ],
+		 9 	: ['proton' 				, 'h' ],
+		-9 	: ['anti-proton' 			, '-h'],
+		 10	: ['lambda0' 				, 'l' ],
+		 11	: ['sigma+'					, '+' ],
+		 12	: ['sigma-'					, '-' ],
+		 13	: ['cascade+'				, 'x' ],
+		 14	: ['caccade-'				, 'y' ],
+		 15	: ['omega-' 				, 'o' ],
+		 16	: ['lambda_c+'				, 'c' ],
+		 17	: ['cascade_c+'				, '!' ],
+		 18	: ['cascade_c0'				, '?' ],
+		 19	: ['lambda_b0'				, '<' ],
+		 20	: ['pion+' 					, '/' ],
+		-20 : ['pion-' 					, '-/'],
+		 21 : ['pion0'					, 'z' ],
+		 22 : ['kaon+'					, 'k' ],
+		-22 : ['kaon-'					, '-k'],
+		 23 : ['K0 short'				, '%' ],
+		 24 : ['K0 long'				, '^' ],
+		 25 : ['D+'						, 'g' ],
+		 26 : ['D0'						, '@' ],
+		 27 : ['D_s+'					, 'f' ],
+		 28 : ['B+'						, '>' ],
+		 29	: ['B0' 					, 'b' ],
+		 30	: ['B_s0' 					, 'q' ],
+		 31	: ['deuteron' 				, 'd' ],
+		 32	: ['triton' 				, 't' ],
+		 33	: ['helium-3' 				, 's' ],
+		 34	: ['helium-4' 				, 'a' ],
+		 35	: ['heavy ions' 			, '#' ]}
+	particles_shorthand={
+		  1 : ['neutron'				  ,'n ' ],
+		  2 : ['photon'					  ,'p ' ],
+		  3 : ['neutron, photon'		  ,'np' ], 
+		  4 : ['electron'				  ,'e'  ],
+		  5 : ['neutron, electron'		  ,'ne' ],
+		  6 : ['photon, electron'		  ,'pe' ],
+		  7 : ['neutron, photon, electron','npe']}
+
 	def __init__(self,verbose=0):
 		self.name 				= 0    # tally name number
 		self.particle_type 		= 0    # i>0 particle type, i<0 i=number of particle type, list following
@@ -26,6 +79,20 @@ class tally:
 		self.tfc 				= [0,0,0,0,0,0,0,0,0]
 		self.tfc_data 			= []
 		self.verbose 			= verbose
+
+	def what_particles(self):
+			ret_string=''
+			### decode particle data to human-readable
+			if self.particle_type>0:
+				### shorthand list, can return directly
+				ret_string = self.particles_shorthand[self.particle_type][0]
+			else:
+				### explicit list, collect results
+				for x in range(len(self.particle_list)):
+					if self.particle_list[x] != 0:
+						print x,self.particle_list[x]
+						ret_string = ret_string + self.particles[(x+1)*self.particle_list[x]][0]   ### the multiplication is ti switch the sign if anti-particle and then the dictionary will know!
+			return  ret_string
 
 	def _make_steps(self,ax,bins_in,values_in,options=['log'],label=''):
 		import numpy
@@ -186,7 +253,7 @@ class tally:
 			ax.set_ylabel('tally')
 
 		### title and legend
-		ax.set_title('Tally %d'%self.name)
+		ax.set_title('Tally %d: %s'% (self.name,self.what_particles()))
 		handles, labels = ax.get_legend_handles_labels()
 		print handles,labels
 		ax.legend(handles,labels,loc=1)
@@ -197,50 +264,6 @@ class tally:
 
 
 class mctal:
-	### static mappings, shared by all
-	particles={
-		 1 	: ['neutron' 				, 'n' ],
-		-1 	: ['anti-neutron' 			, '-n'],
-		 2 	: ['photon' 				, 'p' ],
-		 3	: ['electron' 				, 'e' ],
-		-3	: ['positron' 				, '-e'],
-		 4	: ['muon-' 					, '|' ],
-		-4 	: ['anti-muon-' 			, '-|'],
-		 5 	: ['tau'					, '*' ],
-		 6 	: ['electron neutrino'		, 'u' ],
-		-6 	: ['anti-electron neutrino'	, '-u'],
-		 7 	: ['muon neutrino'			, 'v' ],
-		 8 	: ['tau neutrino'			, 'w' ],
-		 9 	: ['proton' 				, 'h' ],
-		-9 	: ['anti-proton' 			, '-h'],
-		 10	: ['lambda0' 				, 'l' ],
-		 11	: ['sigma+'					, '+' ],
-		 12	: ['sigma-'					, '-' ],
-		 13	: ['cascade+'				, 'x' ],
-		 14	: ['caccade-'				, 'y' ],
-		 15	: ['omega-' 				, 'o' ],
-		 16	: ['lambda_c+'				, 'c' ],
-		 17	: ['cascade_c+'				, '!' ],
-		 18	: ['cascade_c0'				, '?' ],
-		 19	: ['lambda_b0'				, '<' ],
-		 20	: ['pion+' 					, '/' ],
-		-20 : ['pion-' 					, '-/'],
-		 21 : ['pion0'					, 'z' ],
-		 22 : ['kaon+'					, 'k' ],
-		-22 : ['kaon-'					, '-k'],
-		 23 : ['K0 short'				, '%' ],
-		 24 : ['K0 long'				, '^' ],
-		 25 : ['D+'						, 'g' ],
-		 26 : ['D0'						, '@' ],
-		 27 : ['D_s+'					, 'f' ],
-		 28 : ['B+'						, '>' ],
-		 29	: ['B0' 					, 'b' ],
-		 30	: ['B_s0' 					, 'q' ],
-		 31	: ['deuteron' 				, 'd' ],
-		 32	: ['triton' 				, 't' ],
-		 33	: ['helium-3' 				, 's' ],
-		 34	: ['helium-4' 				, 'a' ],
-		 35	: ['heavy ions' 			, '#' ]}
 	
 	def __init__(self, filepath=None):
 		### mctal header data
@@ -311,10 +334,12 @@ class mctal:
 			self.tallies[k].detector_type 	= int(t1[3])
 			assert(t1[0]=='tally')
 			assert(self.tallies[k].name==k)
-			t1 = lines[n].split()
-			n = n+1
-			for p in t1:
-				self.tallies[k].particle_list.append(int(p)) 
+			### get list of numbers if flagged
+			if self.tallies[k].particle_type < 0:
+				t1 = lines[n].split()
+				n = n+1
+				for p in t1:
+					self.tallies[k].particle_list.append(int(p)) 
 			self.tallies[k].comment 		= lines[n]
 			n = n+1
 			# read the object numbers (surfaces, cells)
