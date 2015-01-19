@@ -27,17 +27,21 @@ class tally:
 		self.tfc_data 			= []
 		self.verbose 			= verbose
 
-	def _make_steps(self,ax,bins_in,values_in,options=[]):
+	def _make_steps(self,ax,bins_in,values_in,options=['log'],label=''):
 		import numpy
 		assert(len(bins_in)==len(values_in)+1)
-
-		plottype='log'
 
 		bins=bins_in[:]
 		values=values_in[:]
 		if 'wavelength' in options:
 			bins=numpy.divide(0.286014369,numpy.sqrt(numpy.array(bins)*1.0e6))
-			plottype='lin'
+			if 'log' in options:
+				options.remove('log')
+				options.append('lin')
+			elif 'lin' in options:
+				pass
+			else:
+				options.append('lin')
 
 		x=[]
 		y=[]
@@ -51,24 +55,32 @@ class tally:
 		x.append(bins[len(values)])
 		y.append(0.0)
 
-		if plottype=='lin':
-			ax.plot(x,y)
+		if 'lin' in options:
+			ax.plot(x,y,label=label)
 			ax.set_xlabel('Wavelength (A)')
-		elif plottype=='log':
-			ax.semilogx(x,y)
+		else:   #default to log if lin not present
+			ax.semilogx(x,y,label=label)
 			ax.set_xlabel('Energy (MeV)')
+
 
 	def _hash(self,obj=0,user=0,seg=0,mult=0,cos=0):
 		# update once multiplier and user are understood
 		assert(obj  < self.object_bins)
-		assert(seg  < self.segment_bins)
-		assert(cos  < self.cosine_bins)
-		dex = 	obj* (self.segment_bins*self.cosine_bins)+seg* (self.cosine_bins)+cos
+		if self.segment_bins==0 and self.cosine_bins==0:
+			assert(seg  == self.segment_bins)
+			assert(cos  == self.cosine_bins)
+		else:
+			assert(seg  < self.segment_bins)
+			assert(cos  < self.cosine_bins)
+		dex = obj* (self.segment_bins*self.cosine_bins)+seg* (self.cosine_bins)+cos
 		return dex
+
 
 	def _process_vals(self):
 		# calculate based on binning
 		total_bins = self.object_bins*(self.segment_bins*self.cosine_bins)  ## update for user/multiplier
+		if self.segment_bins==0 and self.cosine_bins==0:
+			total_bins = self.object_bins
 
 		# check based on e vec length
 		total_bins_e = len(self.vals)/(2*(len(self.energies)+1))
@@ -80,7 +92,10 @@ class tally:
 			print "...... %d non-energy bins in tally" % (self.total_bins)
 
 		# make full vector of cosine edges
-		self.cosines.insert(0,-1.0)
+		if self.cosine_bins==0:
+			self.cosines=[-1.0,1.0]
+		else:
+			self.cosines.insert(0,-1.0)
 
 		# make ful vector of energy edges
 		self.energies.insert(0,0.0)
@@ -90,8 +105,14 @@ class tally:
 		# indexing only for segment and cosine bins now, add others once I understand what they mean
 		new_vals = []
 		n = 0
-		for s in range(self.segment_bins):
-			for c in range(self.cosine_bins):
+		if self.segment_bins==0 and self.cosine_bins==0:
+			num_seg=1
+			num_cos=1
+		else:
+			num_seg=self.segment_bins
+			num_cos=self.cosine_bins
+		for s in range(num_seg):
+			for c in range(num_cos):
 				if self.verbose:
 					print "...... parsing segment %d cosine bin %d " % (s,c)
 				these_vals 					= {}
@@ -107,29 +128,74 @@ class tally:
 		self.vals = new_vals 
 
 
-	def plot(self,obj=0,cos=0,seg=0,lethargy=0):
+	def plot(self,ax_in=0,obj=0,cos=0,seg=0,lethargy=0,options=[]):
 		import numpy as np
 		import pylab as pl
 
-		fig = pl.figure(figsize=(10,6))
-		ax = fig.add_subplot(1,1,1)
+		### init axes if not passed one
+		if ax_in == 0:
+			fig = pl.figure(figsize=(10,6))
+			ax = fig.add_subplot(1,1,1)
+		else:
+			ax=ax_in
 
-		dex  		= self._hash(obj=obj,cos=cos,seg=seg)
-		tally 		= self.vals[dex]['data'][:-1]
-		err 		= self.vals[dex]['err'][:-1]
-		bins 		= self.energies[:-1]
-		widths 	 	= np.diff(bins)
-		avg 		= np.divide(np.array(bins[:-1])+np.array(bins[1:]),2.0)
-		tally_norm  = np.divide(tally,widths)
-		if lethargy:
-			tally_norm=np.multiply(tally_norm,avg)
+		### deal with data to be plotted
+		if 'all' in options:
+			plot_objects	= range(self.object_bins)
+			if self.segment_bins==0 and self.cosine_bins==0:
+				plot_segments 	= [0]
+				plot_cosines 	= [0]
+			else:
+				plot_segments	= range(self.segment_bins)
+				plot_cosines	= range(self.cosine_bins)
+		else:
+			plot_objects	= [obj]
+			plot_segments	= [seg]
+			plot_cosines	= [cos]
 
-		self._make_steps(ax,bins,tally_norm,options=['wavelength'])
-		ax.set_ylabel('tally / bin width')
-		ax.set_title('tally %d segment %d cosine %6.4E to %6.4E'%(self.name,seg,self.vals[dex]['cosine_bin'][0],self.vals[dex]['cosine_bin'][1]))
-		if lethargy:
-			ax.set_ylabel('tally / bin width unit lethargy')
-		#ax.set_xlim([1e-11,20])
+		### deal with options
+		if 'wavelength' in options:
+			plot_options=['wavelength']
+		else:
+			plot_options=[]
+
+		### go through selected objets and plot them
+		for o in plot_objects:
+			for s in plot_segments:
+				for c in plot_cosines:
+					dex  		= self._hash(obj=o,cos=c,seg=s)
+					tally 		= self.vals[dex]['data'][:-1]
+					err 		= self.vals[dex]['err'][:-1]
+					bins 		= self.energies[:-1]
+					widths 	 	= np.diff(bins)
+					avg 		= np.divide(np.array(bins[:-1])+np.array(bins[1:]),2.0)
+					if 'normed' in options:
+						tally_norm  = np.divide(tally,widths)
+						if 'lethargy' in options:
+							tally_norm=np.multiply(tally_norm,avg)
+					else:
+						tally_norm = tally
+					self._make_steps(ax,bins,tally_norm,options=plot_options,label='Obj %d seg %d cos %4.2E - %4.2E' % (o,s,self.cosines[c],self.cosines[c+1]))
+
+		### labeling
+		if 'normed' in options:
+			ax.set_ylabel('tally / bin width')
+			if 'lethargy' in options:
+				ax.set_ylabel('tally / bin width / unit lethargy')
+		else:
+			ax.set_ylabel('tally')
+
+		### title and legend
+		if 'all' in options:
+			ax.set_title('Tally %d: all objects, segments, and cosine bins'%self.name)
+			handles, labels = ax.get_legend_handles_labels()
+			print handles,labels
+			ax.legend(handles,labels,loc=1)
+		else:
+			ax.set_title('Tally %d:  object %d segment %d cosine %4.2E - %4.2E' % (self.name,obj,seg,self.cosines[c],self.cosines[c+1]) )
+
+
+		### show
 		ax.grid(True)
 		pl.show()
 
@@ -289,31 +355,3 @@ class mctal:
 
 		if self.verbose:
 			print "... done."
-
-
-def plot_spectra(tally_o,obj=0,cos=0,seg=0,lethargy=0):
-	### general plotting routine given a general number of tally objects
-	import numpy as np
-	import pylab as pl
-
-	fig = pl.figure(figsize=(10,6))
-	ax = fig.add_subplot(1,1,1)
-
-	dex  		= tally_o._hash(obj=obj,cos=cos,seg=seg)
-	tally 		= tally_o.vals[dex]['data'][:-1]
-	err 		= tally_o.vals[dex]['err']
-	bins 		= tally_o.energies[:-1]
-	widths 	 	= np.diff(bins)
-	avg 		= np.divide(bins[:-1]+bins[1:],2.0)
-	tally_norm  = np.divide(tally,widths)
-	if lethargy:
-		tally_norm=np.multiply(tally_norm,avg)
-
-	ax.semilogx(bins[1:],tally_norm,linestyle='steps-post',color='b')
-	ax.set_xlabel('energy (MeV)')
-	ax.set_ylabel('tally / bin width')
-	if lethargy:
-		ax.set_ylabel('tally / bin width unit lethargy')
-	ax.set_xlim([1e-11,20])
-	ax.grid(True)
-	pl.show()
