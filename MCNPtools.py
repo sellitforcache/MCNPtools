@@ -128,16 +128,16 @@ class tally:
 		self.vals = new_vals 
 
 
-	def plot(self,ax_in=0,obj=0,cos=0,seg=0,lethargy=0,options=[]):
+	def plot(self,ax_in=None,obj=[0],cos=[0],seg=[0],options=[]):
 		import numpy as np
 		import pylab as pl
 
 		### init axes if not passed one
-		if ax_in == 0:
+		if ax_in:
+			ax=ax_in
+		else:
 			fig = pl.figure(figsize=(10,6))
 			ax = fig.add_subplot(1,1,1)
-		else:
-			ax=ax_in
 
 		### deal with data to be plotted
 		if 'all' in options:
@@ -149,9 +149,9 @@ class tally:
 				plot_segments	= range(self.segment_bins)
 				plot_cosines	= range(self.cosine_bins)
 		else:
-			plot_objects	= [obj]
-			plot_segments	= [seg]
-			plot_cosines	= [cos]
+			plot_objects	= obj
+			plot_segments	= seg
+			plot_cosines	= cos
 
 		### deal with options
 		if 'wavelength' in options:
@@ -186,14 +186,10 @@ class tally:
 			ax.set_ylabel('tally')
 
 		### title and legend
-		if 'all' in options:
-			ax.set_title('Tally %d: all objects, segments, and cosine bins'%self.name)
-			handles, labels = ax.get_legend_handles_labels()
-			print handles,labels
-			ax.legend(handles,labels,loc=1)
-		else:
-			ax.set_title('Tally %d:  object %d segment %d cosine %4.2E - %4.2E' % (self.name,obj,seg,self.cosines[c],self.cosines[c+1]) )
-
+		ax.set_title('Tally %d'%self.name)
+		handles, labels = ax.get_legend_handles_labels()
+		print handles,labels
+		ax.legend(handles,labels,loc=1)
 
 		### show
 		ax.grid(True)
