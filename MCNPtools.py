@@ -302,8 +302,10 @@ class mctal:
 		self.tallies 	= {} 		# dictionary of tally objects
 		self.verbose 	= verbose 	# flag if prints are done
 		self.tex		= tex 		# flag is TeX is used to render plot text
-		if filepath: 				# read in file if specified at instantiation
-			self.read_mctal(filepath)
+		self.filepath 	= filepath  # path the mctal file
+		self.picklepath = None 		# path for pickling
+		if self.filepath: 				# read in file if specified at instantiation
+			self.read_mctal(self.filepath)
 	
 	def read_mctal(self,filepath):
 
@@ -399,3 +401,70 @@ class mctal:
 
 		if self.verbose:
 			print "... done."
+
+	def save(self,filepath=None):
+		import cPickle
+
+		if filepath:
+			self.picklepath = filepath
+		elif self.picklepath:
+			filepath = self.picklepath
+		else:
+			print "NOPE.  Filepath for pickle IO not specified"
+			return 
+
+		if self.verbose:
+			print "Saving mctal object to: "+filepath
+		file_out = open(filepath,'wb')
+		cPickle.dump(self,file_out)
+		file_out.close()
+
+	def load(self,filepath=None,force=False):
+		import cPickle
+		import copy
+
+		if filepath:
+			self.picklepath = filepath
+		elif self.picklepath:
+			filepath = self.picklepath
+		else:
+			print "NOPE.  Filepath for pickle IO  not specified"
+			return
+
+		file_in = open(filepath,'rb') 
+
+		if force:
+			self = cPickle.load(file_in)
+		else:
+			print "Are you sure you want to overwrite this mctal object with that in '"+filepath+"'?"
+			response = raw_input()
+			if response[0] == 'y' or response[0] == 'Y':
+				print "Overwriting."
+				a = cPickle.load(file_in)  ### is a autonatically cleared since there are no references to it when this function returns?
+				self.__dict__.update(a.__dict__)
+			else:
+				print "Load aborted."
+
+		file_in.close()
+
+def load_mctal_obj(filepath):
+	import cPickle
+
+	file_in = open(filepath,'rb') 
+	a = cPickle.load(file_in)
+	a.picklepath = filepath
+	file_in.close()
+
+	return a
+
+def save_mctal_obj(obj,filepath):
+	import cPickle
+
+	### type check
+	if isinstance(obj,mctal):
+		file_out = open(filepath,'wb') 
+		cPickle.dump(obj,file_out)
+		file_out.close()
+
+	print "Saved mctal object with the title '"+obj.title+"'' to: '"+filepath+"'"
+
