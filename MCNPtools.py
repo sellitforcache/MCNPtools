@@ -404,6 +404,7 @@ class mctal:
 
 	def save(self,filepath=None):
 		import cPickle
+		import os
 
 		if filepath:
 			self.picklepath = filepath
@@ -413,15 +414,19 @@ class mctal:
 			print "NOPE.  Filepath for pickle IO not specified"
 			return 
 
+		if filepath.lstrip()[0]!='/':   #assume relative path if first non-white character isn't /
+			filepath = os.getcwd()+'/'+filepath 
+			self.picklepath = filepath
+
 		if self.verbose:
-			print "Saving mctal object to: "+filepath
+			print "Saving mctal object to: '"+filepath+"'"
 		file_out = open(filepath,'wb')
 		cPickle.dump(self,file_out)
 		file_out.close()
 
 	def load(self,filepath=None,force=False):
 		import cPickle
-		import copy
+		import os
 
 		if filepath:
 			self.picklepath = filepath
@@ -430,6 +435,10 @@ class mctal:
 		else:
 			print "NOPE.  Filepath for pickle IO  not specified"
 			return
+
+		if filepath.lstrip()[0]!='/':   #assume relative path if first non-white character isn't /
+			filepath = os.getcwd()+'/'+filepath 
+			self.picklepath = filepath
 
 		file_in = open(filepath,'rb') 
 
@@ -449,6 +458,11 @@ class mctal:
 
 def load_mctal_obj(filepath):
 	import cPickle
+	import os
+
+	if filepath.lstrip()[0]!='/':   #assume relative path if first non-white character isn't /
+		filepath = os.getcwd()+'/'+filepath 
+		self.picklepath = filepath
 
 	file_in = open(filepath,'rb') 
 	a = cPickle.load(file_in)
@@ -459,6 +473,11 @@ def load_mctal_obj(filepath):
 
 def save_mctal_obj(obj,filepath):
 	import cPickle
+	import os
+
+	if filepath.lstrip()[0]!='/':   #assume relative path if first non-white character isn't /
+		filepath = os.getcwd()+'/'+filepath 
+		self.picklepath = filepath
 
 	### type check
 	if isinstance(obj,mctal):
