@@ -56,7 +56,7 @@ class tally:
 		  6 : ['photon, electron'		  ,'pe' ],
 		  7 : ['neutron, photon, electron','npe']}
 
-	def __init__(self,verbose=0):
+	def __init__(self,verbose=False,tex=False):
 		self.name 				= 0    # tally name number
 		self.particle_type 		= 0    # i>0 particle type, i<0 i=number of particle type, list following
 		self.detector_type		= 0    # j=type of detector tally (0=none)
@@ -79,6 +79,7 @@ class tally:
 		self.tfc 				= [0,0,0,0,0,0,0,0,0]
 		self.tfc_data 			= []
 		self.verbose 			= verbose
+		self.tex				= tex
 
 	def what_particles(self):
 			ret_string=''
@@ -90,7 +91,6 @@ class tally:
 				### explicit list, collect results
 				for x in range(len(self.particle_list)):
 					if self.particle_list[x] != 0:
-						print x,self.particle_list[x]
 						ret_string = ret_string + self.particles[(x+1)*self.particle_list[x]][0]   ### the multiplication is ti switch the sign if anti-particle and then the dictionary will know!
 			return  ret_string
 
@@ -124,10 +124,16 @@ class tally:
 
 		if 'lin' in options:
 			ax.plot(x,y,label=label)
-			ax.set_xlabel('Wavelength (A)')
+			if self.tex:
+				ax.set_xlabel(r'Wavelength (\AA)')
+			else:
+				ax.set_xlabel('Wavelength (A)')
 		else:   #default to log if lin not present
 			ax.semilogx(x,y,label=label)
-			ax.set_xlabel('Energy (MeV)')
+			if self.tex:
+				ax.set_xlabel(r'Energy (MeV)')
+			else:
+				ax.set_xlabel('Energy (MeV)')
 
 
 	def _hash(self,obj=0,user=0,seg=0,mult=0,cos=0):
@@ -195,19 +201,28 @@ class tally:
 		self.vals = new_vals 
 
 
-	def plot(self,ax_in=None,obj=[0],cos=[0],seg=[0],options=[]):
+	def plot(self,all=False,ax_in=None,obj=[0],cos=[0],seg=[0],options=[]):
 		import numpy as np
 		import pylab as pl
+		import matplotlib.pyplot as plt
+
+		### I don't care the I'm overriding the built-in 'all' within this method
+		
+		### set TeX
+		if self.tex:
+			plt.rc('text', usetex=True)
+			plt.rc('font', family='serif')
+			plt.rc('font', size=16)
 
 		### init axes if not passed one
 		if ax_in:
 			ax=ax_in
 		else:
-			fig = pl.figure(figsize=(10,6))
+			fig = plt.figure(figsize=(10,6))
 			ax = fig.add_subplot(1,1,1)
 
 		### deal with data to be plotted
-		if 'all' in options:
+		if all:
 			plot_objects	= range(self.object_bins)
 			if self.segment_bins==0 and self.cosine_bins==0:
 				plot_segments 	= [0]
@@ -242,20 +257,19 @@ class tally:
 							tally_norm=np.multiply(tally_norm,avg)
 					else:
 						tally_norm = tally
-					self._make_steps(ax,bins,tally_norm,options=plot_options,label='Obj %d seg %d cos %4.2E - %4.2E' % (o,s,self.cosines[c],self.cosines[c+1]))
+					self._make_steps(ax,bins,tally_norm,options=plot_options,label='Obj %d seg %d cos [%4.2E, %4.2E]' % (o,s,self.cosines[c],self.cosines[c+1]))
 
 		### labeling
 		if 'normed' in options:
-			ax.set_ylabel('tally / bin width')
+			ax.set_ylabel('Tally / bin width')
 			if 'lethargy' in options:
-				ax.set_ylabel('tally / bin width / unit lethargy')
+				ax.set_ylabel('Tally / bin width / unit lethargy')
 		else:
-			ax.set_ylabel('tally')
+			ax.set_ylabel('Tally')
 
 		### title and legend
 		ax.set_title('Tally %d: %s'% (self.name,self.what_particles()))
 		handles, labels = ax.get_legend_handles_labels()
-		print handles,labels
 		ax.legend(handles,labels,loc=1)
 
 		### show
@@ -265,24 +279,25 @@ class tally:
 
 class mctal:
 	
-	def __init__(self, filepath=None):
+	def __init__(self, filepath=None, verbose=False, tex=False):
 		### mctal header data
-		self.kod 		= '' # the name of the code, MCNPX.
-		self.ver 		= '' # the version, 2.7.0.
-		self.probid 	= '' # the date and time when the problem was run and, if it is available, the designator of the machine that was used.
-		self.knod 		= 0  # the dump number.
-		self.nps 		= 0  # the number of histories that were run.
-		self.rnr 		= 0  # the number of pseudorandom numbers that were used.
-		self.title 		= '' # the input title card
-		self.ntal 		= 0  # number of tallies
-		self.tally_n 	= [] # list of tally name numbers
-		self.npert 		= 0  # number of perturbations
-		self.tallies 	= {} # dictionary of tally objects
-		self.verbose 	= 0  # flag if prints are done
-		if filepath:
-			self.read_mctal_file(filepath)
+		self.kod 		= '' 		# the name of the code, MCNPX.
+		self.ver 		= '' 		# the version, 2.7.0.
+		self.probid 	= '' 		# the date and time when the problem was run and, if it is available, the designator of the machine that was used.
+		self.knod 		= 0  		# the dump number.
+		self.nps 		= 0  		# the number of histories that were run.
+		self.rnr 		= 0  		# the number of pseudorandom numbers that were used.
+		self.title 		= '' 		# the input title card
+		self.ntal 		= 0  		# number of tallies
+		self.tally_n 	= [] 		# list of tally name numbers
+		self.npert 		= 0  		# number of perturbations
+		self.tallies 	= {} 		# dictionary of tally objects
+		self.verbose 	= verbose 	# flag if prints are done
+		self.tex		= tex 		# flag is TeX is used to render plot text
+		if filepath: 				# read in file if specified at instantiation
+			self.read_mctal(filepath)
 	
-	def read_mctal_file(self,filepath):
+	def read_mctal(self,filepath):
 
 		def read_array(lines,obj,n,mode='float'):
 			while len(lines[n])>0 and lines[n][0]==' ':
@@ -325,7 +340,7 @@ class mctal:
 			if self.verbose:
 				print "... reading tally "+str(k)
 			# init tally object
-			self.tallies[k] = tally(verbose=self.verbose)
+			self.tallies[k] = tally(verbose=self.verbose,tex=self.tex)
 			# get header data, assert things
 			t1 = lines[n].split()
 			n = n+1
