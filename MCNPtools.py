@@ -4,6 +4,7 @@
 
 class tally:
 	### static mappings, shared by all
+	###  MCNPX particle encodings
 	particles={
 		 1 	: ['neutron' 				, 'n' ],
 		-1 	: ['anti-neutron' 			, '-n'],
@@ -207,6 +208,13 @@ class tally:
 		import matplotlib.pyplot as plt
 
 		### I don't care the I'm overriding the built-in 'all' within this method
+
+		### make consistency checks
+		if 'lethargy' in options:
+			if 'normed' in options:
+				pass
+			else:
+				options.append('normed')
 		
 		### set TeX
 		if self.tex:
@@ -246,7 +254,7 @@ class tally:
 			for s in plot_segments:
 				for c in plot_cosines:
 					dex  		= self._hash(obj=o,cos=c,seg=s)
-					tally 		= self.vals[dex]['data'][:-1]
+					tally 		= self.vals[dex]['data'][:-1]  # clip off totals from ends
 					err 		= self.vals[dex]['err'][:-1]
 					bins 		= self.energies[:-1]
 					widths 	 	= np.diff(bins)
@@ -257,7 +265,7 @@ class tally:
 							tally_norm=np.multiply(tally_norm,avg)
 					else:
 						tally_norm = tally
-					self._make_steps(ax,bins,tally_norm,options=plot_options,label='Obj %d seg %d cos [%4.2E, %4.2E]' % (o,s,self.cosines[c],self.cosines[c+1]))
+					self._make_steps(ax,bins,tally_norm,options=plot_options,label='Obj %d seg %d cos [%4.2e, %4.2e]' % (o,s,self.cosines[c],self.cosines[c+1]))
 
 		### labeling
 		if 'normed' in options:
@@ -270,7 +278,7 @@ class tally:
 		### title and legend
 		ax.set_title('Tally %d: %s'% (self.name,self.what_particles()))
 		handles, labels = ax.get_legend_handles_labels()
-		ax.legend(handles,labels,loc=1)
+		ax.legend(handles,labels,loc=1,prop={'size':12})
 
 		### show
 		ax.grid(True)
