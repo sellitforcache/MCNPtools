@@ -195,7 +195,7 @@ class tally:
 						if self.multiplier_flag:
 							these_vals['multiplier']= m
 						else:
-							these_vals['multiplier']= 'not multiplied'
+							these_vals['multiplier']= False
 						these_vals['segment'] 		= s
 						these_vals['cosine_bin']	= [self.cosines[c],self.cosines[c+1]]
 						these_vals['user_bin'] 		= self.user_bins       # replace once understood
@@ -259,6 +259,10 @@ class tally:
 						dex  		= self._hash(obj=o,cos=c,seg=s,mul=m)
 						tally 		= self.vals[dex]['data'][:-1]  # clip off totals from ends
 						err 		= self.vals[dex]['err'][:-1]
+						if len(tally) < 2:
+							print "tally has length 1 values, aborting."
+							pl.close(fig)
+							return
 						bins 		= self.energies[:-1]
 						widths 	 	= np.diff(bins)
 						avg 		= np.divide(np.array(bins[:-1])+np.array(bins[1:]),2.0)
@@ -268,7 +272,7 @@ class tally:
 								tally_norm=np.multiply(tally_norm,avg)
 						else:
 							tally_norm = tally
-						self._make_steps(ax,bins,tally_norm,options=plot_options,label='Obj %d seg %d cos [%4.2e, %4.2e]' % (o,s,self.cosines[c],self.cosines[c+1]))
+						self._make_steps(ax,bins,tally_norm,options=plot_options,label='Obj %d seg %d cos [%4.2e, %4.2e]' % (self.objects[o],s,self.cosines[c],self.cosines[c+1]))
 
 		### labeling
 		if 'normed' in options:
