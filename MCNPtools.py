@@ -283,7 +283,7 @@ class tally:
 			ax.set_ylabel('Tally')
 
 		### title and legend
-		ax.set_title('Tally %d: %s'% (self.name,self.what_particles()))
+		ax.set_title('Tally %d: %s \n %s'% (self.name,self.what_particles(),self.comment))
 		handles, labels = ax.get_legend_handles_labels()
 		ax.legend(handles,labels,loc=1,prop={'size':12})
 
