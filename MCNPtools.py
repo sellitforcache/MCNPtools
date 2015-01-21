@@ -69,6 +69,7 @@ class tally:
 		self.user_bins 			= 0
 		self.segment_bins 		= 0
 		self.multiplier_bins 	= 0 
+		self.multiplier_flag 	= True
 		self.cosine_bins 		= 0
 		self.cosines 			= []
 		self.energy_bins 		= 0
@@ -137,24 +138,19 @@ class tally:
 				ax.set_xlabel('Energy (MeV)')
 
 
-	def _hash(self,obj=0,user=0,seg=0,mult=0,cos=0):
+	def _hash(self,obj=0,user=0,seg=0,mul=0,cos=0):
 		# update once multiplier and user are understood
 		assert(obj  < self.object_bins)
-		if self.segment_bins==0 and self.cosine_bins==0:
-			assert(seg  == self.segment_bins)
-			assert(cos  == self.cosine_bins)
-		else:
-			assert(seg  < self.segment_bins)
-			assert(cos  < self.cosine_bins)
-		dex = obj* (self.segment_bins*self.cosine_bins)+seg* (self.cosine_bins)+cos
+		assert(seg  < self.segment_bins)
+		assert(cos  < self.cosine_bins)
+		assert(mul  < self.multiplier_bins)
+		dex = obj*(self.segment_bins*self.cosine_bins*self.multiplier_bins)+ seg*(self.cosine_bins*self.multiplier_bins)+ mul*(self.cosine_bins) + cos
 		return dex
 
 
 	def _process_vals(self):
 		# calculate based on binning
-		total_bins = self.object_bins*(self.segment_bins*self.cosine_bins)  ## update for user/multiplier
-		if self.segment_bins==0 and self.cosine_bins==0:
-			total_bins = self.object_bins
+		total_bins = self.object_bins*(self.multiplier_bins*self.segment_bins*self.cosine_bins)  ## update for user/multiplier
 
 		# check based on e vec length
 		total_bins_e = len(self.vals)/(2*(len(self.energies)+1))
@@ -166,7 +162,7 @@ class tally:
 			print "...... %d non-energy bins in tally" % (self.total_bins)
 
 		# make full vector of cosine edges
-		if self.cosine_bins==0:
+		if self.cosine_bins==1:
 			self.cosines=[-1.0,1.0]
 		else:
 			self.cosines.insert(0,-1.0)
@@ -179,30 +175,38 @@ class tally:
 		# indexing only for segment and cosine bins now, add others once I understand what they mean
 		new_vals = []
 		n = 0
-		if self.segment_bins==0 and self.cosine_bins==0:
-			num_seg=1
-			num_cos=1
-		else:
-			num_seg=self.segment_bins
-			num_cos=self.cosine_bins
-		for s in range(num_seg):
-			for c in range(num_cos):
-				if self.verbose:
-					print "...... parsing segment %d cosine bin %d " % (s,c)
-				these_vals 					= {}
-				subset 						= self.vals[n*(self.energy_bins*2):(n+1)*(self.energy_bins*2)]
-				these_vals['segment'] 		= s
-				these_vals['cosine_bin']	= [self.cosines[c],self.cosines[c+1]]
-				these_vals['multiplier_bin']= self.multiplier_bins # replace once understood
-				these_vals['user_bin'] 		= self.user_bins       # replace once understood
-				these_vals['data'] 			= subset[0::2]
-				these_vals['err'] 			= subset[1::2]
-				new_vals.append(these_vals)
-				n = n+1
+		num_seg=self.segment_bins
+		num_cos=self.cosine_bins
+		num_obj=self.object_bins
+		num_mul=self.multiplier_bins
+
+		for o in range(num_obj):
+			for s in range(num_seg):
+				for m in range(num_mul):
+					for c in range(num_cos):
+						if self.verbose:
+							if self.multiplier_flag:
+								print "...... parsing object %d (%d) segment %d multiplier %d cosine bin %d " % (o,self.objects[o],s,m,c)
+							else:
+								print "...... parsing object %d (%d) segment %d cosine bin %d " % (o,self.objects[o],s,c)
+						these_vals 					= {}
+						subset 						= self.vals[n*(self.energy_bins*2):(n+1)*(self.energy_bins*2)]
+						these_vals['object']		= o
+						if self.multiplier_flag:
+							these_vals['multiplier']= m
+						else:
+							these_vals['multiplier']= 'not multiplied'
+						these_vals['segment'] 		= s
+						these_vals['cosine_bin']	= [self.cosines[c],self.cosines[c+1]]
+						these_vals['user_bin'] 		= self.user_bins       # replace once understood
+						these_vals['data'] 			= subset[0::2]
+						these_vals['err'] 			= subset[1::2]
+						new_vals.append(these_vals)
+						n = n+1
 		self.vals = new_vals 
 
 
-	def plot(self,all=False,ax_in=None,obj=[0],cos=[0],seg=[0],options=[]):
+	def plot(self,all=False,ax_in=None,obj=[0],cos=[0],seg=[0],mul=[0],options=[]):
 		import numpy as np
 		import pylab as pl
 		import matplotlib.pyplot as plt
@@ -232,16 +236,14 @@ class tally:
 		### deal with data to be plotted
 		if all:
 			plot_objects	= range(self.object_bins)
-			if self.segment_bins==0 and self.cosine_bins==0:
-				plot_segments 	= [0]
-				plot_cosines 	= [0]
-			else:
-				plot_segments	= range(self.segment_bins)
-				plot_cosines	= range(self.cosine_bins)
+			plot_segments	= range(self.segment_bins)
+			plot_cosines	= range(self.cosine_bins)
+			plot_multipliers= range(self.multiplier_bins)
 		else:
 			plot_objects	= obj
 			plot_segments	= seg
 			plot_cosines	= cos
+			plot_multipliers= mult
 
 		### deal with options
 		if 'wavelength' in options:
@@ -252,20 +254,21 @@ class tally:
 		### go through selected objets and plot them
 		for o in plot_objects:
 			for s in plot_segments:
-				for c in plot_cosines:
-					dex  		= self._hash(obj=o,cos=c,seg=s)
-					tally 		= self.vals[dex]['data'][:-1]  # clip off totals from ends
-					err 		= self.vals[dex]['err'][:-1]
-					bins 		= self.energies[:-1]
-					widths 	 	= np.diff(bins)
-					avg 		= np.divide(np.array(bins[:-1])+np.array(bins[1:]),2.0)
-					if 'normed' in options:
-						tally_norm  = np.divide(tally,widths)
-						if 'lethargy' in options:
-							tally_norm=np.multiply(tally_norm,avg)
-					else:
-						tally_norm = tally
-					self._make_steps(ax,bins,tally_norm,options=plot_options,label='Obj %d seg %d cos [%4.2e, %4.2e]' % (o,s,self.cosines[c],self.cosines[c+1]))
+				for m in plot_multipliers:
+					for c in plot_cosines:
+						dex  		= self._hash(obj=o,cos=c,seg=s,mul=m)
+						tally 		= self.vals[dex]['data'][:-1]  # clip off totals from ends
+						err 		= self.vals[dex]['err'][:-1]
+						bins 		= self.energies[:-1]
+						widths 	 	= np.diff(bins)
+						avg 		= np.divide(np.array(bins[:-1])+np.array(bins[1:]),2.0)
+						if 'normed' in options:
+							tally_norm  = np.divide(tally,widths)
+							if 'lethargy' in options:
+								tally_norm=np.multiply(tally_norm,avg)
+						else:
+							tally_norm = tally
+						self._make_steps(ax,bins,tally_norm,options=plot_options,label='Obj %d seg %d cos [%4.2e, %4.2e]' % (o,s,self.cosines[c],self.cosines[c+1]))
 
 		### labeling
 		if 'normed' in options:
@@ -377,18 +380,29 @@ class mctal:
 			self.tallies[k].segment_bins 			= int(lines[n+2].split()[1])
 			self.tallies[k].multiplier_bins 		= int(lines[n+3].split()[1])
 			n = n+4
+			if self.tallies[k].multiplier_bins == 0: # make 1-indexing, but flag to keep information that this tally is NOT multiplied
+				self.tallies[k].multiplier_bins = 1
+				self.tallies[k].multiplier_flag = False
+			if self.tallies[k].segment_bins == 0: # make 1-indexing, since if there is 1 bin, this number is 0, and if there are two, this number is 2!
+				self.tallies[k].segment_bins = 1
 			#  read cosine dbins
 			self.tallies[k].cosine_bins 			= int(lines[n].split()[1])
 			n = n+1
 			n = read_array(lines,self.tallies[k].cosines,n)
+			if self.tallies[k].cosine_bins == 0:
+				self.tallies[k].cosine_bins = 1
 			#  read energy bins
 			self.tallies[k].energy_bins 			= int(lines[n].split()[1])
 			n = n+1
 			n = read_array(lines,self.tallies[k].energies,n)
+			if self.tallies[k].energy_bins == 0:
+				self.tallies[k].energy_bins = 1
 			#  read time bins
 			self.tallies[k].time_bins 				= int(lines[n].split()[1])
 			n = n+1
 			n = read_array(lines,self.tallies[k].times,n)
+			if self.tallies[k].time_bins == 0:
+				self.tallies[k].time_bins = 1
 			#  read tally data
 			n = n+1 #vals has no numbers following it
 			n = read_array(lines,self.tallies[k].vals,n)
@@ -443,7 +457,8 @@ class mctal:
 		file_in = open(filepath,'rb') 
 
 		if force:
-			self = cPickle.load(file_in)
+			a = cPickle.load(file_in)
+			self.__dict__.update(a.__dict__)
 		else:
 			print "Are you sure you want to overwrite this mctal object with that in '"+filepath+"'?"
 			response = raw_input()
@@ -468,6 +483,8 @@ def load_mctal_obj(filepath):
 	a = cPickle.load(file_in)
 	a.picklepath = filepath
 	file_in.close()
+
+	print "Loaded mctal object from '"+filepath+"'"
 
 	return a
 
