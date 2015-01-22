@@ -164,7 +164,7 @@ class tally:
 				ax.set_xlabel('Energy (MeV)')
 
 
-	def plot(self,all=False,ax_in=None,obj=[0],cos=[0],seg=[0],mul=[0],options=[]):
+	def plot(self,all=False,ax=None,obj=[0],cos=[0],seg=[0],mul=[0],options=[],prepend_label=False):
 		import numpy as np
 		import pylab as pl
 		import matplotlib.pyplot as plt
@@ -185,11 +185,12 @@ class tally:
 			plt.rc('font', size=16)
 
 		### init axes if not passed one
-		if ax_in:
-			ax=ax_in
+		if ax:
+			show = False
 		else:
+			show = True
 			fig = plt.figure(figsize=(10,6))
-			ax = fig.add_subplot(1,1,1)
+			ax  = fig.add_subplot(1,1,1)
 
 		### deal with data to be plotted
 		if all:
@@ -224,7 +225,11 @@ class tally:
 								tally_norm=np.multiply(tally_norm,avg)
 						else:
 							tally_norm = tally
-						self._make_steps(ax,bins,avg,tally_norm,err,options=options,label='Obj %2d (%4d) seg %d cos [%4.2e, %4.2e]' % (o,self.objects[o],s,self.cosines[c],self.cosines[c+1]))
+						if prepend_label:
+							label = prepend_label+r' obj %2d (%4d) seg %d cos [%4.2e, %4.2e]' % (o,self.objects[o],s,self.cosines[c],self.cosines[c+1])
+						else:
+							label = r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e]' % (o,self.objects[o],s,self.cosines[c],self.cosines[c+1])
+						self._make_steps(ax,bins,avg,tally_norm,err,options=options,label=label)
 
 		### labeling
 		if 'normed' in options:
@@ -234,14 +239,13 @@ class tally:
 		else:
 			ax.set_ylabel(r'Tally')
 
-		### title and legend
-		ax.set_title(r'Tally %d: %s'% (self.name,self.what_particles())+'\n'+r'%s'%self.comment)
-		handles, labels = ax.get_legend_handles_labels()
-		ax.legend(handles,labels,loc=1,prop={'size':12})
-
-		### show
-		ax.grid(True)
-		pl.show()
+		### title legend grid, show if self-made
+		if show:
+			ax.set_title(r'Tally %d: %s'% (self.name,self.what_particles())+'\n'+r'%s'%self.comment)
+			handles, labels = ax.get_legend_handles_labels()
+			ax.legend(handles,labels,loc=1,prop={'size':12})
+			ax.grid(True)
+			pl.show()
 
 
 	def _process_vals(self):
@@ -431,8 +435,7 @@ class mctal:
 			print "... done."
 
 	def save(self,filepath=None):
-		import cPickle
-		import os
+		import cPickle, os
 
 		if filepath:
 			self.picklepath = filepath
@@ -453,8 +456,7 @@ class mctal:
 		file_out.close()
 
 	def load(self,filepath=None,force=False):
-		import cPickle
-		import os
+		import cPickle, os
 
 		if filepath:
 			self.picklepath = filepath
@@ -485,13 +487,63 @@ class mctal:
 
 		file_in.close()
 
+	def plot(self,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,options=False):
+		### general plotting
+		import numpy, pylab
+		import matplotlib.pyplot as plt
+
+		### TeX flag
+		if self.tex:
+			plt.rc('text', usetex=True)
+			plt.rc('font', family='serif')
+			plt.rc('font', size=16)
+
+		### options
+		if not options:
+			plot_options=['normed','wavelength','err']
+		else:
+			plot_options=options[:]
+
+		### init axes if not passed one
+		if ax:
+			pass
+		else:
+			fig = plt.figure(figsize=(10,6))
+			ax = fig.add_subplot(1,1,1)
+
+		### deal with a non-specified tally
+		if not tal:
+			tal = [self.tally_n[0]]
+
+		### input logic and plotting
+		if not obj and not cos and not seg and not mul:
+			for t in tal:
+				self.tallies[t].plot(ax=ax,all=True,options=plot_options)
+		else:
+			if not obj:
+				obj = [0]
+			if not cos:
+				cos = [0]
+			if not seg:
+				seg = [0]
+			if not mul:
+				mul = [0]
+			for t in tal:
+				self.tallies[t].plot(ax=ax,obj=obj,seg=seg,mul=mul,cos=cos,options=plot_options,prepend_label='{com:s}\n Tally {a:4d} :'.format(com=self.tallies[t].comment,a=t))
+
+		### show
+		ax.set_title(self.title.strip())
+		handles, labels = ax.get_legend_handles_labels()
+		ax.legend(handles,labels,loc=1,prop={'size':12})
+		ax.grid(True)
+		fig.show()
+
+
 def load_mctal_obj(filepath):
-	import cPickle
-	import os
+	import cPickle, os
 
 	if filepath.lstrip()[0]!='/':   #assume relative path if first non-white character isn't /
 		filepath = os.getcwd()+'/'+filepath 
-		self.picklepath = filepath
 
 	file_in = open(filepath,'rb') 
 	a = cPickle.load(file_in)
@@ -503,18 +555,16 @@ def load_mctal_obj(filepath):
 	return a
 
 def save_mctal_obj(obj,filepath):
-	import cPickle
-	import os
+	import cPickle, os
 
 	if filepath.lstrip()[0]!='/':   #assume relative path if first non-white character isn't /
 		filepath = os.getcwd()+'/'+filepath 
-		self.picklepath = filepath
 
 	### type check
 	if isinstance(obj,mctal):
 		file_out = open(filepath,'wb') 
+		obj.picklepath = filepath
 		cPickle.dump(obj,file_out)
 		file_out.close()
 
 	print "Saved mctal object with the title '"+obj.title+"'' to: '"+filepath+"'"
-
