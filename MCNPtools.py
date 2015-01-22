@@ -244,7 +244,7 @@ class tally:
 		pl.show()
 
 
-		def _process_vals(self):
+	def _process_vals(self):
 		# calculate based on binning
 		total_bins = self.object_bins*(self.multiplier_bins*self.segment_bins*self.cosine_bins)  ## update for user/multiplier
 
