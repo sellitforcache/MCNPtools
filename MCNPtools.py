@@ -96,6 +96,17 @@ class tally:
 						ret_string = ret_string + self.particles[(x+1)*self.particle_list[x]][0]   ### the multiplication is ti switch the sign if anti-particle and then the dictionary will know!
 			return  ret_string
 
+
+	def _hash(self,obj=0,user=0,seg=0,mul=0,cos=0):
+		# update once multiplier and user are understood
+		assert(obj  < self.object_bins)
+		assert(seg  < self.segment_bins)
+		assert(cos  < self.cosine_bins)
+		assert(mul  < self.multiplier_bins)
+		dex = obj*(self.segment_bins*self.cosine_bins*self.multiplier_bins)+ seg*(self.cosine_bins*self.multiplier_bins)+ mul*(self.cosine_bins) + cos
+		return dex
+
+
 	def _make_steps(self,ax,bins_in,avg_in,values_in,err_in,options=['log'],label=''):
 		import numpy
 		assert(len(bins_in)==len(values_in)+1)
@@ -153,18 +164,87 @@ class tally:
 				ax.set_xlabel('Energy (MeV)')
 
 
+	def plot(self,all=False,ax_in=None,obj=[0],cos=[0],seg=[0],mul=[0],options=[]):
+		import numpy as np
+		import pylab as pl
+		import matplotlib.pyplot as plt
 
-	def _hash(self,obj=0,user=0,seg=0,mul=0,cos=0):
-		# update once multiplier and user are understood
-		assert(obj  < self.object_bins)
-		assert(seg  < self.segment_bins)
-		assert(cos  < self.cosine_bins)
-		assert(mul  < self.multiplier_bins)
-		dex = obj*(self.segment_bins*self.cosine_bins*self.multiplier_bins)+ seg*(self.cosine_bins*self.multiplier_bins)+ mul*(self.cosine_bins) + cos
-		return dex
+		### I don't care the I'm overriding the built-in 'all' within this method
+
+		### make consistency checks
+		if 'lethargy' in options:
+			if 'normed' in options:
+				pass
+			else:
+				options.append('normed')
+		
+		### set TeX
+		if self.tex:
+			plt.rc('text', usetex=True)
+			plt.rc('font', family='serif')
+			plt.rc('font', size=16)
+
+		### init axes if not passed one
+		if ax_in:
+			ax=ax_in
+		else:
+			fig = plt.figure(figsize=(10,6))
+			ax = fig.add_subplot(1,1,1)
+
+		### deal with data to be plotted
+		if all:
+			plot_objects	= range(self.object_bins)
+			plot_segments	= range(self.segment_bins)
+			plot_cosines	= range(self.cosine_bins)
+			plot_multipliers= range(self.multiplier_bins)
+		else:
+			plot_objects	= obj
+			plot_segments	= seg
+			plot_cosines	= cos
+			plot_multipliers= mul
+
+		### go through selected objets and plot them
+		for o in plot_objects:
+			for s in plot_segments:
+				for m in plot_multipliers:
+					for c in plot_cosines:
+						dex  		= self._hash(obj=o,cos=c,seg=s,mul=m)
+						tally 		= self.vals[dex]['data'][:-1]  # clip off totals from ends
+						err 		= self.vals[dex]['err'][:-1]
+						if len(tally) < 2:
+							print "tally has length 1 values, aborting."
+							pl.close(fig)
+							return
+						bins 		= self.energies[:-1]
+						widths 	 	= np.diff(bins)
+						avg 		= np.divide(np.array(bins[:-1])+np.array(bins[1:]),2.0)
+						if 'normed' in options:
+							tally_norm  = np.divide(tally,widths)
+							if 'lethargy' in options:
+								tally_norm=np.multiply(tally_norm,avg)
+						else:
+							tally_norm = tally
+						self._make_steps(ax,bins,avg,tally_norm,err,options=options,label='Obj %2d (%4d) seg %d cos [%4.2e, %4.2e]' % (o,self.objects[o],s,self.cosines[c],self.cosines[c+1]))
+
+		### labeling
+		if 'normed' in options:
+			ax.set_ylabel(r'Tally / bin width')
+			if 'lethargy' in options:
+				ax.set_ylabel(r'Tally / bin width / unit lethargy')
+		else:
+			ax.set_ylabel(r'Tally')
+
+		### title and legend
+		ax.set_title(r'Tally %d: %s'% (self.name,self.what_particles())+'\n'+r'%s'%self.comment)
+		handles, labels = ax.get_legend_handles_labels()
+		ax.legend(handles,labels,loc=1,prop={'size':12})
+
+		### show
+		ax.grid(True)
+		pl.show()
 
 
-	def _process_vals(self):
+		def _process_vals(self):
 		# calculate based on binning
 		total_bins = self.object_bins*(self.multiplier_bins*self.segment_bins*self.cosine_bins)  ## update for user/multiplier
 
@@ -220,92 +300,6 @@ class tally:
 						new_vals.append(these_vals)
 						n = n+1
 		self.vals = new_vals 
-
-
-	def plot(self,all=False,ax_in=None,obj=[0],cos=[0],seg=[0],mul=[0],options=[]):
-		import numpy as np
-		import pylab as pl
-		import matplotlib.pyplot as plt
-
-		### I don't care the I'm overriding the built-in 'all' within this method
-
-		### make consistency checks
-		if 'lethargy' in options:
-			if 'normed' in options:
-				pass
-			else:
-				options.append('normed')
-		
-		### set TeX
-		if self.tex:
-			plt.rc('text', usetex=True)
-			plt.rc('font', family='serif')
-			plt.rc('font', size=16)
-
-		### init axes if not passed one
-		if ax_in:
-			ax=ax_in
-		else:
-			fig = plt.figure(figsize=(10,6))
-			ax = fig.add_subplot(1,1,1)
-
-		### deal with data to be plotted
-		if all:
-			plot_objects	= range(self.object_bins)
-			plot_segments	= range(self.segment_bins)
-			plot_cosines	= range(self.cosine_bins)
-			plot_multipliers= range(self.multiplier_bins)
-		else:
-			plot_objects	= obj
-			plot_segments	= seg
-			plot_cosines	= cos
-			plot_multipliers= mul
-
-		### deal with options
-		#if 'wavelength' in options:
-		#	plot_options=['wavelength']
-		#else:
-		#	plot_options=[]
-
-		### go through selected objets and plot them
-		for o in plot_objects:
-			for s in plot_segments:
-				for m in plot_multipliers:
-					for c in plot_cosines:
-						dex  		= self._hash(obj=o,cos=c,seg=s,mul=m)
-						tally 		= self.vals[dex]['data'][:-1]  # clip off totals from ends
-						err 		= self.vals[dex]['err'][:-1]
-						if len(tally) < 2:
-							print "tally has length 1 values, aborting."
-							pl.close(fig)
-							return
-						bins 		= self.energies[:-1]
-						widths 	 	= np.diff(bins)
-						avg 		= np.divide(np.array(bins[:-1])+np.array(bins[1:]),2.0)
-						if 'normed' in options:
-							tally_norm  = np.divide(tally,widths)
-							if 'lethargy' in options:
-								tally_norm=np.multiply(tally_norm,avg)
-						else:
-							tally_norm = tally
-						self._make_steps(ax,bins,avg,tally_norm,err,options=options,label='Obj %d seg %d cos [%4.2e, %4.2e]' % (self.objects[o],s,self.cosines[c],self.cosines[c+1]))
-
-		### labeling
-		if 'normed' in options:
-			ax.set_ylabel(r'Tally / bin width')
-			if 'lethargy' in options:
-				ax.set_ylabel(r'Tally / bin width / unit lethargy')
-		else:
-			ax.set_ylabel(r'Tally')
-
-		### title and legend
-		ax.set_title(r'Tally %d: %s'% (self.name,self.what_particles())+'\n'+r'%s'%self.comment)
-		handles, labels = ax.get_legend_handles_labels()
-		ax.legend(handles,labels,loc=1,prop={'size':12})
-
-		### show
-		ax.grid(True)
-		pl.show()
 
 
 class mctal:
