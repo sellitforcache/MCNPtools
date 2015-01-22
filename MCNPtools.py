@@ -96,14 +96,20 @@ class tally:
 						ret_string = ret_string + self.particles[(x+1)*self.particle_list[x]][0]   ### the multiplication is ti switch the sign if anti-particle and then the dictionary will know!
 			return  ret_string
 
-	def _make_steps(self,ax,bins_in,values_in,options=['log'],label=''):
+	def _make_steps(self,ax,bins_in,avg_in,values_in,err_in,options=['log'],label=''):
 		import numpy
 		assert(len(bins_in)==len(values_in)+1)
 
+		### make copies
 		bins=bins_in[:]
 		values=values_in[:]
+		avg=avg_in[:]
+		err=err_in[:]
+
+		### make wavelength, make linear
 		if 'wavelength' in options:
 			bins=numpy.divide(0.286014369,numpy.sqrt(numpy.array(bins)*1.0e6))
+			avg=numpy.divide(numpy.array(bins[:-1])+numpy.array(bins[1:]),2.0)
 			if 'log' in options:
 				options.remove('log')
 				options.append('lin')
@@ -124,18 +130,28 @@ class tally:
 		x.append(bins[len(values)])
 		y.append(0.0)
 
+		### plot with correct scale
 		if 'lin' in options:
 			ax.plot(x,y,label=label)
+		else:   #default to log if lin not present
+			ax.semilogx(x,y,label=label)
+		
+		### plot errorbars
+		if 'err' in options:
+			ax.errorbar(avg,values,yerr=numpy.multiply(err,values),alpha=0.0,color='r')
+
+		### labels
+		if 'wavelength' in options:
 			if self.tex:
 				ax.set_xlabel(r'Wavelength (\AA)')
 			else:
 				ax.set_xlabel('Wavelength (A)')
-		else:   #default to log if lin not present
-			ax.semilogx(x,y,label=label)
+		else:
 			if self.tex:
 				ax.set_xlabel(r'Energy (MeV)')
 			else:
 				ax.set_xlabel('Energy (MeV)')
+
 
 
 	def _hash(self,obj=0,user=0,seg=0,mul=0,cos=0):
@@ -186,9 +202,9 @@ class tally:
 					for c in range(num_cos):
 						if self.verbose:
 							if self.multiplier_flag:
-								print "...... parsing object %d (%d) segment %d multiplier %d cosine bin %d " % (o,self.objects[o],s,m,c)
+								print "...... parsing object %2d (%4d) segment %2d multiplier %2d cosine bin %2d " % (o,self.objects[o],s,m,c)
 							else:
-								print "...... parsing object %d (%d) segment %d cosine bin %d " % (o,self.objects[o],s,c)
+								print "...... parsing object %2d (%4d) segment %2d cosine bin %2d " % (o,self.objects[o],s,c)
 						these_vals 					= {}
 						subset 						= self.vals[n*(self.energy_bins*2):(n+1)*(self.energy_bins*2)]
 						these_vals['object']		= o
@@ -243,13 +259,13 @@ class tally:
 			plot_objects	= obj
 			plot_segments	= seg
 			plot_cosines	= cos
-			plot_multipliers= mult
+			plot_multipliers= mul
 
 		### deal with options
-		if 'wavelength' in options:
-			plot_options=['wavelength']
-		else:
-			plot_options=[]
+		#if 'wavelength' in options:
+		#	plot_options=['wavelength']
+		#else:
+		#	plot_options=[]
 
 		### go through selected objets and plot them
 		for o in plot_objects:
@@ -272,18 +288,18 @@ class tally:
 								tally_norm=np.multiply(tally_norm,avg)
 						else:
 							tally_norm = tally
-						self._make_steps(ax,bins,tally_norm,options=plot_options,label='Obj %d seg %d cos [%4.2e, %4.2e]' % (self.objects[o],s,self.cosines[c],self.cosines[c+1]))
+						self._make_steps(ax,bins,avg,tally_norm,err,options=options,label='Obj %d seg %d cos [%4.2e, %4.2e]' % (self.objects[o],s,self.cosines[c],self.cosines[c+1]))
 
 		### labeling
 		if 'normed' in options:
-			ax.set_ylabel('Tally / bin width')
+			ax.set_ylabel(r'Tally / bin width')
 			if 'lethargy' in options:
-				ax.set_ylabel('Tally / bin width / unit lethargy')
+				ax.set_ylabel(r'Tally / bin width / unit lethargy')
 		else:
-			ax.set_ylabel('Tally')
+			ax.set_ylabel(r'Tally')
 
 		### title and legend
-		ax.set_title('Tally %d: %s \n %s'% (self.name,self.what_particles(),self.comment))
+		ax.set_title(r'Tally %d: %s'% (self.name,self.what_particles())+'\n'+r'%s'%self.comment)
 		handles, labels = ax.get_legend_handles_labels()
 		ax.legend(handles,labels,loc=1,prop={'size':12})
 
