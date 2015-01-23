@@ -177,6 +177,11 @@ class tally:
 				pass
 			else:
 				options.append('normed')
+
+		if 'wavelength' in options:
+			leg_loc = 2
+		else:
+			leg_loc = 1
 		
 		### set TeX
 		if self.tex:
@@ -216,7 +221,8 @@ class tally:
 						name		= self.vals[dex]['object']
 						if len(tally) < 2:
 							print "tally has length <=1, aborting."
-							pl.close(fig)
+							if show:
+								pl.close(fig)
 							return
 						bins 		= self.energies[:-1]
 						widths 	 	= np.diff(bins)
@@ -249,7 +255,7 @@ class tally:
 		if show:
 			ax.set_title(r'Tally %d: %s'% (self.name,self.what_particles())+'\n'+r'%s'%self.comment)
 			handles, labels = ax.get_legend_handles_labels()
-			ax.legend(handles,labels,loc=1,prop={'size':12})
+			ax.legend(handles,labels,loc=leg_loc,prop={'size':12})
 			ax.grid(True)
 			pl.show()
 
@@ -281,7 +287,7 @@ class tally:
 		# indexing only for segment and cosine bins now, add others once I understand what they mean
 		new_vals = []
 		n = 0
-		num_seg=self.segment_bins
+		num_seg=self.segment_bins	
 		num_cos=self.cosine_bins
 		num_obj=self.object_bins
 		num_mul=self.multiplier_bins
@@ -510,6 +516,11 @@ class mctal:
 		else:
 			plot_options=options[:]
 
+		if 'wavelength' in options:
+			leg_loc = 2
+		else:
+			leg_loc = 1
+
 		### init axes if not passed one
 		if ax:
 			pass
@@ -540,7 +551,7 @@ class mctal:
 		### show
 		ax.set_title(self.title.strip())
 		handles, labels = ax.get_legend_handles_labels()
-		ax.legend(handles,labels,loc=1,prop={'size':12})
+		ax.legend(handles,labels,loc=leg_loc,prop={'size':12})
 		ax.grid(True)
 		fig.show()
 
@@ -635,9 +646,9 @@ def _do_ratio(objects,ax=False,tal=False,obj=False,seg=False,mul=False,cos=False
 						### copy in data
 						these_vals = {}
 						if 'rel' in options:
-							these_vals['data'] 		= numpy.subtract(1.0,numpy.divide(numpy.array(a),numpy.array(b)))
+							these_vals['data'] 		= numpy.subtract(numpy.divide(numpy.array(b),numpy.array(a)),1.0)
 						else:
-							these_vals['data'] 		= numpy.divide(numpy.array(a),numpy.array(b))
+							these_vals['data'] 		= numpy.divide(numpy.array(b),numpy.array(a))
 						these_vals['err'] 			= numpy.zeros(len(a))
 						these_vals['object']		= objects[0].tallies[t].vals[dex]['object']
 						these_vals['multiplier']	= objects[0].tallies[t].vals[dex]['multiplier']
@@ -659,7 +670,7 @@ def _do_ratio(objects,ax=False,tal=False,obj=False,seg=False,mul=False,cos=False
 	if 'rel' in options:
 		ax.set_ylabel('Rel. Diff. ( (a-b)/a) ')
 	else:
-		ax.set_ylabel('Ratio (a/b)')
+		ax.set_ylabel('Ratio (b/a)')
 	ax.set_title('a = {a:s}\nb = {b:s}'.format(a=objects[0].title.strip(),b=objects[1].title.strip()))
 
 def plot(objects,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,options=False):
@@ -695,6 +706,11 @@ def plot(objects,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,optio
 			if len(objects)!=2:
 				print "Must have exactly two objects if a ratio is desired!  Aborting."
 				return
+
+	if 'wavelength' in options:
+		leg_loc = 2
+	else:
+		leg_loc = 1
 
 	### init axes if not passed one
 	if ax:
@@ -737,6 +753,6 @@ def plot(objects,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,optio
 
 	### show
 	handles, labels = ax.get_legend_handles_labels()
-	ax.legend(handles,labels,loc=1,prop={'size':12})
+	ax.legend(handles,labels,loc=leg_loc,prop={'size':12})
 	ax.grid(True)
 	fig.show()
