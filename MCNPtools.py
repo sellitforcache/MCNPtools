@@ -642,6 +642,8 @@ def _do_ratio(objects,ax=False,tal=False,obj=False,seg=False,mul=False,cos=False
 						dex 	= objects[0].tallies[t]._hash(obj=o,seg=s,mul=m,cos=c)
 						a 		= objects[0].tallies[t].vals[dex]['data'][:]
 						b 		= objects[1].tallies[t].vals[dex]['data'][:]
+						a_err	= objects[0].tallies[t].vals[dex]['err'][:]
+						b_err	= objects[1].tallies[t].vals[dex]['err'][:]
 
 						### copy in data
 						these_vals = {}
@@ -649,7 +651,7 @@ def _do_ratio(objects,ax=False,tal=False,obj=False,seg=False,mul=False,cos=False
 							these_vals['data'] 		= numpy.subtract(numpy.divide(numpy.array(b),numpy.array(a)),1.0)
 						else:
 							these_vals['data'] 		= numpy.divide(numpy.array(b),numpy.array(a))
-						these_vals['err'] 			= numpy.zeros(len(a))
+						these_vals['err'] 			= numpy.add(numpy.array(a_err),numpy.array(b_err))  # rel err of quotient is just the sum or errors?!
 						these_vals['object']		= objects[0].tallies[t].vals[dex]['object']
 						these_vals['multiplier']	= objects[0].tallies[t].vals[dex]['multiplier']
 						these_vals['segment'] 		= objects[0].tallies[t].vals[dex]['segment']
@@ -668,7 +670,7 @@ def _do_ratio(objects,ax=False,tal=False,obj=False,seg=False,mul=False,cos=False
 
 	### slight differences
 	if 'rel' in options:
-		ax.set_ylabel('Rel. Diff. ( (a-b)/a) ')
+		ax.set_ylabel('Rel. Diff. ( (b-a)/a) ')
 	else:
 		ax.set_ylabel('Ratio (b/a)')
 	ax.set_title('a = {a:s}\nb = {b:s}'.format(a=objects[0].title.strip(),b=objects[1].title.strip()))
