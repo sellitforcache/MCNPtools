@@ -212,6 +212,8 @@ class tally:
 						dex  		= self._hash(obj=o,cos=c,seg=s,mul=m)
 						tally 		= self.vals[dex]['data'][:-1]  # clip off totals from ends
 						err 		= self.vals[dex]['err'][:-1]
+						cosine_bin	= self.vals[dex]['cosine_bin']
+						name		= self.vals[dex]['object']
 						if len(tally) < 2:
 							print "tally has length <=1, aborting."
 							pl.close(fig)
@@ -226,9 +228,13 @@ class tally:
 						else:
 							tally_norm = tally
 						if prepend_label:
-							label = prepend_label+r' obj %2d (%4d) seg %d cos [%4.2e, %4.2e]' % (o,self.objects[o],s,self.cosines[c],self.cosines[c+1])
+							label = prepend_label+r' obj %2d (%4d) seg %d cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1])
 						else:
-							label = r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e]' % (o,self.objects[o],s,self.cosines[c],self.cosines[c+1])
+							label = r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1])
+						if 'ratio' in options:
+							total 		= self.vals[dex]['data'][-1]
+							total_err 	= self.vals[dex]['err'][-1]
+							label = label + '\n Total = {total:5.4f} +- {err:5.4f}'.format(total=total,err=total_err)
 						self._make_steps(ax,bins,avg,tally_norm,err,options=options,label=label)
 
 		### labeling
@@ -291,7 +297,7 @@ class tally:
 								print "...... parsing object %2d (%4d) segment %2d cosine bin %2d " % (o,self.objects[o],s,c)
 						these_vals 					= {}
 						subset 						= self.vals[n*(self.energy_bins*2):(n+1)*(self.energy_bins*2)]
-						these_vals['object']		= o
+						these_vals['object']		= self.objects[o]
 						if self.multiplier_flag:
 							these_vals['multiplier']= m
 						else:
@@ -500,7 +506,7 @@ class mctal:
 
 		### options
 		if not options:
-			plot_options=['normed','wavelength','err']
+			plot_options=['lin','wavelength','err']
 		else:
 			plot_options=options[:]
 
@@ -582,7 +588,7 @@ def _do_ratio(objects,ax=False,tal=False,obj=False,seg=False,mul=False,cos=False
 		options.remove('normed')
 
 	### make mctal object
-	dummy 			= mctal()
+	dummy 			= mctal(tex=objects[0].tex)
 	dummy.title  	= 'something crazy'
 	assert( set(objects[0].tally_n)	== set(objects[1].tally_n))
 	dummy.ntal 		= len(tal)
@@ -590,8 +596,8 @@ def _do_ratio(objects,ax=False,tal=False,obj=False,seg=False,mul=False,cos=False
 	### insert new vector into empty mctal, copy necessary values
 	for t in tal:
 		### make tally for ratios
-		dummy.tally_n.append(objects[0].tally_n[t])
-		dummy.tallies[t]  					= tally()
+		#dummy.tally_n.append(objects[0].tally_n[t])
+		dummy.tallies[t]  					= tally(tex=dummy.tex)
 		dummy.tallies[t].comment 			= objects[0].tallies[t].comment
 		dummy.tallies[t].object_bins		= len(obj)
 		dummy.tallies[t].segment_bins		= len(seg)
@@ -603,6 +609,11 @@ def _do_ratio(objects,ax=False,tal=False,obj=False,seg=False,mul=False,cos=False
 		assert( set(objects[0].tallies[t].energies) 	== set(objects[1].tallies[t].energies))
 		### and copy energies now
 		dummy.tallies[t].energies = objects[0].tallies[t].energies[:]
+		### add to name vectors
+		# print o0,o,objects[0].tallies[t].objects,dummy.tallies[t].objects
+		# dummy.tallies[t].objects.append(objects[0].tallies[t].objects[o])
+		# dummy.tallies[t].cosines.append(objects[0].tallies[t].cosines[c])
+
 
 		o0 = 0
 		for o in obj:
@@ -616,10 +627,6 @@ def _do_ratio(objects,ax=False,tal=False,obj=False,seg=False,mul=False,cos=False
 						dex0 = dummy.tallies[t]._hash(obj=o0,seg=s0,mul=m0,cos=c0)
 						assert(dex0 == len(dummy.tallies[t].vals)) 
 
-						### add to name vectors
-						dummy.tallies[t].objects.append(objects[0].tallies[t].objects[o])
-						dummy.tallies[t].cosines.append(objects[0].tallies[t].cosines[c])
-
 						### get values ratio
 						dex 	= objects[0].tallies[t]._hash(obj=o,seg=s,mul=m,cos=c)
 						a 		= objects[0].tallies[t].vals[dex]['data'][:]
@@ -631,20 +638,17 @@ def _do_ratio(objects,ax=False,tal=False,obj=False,seg=False,mul=False,cos=False
 							these_vals['data'] 		= numpy.subtract(1.0,numpy.divide(numpy.array(a),numpy.array(b)))
 						else:
 							these_vals['data'] 		= numpy.divide(numpy.array(a),numpy.array(b))
-						these_vals['err'] 			= numpy.zeros((len(a),1))
-						these_vals['object']		= o0
-						these_vals['multiplier']	= m0
-						these_vals['segment'] 		= s0
-						these_vals['cosine_bin']	= [objects[0].tallies[t].cosines[c],objects[0].tallies[t].cosines[c+1]]
-						these_vals['user_bin'] 		= objects[0].tallies[t].user_bins       # replace once understood
+						these_vals['err'] 			= numpy.zeros(len(a))
+						these_vals['object']		= objects[0].tallies[t].vals[dex]['object']
+						these_vals['multiplier']	= objects[0].tallies[t].vals[dex]['multiplier']
+						these_vals['segment'] 		= objects[0].tallies[t].vals[dex]['segment']
+						these_vals['cosine_bin']	= objects[0].tallies[t].vals[dex]['cosine_bin'][:]
+						these_vals['user_bin'] 		= objects[0].tallies[t].vals[dex]['user_bin']
 						dummy.tallies[t].vals.append(these_vals)
 						c0 = c0 + 1
 					m0 = m0 +1
 				s0 = s0 + 1
 			o0 = o0 + 1
-
-	### cosines has an extra value, add it!
-	dummy.tallies[t].cosines.append(objects[0].tallies[t].cosines[c])
 
 	### finally plot the sucker
 	for t in tal:
@@ -654,10 +658,8 @@ def _do_ratio(objects,ax=False,tal=False,obj=False,seg=False,mul=False,cos=False
 	### slight differences
 	if 'rel' in options:
 		ax.set_ylabel('Rel. Diff. ( (a-b)/a) ')
-		total = objects[0].tallies[t].vals[dex]['data'][-1]/objects[1].tallies[t].vals[dex]['data'][-1] - 1.0
 	else:
 		ax.set_ylabel('Ratio (a/b)')
-		total = objects[0].tallies[t].vals[dex]['data'][-1]/objects[1].tallies[t].vals[dex]['data'][-1]
 	ax.set_title('a = {a:s}\nb = {b:s}'.format(a=objects[0].title.strip(),b=objects[1].title.strip()))
 
 def plot(objects,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,options=False):
@@ -683,7 +685,7 @@ def plot(objects,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,optio
 
 	### options
 	if not options:
-		plot_options=['normed','wavelength','err']
+		plot_options=['lin','wavelength','err']
 	else:
 		plot_options=options[:]
 		if 'rel' in plot_options:
