@@ -84,17 +84,17 @@ class tally:
 		self.tex				= tex
 
 	def what_particles(self):
-			ret_string=''
-			### decode particle data to human-readable
-			if self.particle_type>0:
-				### shorthand list, can return directly
-				ret_string = self.particles_shorthand[self.particle_type][0]
-			else:
-				### explicit list, collect results
-				for x in range(len(self.particle_list)):
-					if self.particle_list[x] != 0:
-						ret_string = ret_string + self.particles[(x+1)*self.particle_list[x]][0]   ### the multiplication is ti switch the sign if anti-particle and then the dictionary will know!
-			return  ret_string
+		ret_string=''
+		### decode particle data to human-readable
+		if self.particle_type>0:
+			### shorthand list, can return directly
+			ret_string = self.particles_shorthand[self.particle_type][0]
+		else:
+			### explicit list, collect results
+			for x in range(len(self.particle_list)):
+				if self.particle_list[x] != 0:
+					ret_string = ret_string + self.particles[(x+1)*self.particle_list[x]][0]   ### the multiplication is ti switch the sign if anti-particle and then the dictionary will know!
+		return  ret_string
 
 
 	def _hash(self,obj=0,user=0,seg=0,mul=0,cos=0):
@@ -149,7 +149,7 @@ class tally:
 		
 		### plot errorbars
 		if 'err' in options:
-			ax.errorbar(avg,values,yerr=numpy.multiply(err,values),alpha=0.0,color='r')
+			ax.errorbar(avg,values,yerr=numpy.multiply(numpy.array(err),numpy.array(values)),alpha=0.0,color='r')
 
 		### labels
 		if 'wavelength' in options:
@@ -213,7 +213,7 @@ class tally:
 						tally 		= self.vals[dex]['data'][:-1]  # clip off totals from ends
 						err 		= self.vals[dex]['err'][:-1]
 						if len(tally) < 2:
-							print "tally has length 1 values, aborting."
+							print "tally has length <=1, aborting."
 							pl.close(fig)
 							return
 						bins 		= self.energies[:-1]
@@ -235,7 +235,7 @@ class tally:
 		if 'normed' in options:
 			ax.set_ylabel(r'Tally / bin width')
 			if 'lethargy' in options:
-				ax.set_ylabel(r'Tally / bin width / unit lethargy')
+				ax.set_ylabel(r'Tally / unit lethargy')
 		else:
 			ax.set_ylabel(r'Tally')
 
@@ -568,3 +568,155 @@ def save_mctal_obj(obj,filepath):
 		file_out.close()
 
 	print "Saved mctal object with the title '"+obj.title+"'' to: '"+filepath+"'"
+
+def _do_ratio(objects,ax=False,tal=False,obj=False,seg=False,mul=False,cos=False,options=False):
+	### internal function to make a new mctal object with ratio values and plot it on ax
+	import numpy
+
+	### input check
+	if not ax or not tal or not obj or not seg or not mul or not cos or not options:
+		print "INPUT ERROR IN _do_ratio()!"
+		return
+
+	### make mctal object
+	dummy 			= mctal()
+	dummy.title  	= 'something crazy'
+	assert( set(objects[0].tally_n)	== set(objects[1].tally_n))
+	dummy.ntal 		= len(tal)
+
+	### insert new vector into empty mctal, copy necessary values
+	o0 = 0
+	s0 = 0
+	m0 = 0
+	c0 = 0
+	for t in tal:
+		### make tally for ratios
+		dummy.tally_n.append(objects[0].tally_n[t])
+		dummy.tallies[t]  					= tally()
+		dummy.tallies[t].comment 			= 'something even crazier'
+		dummy.tallies[t].object_bins		= len(obj)
+		dummy.tallies[t].segment_bins		= len(seg)
+		dummy.tallies[t].cosine_bins		= len(cos)
+		dummy.tallies[t].multiplier_bins	= len(mul)
+		### check 
+		assert( set(objects[0].tallies[t].objects)  	== set(objects[1].tallies[t].objects))
+		assert( set(objects[0].tallies[t].cosines) 		== set(objects[1].tallies[t].cosines))	
+		assert( set(objects[0].tallies[t].energies) 	== set(objects[1].tallies[t].energies))
+		### and copy energies now
+		dummy.tallies[t].energies = objects[0].tallies[t].energies[:]
+
+		for o in obj:
+			for s in seg:
+				for m in mul:
+					for c in cos:
+						### check indexing, that order is consistent new tally object
+						dex0 = dummy.tallies[t]._hash(obj=o0,seg=s0,mul=m0,cos=c0)
+						assert(dex0 == len(dummy.tallies[t].vals)) 
+
+						### add to name vectors
+						dummy.tallies[t].objects.append(objects[0].tallies[t].objects[o])
+						dummy.tallies[t].cosines.append(objects[0].tallies[t].cosines[c])
+
+						### get values ratio
+						dex 	= objects[0].tallies[t]._hash(obj=o,seg=s,mul=m,cos=c)
+						a 		= objects[0].tallies[t].vals[dex]['data'][:]
+						b 		= objects[1].tallies[t].vals[dex]['data'][:]
+
+						### copy in data
+						these_vals = {}
+						if 'rel' in options:
+							these_vals['data'] 		= numpy.subtract(1.0,numpy.divide(numpy.array(a),numpy.array(b)))
+						else:
+							these_vals['data'] 		= numpy.divide(numpy.array(a),numpy.array(b))
+						these_vals['err'] 			= numpy.zeros((len(a),1))
+						these_vals['object']		= o0
+						these_vals['multiplier']	= m0
+						these_vals['segment'] 		= s0
+						these_vals['cosine_bin']	= [objects[0].tallies[t].cosines[c],objects[0].tallies[t].cosines[c+1]]
+						these_vals['user_bin'] 		= objects[0].tallies[t].user_bins       # replace once understood
+						dummy.tallies[t].vals.append(these_vals)
+						c0 = c0 + 1
+					m0 = m0 +1
+				s0 = s0 + 1
+			o0 = o0 + 1
+
+	### cosines has an extra value, add it!
+	dummy.tallies[t].cosines.append(objects[0].tallies[t].cosines[c])
+	print dummy.tallies[t].cosines
+
+	### finally plot the sucker
+	for t in tal:
+		dummy.tallies[t].plot(all=True,ax=ax,options=options)#,prepend_label='{title:s}\n{com:s}\n Tally {a:4d} :'.format(title=this_mctal.title.strip(),com=self.tallies[t].comment,a=t))
+
+def plot(objects,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,options=False):
+	### plotting routines for inter-mctal plots
+	import numpy, pylab
+	import matplotlib.pyplot as plt
+
+	### type check
+	for o in objects:
+		if isinstance(o,mctal):
+			pass
+		else:
+			print "Objects in list are not MCNPtools.mctal instances!  Aborting."
+			return
+
+	### check that quantities are there
+
+	### TeX flag of first object
+	if objects[0].tex:
+		plt.rc('text', usetex=True)
+		plt.rc('font', family='serif')
+		plt.rc('font', size=16)
+
+	### options
+	if not options:
+		plot_options=['normed','wavelength','err']
+	else:
+		plot_options=options[:]
+		if 'rel' in plot_options:
+			if 'ratio' not in plot_options:
+				plot_options.append('ratio')
+		if 'ratio' in plot_options:
+			if len(objects)!=2:
+				print "Must have exactly two objects if a ratio is desired!  Aborting."
+				return
+
+	### init axes if not passed one
+	if ax:
+		pass
+	else:
+		fig = plt.figure(figsize=(10,6))
+		ax = fig.add_subplot(1,1,1)
+
+	### deal with a non-specified tally
+	if not tal:
+		tal = [objects[0].tally_n[0]]
+
+	### input logic and plotting, using methods
+	if not obj and not cos and not seg and not mul:
+		for this_mctal in objects:
+			for t in tal:
+				this_mctal.tallies[t].plot(ax=ax,all=True,options=plot_options)
+	else:
+		if not obj:
+			obj = [0]
+		if not cos:
+			cos = [0]
+		if not seg:
+			seg = [0]
+		if not mul:
+			mul = [0]
+		if 'ratio' in plot_options:
+			_do_ratio(objects,ax=ax,tal=tal,obj=obj,seg=seg,mul=mul,cos=cos,options=plot_options)
+		else:
+			for this_mctal in objects:
+				for t in tal:
+					this_mctal.tallies[t].plot(ax=ax,obj=obj,seg=seg,mul=mul,cos=cos,options=plot_options,prepend_label='{title:s}\n{com:s}\n Tally {a:4d} :'.format(title=this_mctal.title.strip(),com=this_mctal.tallies[t].comment,a=t))
+
+	### show
+	#ax.set_title(self.title.strip())
+	handles, labels = ax.get_legend_handles_labels()
+	ax.legend(handles,labels,loc=1,prop={'size':12})
+	ax.grid(True)
+	fig.show()
