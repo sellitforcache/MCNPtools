@@ -398,8 +398,10 @@ class mctal:
 				n = n+1
 				for p in t1:
 					self.tallies[k].particle_list.append(int(p)) 
-			self.tallies[k].comment 		= lines[n]
-			n = n+1
+			if lines[n][0] != 'f':
+				print "here"
+				self.tallies[k].comment 		= lines[n]
+				n = n+1
 			# read the object numbers (surfaces, cells)
 			self.tallies[k].object_bins 			= int(lines[n].split()[1])
 			n = n+1
@@ -516,7 +518,7 @@ class mctal:
 		else:
 			plot_options=options[:]
 
-		if 'wavelength' in options:
+		if 'wavelength' in plot_options:
 			leg_loc = 2
 		else:
 			leg_loc = 1
