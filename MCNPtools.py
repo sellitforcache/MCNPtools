@@ -121,13 +121,13 @@ class tally:
 		if 'wavelength' in options:
 			bins=numpy.divide(0.286014369,numpy.sqrt(numpy.array(bins)*1.0e6))
 			avg=numpy.divide(numpy.array(bins[:-1])+numpy.array(bins[1:]),2.0)
-			if 'log' in options:
-				options.remove('log')
-				options.append('lin')
-			elif 'lin' in options:
-				pass
-			else:
-				options.append('lin')
+			#if 'log' in options:
+			#	options.remove('log')
+			#	options.append('lin')
+			#elif 'lin' in options:
+			#	pass
+			#else:
+			#	options.append('lin')
 
 		x=[]
 		y=[]
@@ -577,6 +577,9 @@ def _do_ratio(objects,ax=False,tal=False,obj=False,seg=False,mul=False,cos=False
 	if not ax or not tal or not obj or not seg or not mul or not cos or not options:
 		print "INPUT ERROR IN _do_ratio()!"
 		return
+	if 'normed' in options:
+		print "Norming is invalid for ratios, ignored."
+		options.remove('normed')
 
 	### make mctal object
 	dummy 			= mctal()
@@ -585,15 +588,11 @@ def _do_ratio(objects,ax=False,tal=False,obj=False,seg=False,mul=False,cos=False
 	dummy.ntal 		= len(tal)
 
 	### insert new vector into empty mctal, copy necessary values
-	o0 = 0
-	s0 = 0
-	m0 = 0
-	c0 = 0
 	for t in tal:
 		### make tally for ratios
 		dummy.tally_n.append(objects[0].tally_n[t])
 		dummy.tallies[t]  					= tally()
-		dummy.tallies[t].comment 			= 'something even crazier'
+		dummy.tallies[t].comment 			= objects[0].tallies[t].comment
 		dummy.tallies[t].object_bins		= len(obj)
 		dummy.tallies[t].segment_bins		= len(seg)
 		dummy.tallies[t].cosine_bins		= len(cos)
@@ -605,9 +604,13 @@ def _do_ratio(objects,ax=False,tal=False,obj=False,seg=False,mul=False,cos=False
 		### and copy energies now
 		dummy.tallies[t].energies = objects[0].tallies[t].energies[:]
 
+		o0 = 0
 		for o in obj:
+			s0 = 0
 			for s in seg:
+				m0 = 0
 				for m in mul:
+					c0 = 0
 					for c in cos:
 						### check indexing, that order is consistent new tally object
 						dex0 = dummy.tallies[t]._hash(obj=o0,seg=s0,mul=m0,cos=c0)
@@ -642,11 +645,20 @@ def _do_ratio(objects,ax=False,tal=False,obj=False,seg=False,mul=False,cos=False
 
 	### cosines has an extra value, add it!
 	dummy.tallies[t].cosines.append(objects[0].tallies[t].cosines[c])
-	print dummy.tallies[t].cosines
 
 	### finally plot the sucker
 	for t in tal:
-		dummy.tallies[t].plot(all=True,ax=ax,options=options)#,prepend_label='{title:s}\n{com:s}\n Tally {a:4d} :'.format(title=this_mctal.title.strip(),com=self.tallies[t].comment,a=t))
+		labelstr = '{com:s}\n Tally {a:4d} :'.format(com=dummy.tallies[t].comment,a=t)
+		dummy.tallies[t].plot(all=True,ax=ax,options=options,prepend_label=labelstr)
+
+	### slight differences
+	if 'rel' in options:
+		ax.set_ylabel('Rel. Diff. ( (a-b)/a) ')
+		total = objects[0].tallies[t].vals[dex]['data'][-1]/objects[1].tallies[t].vals[dex]['data'][-1] - 1.0
+	else:
+		ax.set_ylabel('Ratio (a/b)')
+		total = objects[0].tallies[t].vals[dex]['data'][-1]/objects[1].tallies[t].vals[dex]['data'][-1]
+	ax.set_title('a = {a:s}\nb = {b:s}'.format(a=objects[0].title.strip(),b=objects[1].title.strip()))
 
 def plot(objects,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,options=False):
 	### plotting routines for inter-mctal plots
@@ -695,9 +707,16 @@ def plot(objects,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,optio
 
 	### input logic and plotting, using methods
 	if not obj and not cos and not seg and not mul:
-		for this_mctal in objects:
-			for t in tal:
-				this_mctal.tallies[t].plot(ax=ax,all=True,options=plot_options)
+		if 'ratio' in plot_options:
+			obj = range(objects[0].tallies[tal[0]].object_bins)
+			seg = range(objects[0].tallies[tal[0]].segment_bins)
+			cos = range(objects[0].tallies[tal[0]].cosine_bins)
+			mul = range(objects[0].tallies[tal[0]].multiplier_bins)
+			_do_ratio(objects,ax=ax,tal=tal,obj=obj,seg=seg,mul=mul,cos=cos,options=plot_options)
+		else:
+			for this_mctal in objects:
+				for t in tal:
+					this_mctal.tallies[t].plot(ax=ax,all=True,options=plot_options)
 	else:
 		if not obj:
 			obj = [0]
@@ -715,7 +734,6 @@ def plot(objects,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,optio
 					this_mctal.tallies[t].plot(ax=ax,obj=obj,seg=seg,mul=mul,cos=cos,options=plot_options,prepend_label='{title:s}\n{com:s}\n Tally {a:4d} :'.format(title=this_mctal.title.strip(),com=this_mctal.tallies[t].comment,a=t))
 
 	### show
-	#ax.set_title(self.title.strip())
 	handles, labels = ax.get_legend_handles_labels()
 	ax.legend(handles,labels,loc=1,prop={'size':12})
 	ax.grid(True)
