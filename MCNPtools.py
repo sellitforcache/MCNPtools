@@ -694,8 +694,6 @@ def plot(objects,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,optio
 			print "Objects in list are not MCNPtools.mctal instances!  Aborting."
 			return
 
-	### check that quantities are there
-
 	### TeX flag of first object
 	if objects[0].tex:
 		plt.rc('text', usetex=True)
@@ -710,10 +708,6 @@ def plot(objects,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,optio
 		if 'rel' in plot_options:
 			if 'ratio' not in plot_options:
 				plot_options.append('ratio')
-		#if 'ratio' in plot_options:
-		#	if len(objects)!=2:
-		#		print "Must have exactly two objects if a ratio is desired!  Aborting."
-		#		return
 
 	if 'wavelength' in options:
 		leg_loc = 2
