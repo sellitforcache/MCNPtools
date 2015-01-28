@@ -226,15 +226,25 @@ class tally:
 								tally_norm=np.multiply(tally_norm,avg)
 						else:
 							tally_norm = tally
+
 						if prepend_label:
 							label = prepend_label+r' obj %2d (%4d) seg %d cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1])
 						else:
 							label = r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1])
-						if 'ratio' in options:
+						if 'ratio_mctal' in options:
 							total 		= self.vals[dex]['data'][-1]
 							total_err 	= self.vals[dex]['err'][-1]
 							label = label + '\n Total = {total:5.4f} +- {err:5.4f}'.format(total=total,err=total_err)
-						self._make_steps(ax,bins,avg,tally_norm,err,options=options,label=label)
+						if 'ratio_cos' in options:
+							if c == plot_cosines[0]:
+								a     = tally_norm[:]
+								a_err = err[:]
+								a_bin = cosine_bin[:]
+							else:
+								label = r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] / cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1],a_bin[0],a_bin[1])
+								self._make_steps(ax,bins,avg,np.divide(tally_norm,a),np.add(err,a_err),options=options,label=label)
+						else:
+							self._make_steps(ax,bins,avg,tally_norm,err,options=options,label=label)
 
 		### labeling
 		if 'normed' in options:
@@ -604,7 +614,7 @@ def _do_ratio(objects,ax=False,tal=False,obj=False,seg=False,mul=False,cos=False
 		### make mctal object
 		dummy 			= mctal(tex=objects[0].tex)
 		dummy.title  	= objects[o_in+1].title
-		assert( set(objects[0].tally_n)	== set(objects[1].tally_n))
+		#assert( set(objects[0].tally_n)	== set(objects[1].tally_n))
 		dummy.ntal 		= len(tal)
 	
 		### insert new vector into empty mctal, copy necessary values
@@ -705,10 +715,12 @@ def plot(objects,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,optio
 		plot_options=['lin','wavelength','err']
 	else:
 		plot_options=options[:]
+		if 'ratio' in options:
+			plot_options.remove('ratio')
+			plot_options.append('ratio_mctal')
 		if 'rel' in plot_options:
-			if 'ratio' not in plot_options:
-				plot_options.append('ratio')
-
+			if 'ratio_mctal' not in plot_options:
+				plot_options.append('ratio_mctal')
 	if 'wavelength' in options:
 		leg_loc = 2
 	else:
@@ -727,7 +739,7 @@ def plot(objects,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,optio
 
 	### input logic and plotting, using methods
 	if not obj and not cos and not seg and not mul:
-		if 'ratio' in plot_options:
+		if 'ratio_mctal' in plot_options:
 			obj = range(objects[0].tallies[tal[0]].object_bins)
 			seg = range(objects[0].tallies[tal[0]].segment_bins)
 			cos = range(objects[0].tallies[tal[0]].cosine_bins)
@@ -746,7 +758,7 @@ def plot(objects,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,optio
 			seg = [0]
 		if not mul:
 			mul = [0]
-		if 'ratio' in plot_options:
+		if 'ratio_mctal' in plot_options:
 			_do_ratio(objects,ax=ax,tal=tal,obj=obj,seg=seg,mul=mul,cos=cos,options=plot_options)
 		else:
 			for this_mctal in objects:
