@@ -721,8 +721,11 @@ def plot(objects,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,optio
 		if 'rel' in plot_options:
 			if 'ratio_mctal' not in plot_options:
 				plot_options.append('ratio_mctal')
-	if 'wavelength' in options:
-		leg_loc = 2
+	if 'wavelength' in plot_options:
+		if 'ratio_mctal' in plot_options:
+			leg_loc = 2
+		else:
+			leg_loc = 1
 	else:
 		leg_loc = 1
 
