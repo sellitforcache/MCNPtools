@@ -773,3 +773,13 @@ def plot(objects,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,optio
 	ax.legend(handles,labels,loc=leg_loc,prop={'size':12})
 	ax.grid(True)
 	fig.show()
+
+def to_wavelength(E_in):
+	### assumes MeV
+	import numpy
+	return numpy.divide(0.286014369, numpy.sqrt(numpy.multiply(E_in,1.0e6)))
+
+def to_energy(lambda_in):
+	### assumes MeV
+	import numpy
+	return numpy.multiply(numpy.power(0.286014369/lambda_in,2) , 1.0e-6)
