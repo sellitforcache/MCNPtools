@@ -107,7 +107,7 @@ class tally:
 		return dex
 
 
-	def _make_steps(self,ax,bins_in,avg_in,values_in,err_in,options=['log'],label=''):
+	def _make_steps(self,ax,bins_in,avg_in,values_in,err_in,options=['log'],label='',ylim=False):
 		import numpy
 		assert(len(bins_in)==len(values_in)+1)
 
@@ -139,7 +139,7 @@ class tally:
 			ax.plot(x,y,label=label)
 		else:   #default to log if lin not present
 			ax.semilogx(x,y,label=label)
-		
+
 		### plot errorbars
 		if 'err' in options:
 			ax.errorbar(avg,values,yerr=numpy.multiply(numpy.array(err),numpy.array(values)),alpha=0.0,color='r')
@@ -156,8 +156,12 @@ class tally:
 			else:
 				ax.set_xlabel('Energy (MeV)')
 
+		### limits
+		if ylim:
+			ax.set_ylim(ylim)
 
-	def plot(self,all=False,ax=None,obj=[0],cos=[0],seg=[0],mul=[0],options=[],prepend_label=False):
+
+	def plot(self,all=False,ax=None,obj=[0],cos=[0],seg=[0],mul=[0],options=[],prepend_label=False,ylim=False):
 		import numpy as np
 		import pylab as pl
 		import matplotlib.pyplot as plt
@@ -231,6 +235,7 @@ class tally:
 							label = prepend_label+r' obj %2d (%4d) seg %d cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1])
 						else:
 							label = r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1])
+
 						if 'ratio_mctal' in options:
 							total 		= self.vals[dex]['data'][-1]
 							total_err 	= self.vals[dex]['err'][-1]
@@ -241,10 +246,24 @@ class tally:
 								a_err = err[:]
 								a_bin = cosine_bin[:]
 							else:
-								label = r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] / cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1],a_bin[0],a_bin[1])
-								self._make_steps(ax,bins,avg,np.divide(tally_norm,a),np.add(err,a_err),options=options,label=label)
+								if prepend_label:
+									label = prepend_label+r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] / cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1],a_bin[0],a_bin[1])
+								else:
+									label = r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] / cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1],a_bin[0],a_bin[1])
+								self._make_steps(ax,bins,avg,np.divide(tally_norm,a),np.add(err,a_err),options=options,label=label,ylim=ylim)
+						if 'diff_cos' in options:
+							if c == plot_cosines[0]:
+								a     = tally_norm[:]
+								a_err = err[:]
+								a_bin = cosine_bin[:]
+							else:
+								if prepend_label:
+									label = prepend_label+r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] - cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1],a_bin[0],a_bin[1])
+								else:
+									label = r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] - cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1],a_bin[0],a_bin[1])
+								self._make_steps(ax,bins,avg,np.subtract(tally_norm,a),np.add(err,a_err),options=options,label=label,ylim=ylim)
 						else:
-							self._make_steps(ax,bins,avg,tally_norm,err,options=options,label=label)
+							self._make_steps(ax,bins,avg,tally_norm,err,options=options,label=label,ylim=ylim)
 
 		### labeling
 		if 'normed' in options:
@@ -504,7 +523,7 @@ class mctal:
 
 		file_in.close()
 
-	def plot(self,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,options=False):
+	def plot(self,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,options=False,ylim=False):
 		### general plotting
 		import numpy, pylab
 		import matplotlib.pyplot as plt
@@ -522,7 +541,7 @@ class mctal:
 			plot_options=options[:]
 
 		if 'wavelength' in plot_options:
-			leg_loc = 2
+			leg_loc = 1
 		else:
 			leg_loc = 1
 
@@ -551,7 +570,7 @@ class mctal:
 			if not mul:
 				mul = [0]
 			for t in tal:
-				self.tallies[t].plot(ax=ax,obj=obj,seg=seg,mul=mul,cos=cos,options=plot_options,prepend_label='{com:s}\n Tally {a:4d} :'.format(com=self.tallies[t].comment,a=t))
+				self.tallies[t].plot(ax=ax,obj=obj,seg=seg,mul=mul,cos=cos,options=plot_options,prepend_label='{com:s}\n Tally {a:4d} :'.format(com=self.tallies[t].comment,a=t),ylim=ylim)
 
 		### show
 		ax.set_title(self.title.strip())
@@ -723,7 +742,7 @@ def plot(objects,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,optio
 				plot_options.append('ratio_mctal')
 	if 'wavelength' in plot_options:
 		if 'ratio_mctal' in plot_options:
-			leg_loc = 2
+			leg_loc = 1
 		else:
 			leg_loc = 1
 	else:
@@ -775,11 +794,11 @@ def plot(objects,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,optio
 	fig.show()
 
 def to_wavelength(E_in):
-	### assumes MeV
+	### assumes MeV, gives Angstrom
 	import numpy
 	return numpy.divide(0.286014369, numpy.sqrt(numpy.multiply(E_in,1.0e6)))
 
 def to_energy(lambda_in):
-	### assumes MeV
+	### assumes Angstrom, gives MeV
 	import numpy
 	return numpy.multiply(numpy.power(0.286014369/lambda_in,2) , 1.0e-6)
