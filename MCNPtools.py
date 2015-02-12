@@ -56,6 +56,11 @@ class tally:
 		  5 : ['neutron, electron'			,'ne' ],
 		  6 : ['photon, electron'			,'pe' ],
 		  7 : ['neutron, photon, electron'	,'npe']}
+	tally_units={
+          1 : r'n / (source p)',
+          2 : r'n / (cm$^2$ $\cdot$ source p)',
+	      4 : r'n / (cm$^2$ $\cdot$ source p)',
+	      5 : r'n / (cm$^2$ $\cdot$ source p)'}
 
 	def __init__(self,verbose=False,tex=False):
 		self.name 				= 0    # tally name number
@@ -176,7 +181,7 @@ class tally:
 				options.append('normed')
 
 		if 'wavelength' in options:
-			leg_loc = 2
+			leg_loc = 1
 		else:
 			leg_loc = 1
 		
@@ -266,12 +271,15 @@ class tally:
 							self._make_steps(ax,bins,avg,tally_norm,err,options=options,label=label,ylim=ylim)
 
 		### labeling
+		### get units
+		last_integer = self.name % 10
+		units = self.tally_units[last_integer]
 		if 'normed' in options:
-			ax.set_ylabel(r'Tally / bin width')
+			ax.set_ylabel(units+r' / bin width')
 			if 'lethargy' in options:
-				ax.set_ylabel(r'Tally / unit lethargy')
+				ax.set_ylabel(units+r' / unit lethargy')
 		else:
-			ax.set_ylabel(r'Tally')
+			ax.set_ylabel(units)
 
 		### title legend grid, show if self-made
 		if show:
@@ -421,7 +429,6 @@ class mctal:
 				for p in t1:
 					self.tallies[k].particle_list.append(int(p)) 
 			if lines[n][0] != 'f':
-				print "here"
 				self.tallies[k].comment 		= lines[n]
 				n = n+1
 			# read the object numbers (surfaces, cells)
@@ -802,3 +809,8 @@ def to_energy(lambda_in):
 	### assumes Angstrom, gives MeV
 	import numpy
 	return numpy.multiply(numpy.power(0.286014369/lambda_in,2) , 1.0e-6)
+
+def to_temperature(E_in):
+	### assumes MeV, gives kelvin
+	import numpy
+	return numpy.multiply(11604.50520 , 1.0e6*E_in)
