@@ -102,13 +102,13 @@ class tally:
 		return  ret_string
 
 
-	def _hash(self,obj=0,user=0,seg=0,mul=0,cos=0):
+	def _hash(self,obj=0,td=0,user=0,seg=0,mul=0,cos=0):
 		# update once multiplier and user are understood
 		assert(obj  < self.object_bins)
 		assert(seg  < self.segment_bins)
 		assert(cos  < self.cosine_bins)
 		assert(mul  < self.multiplier_bins)
-		dex = obj*(self.segment_bins*self.cosine_bins*self.multiplier_bins)+ seg*(self.cosine_bins*self.multiplier_bins)+ mul*(self.cosine_bins) + cos
+		dex = obj*(self.segment_bins*self.cosine_bins*self.multiplier_bins*self.totalvsdirect_bins)+ td*(self.segment_bins*self.cosine_bins*self.multiplier_bins) +seg*(self.cosine_bins*self.multiplier_bins)+ mul*(self.cosine_bins) + cos
 		return dex
 
 
@@ -166,7 +166,7 @@ class tally:
 			ax.set_ylim(ylim)
 
 
-	def plot(self,all=False,ax=None,obj=[0],cos=[0],seg=[0],mul=[0],options=[],prepend_label=False,ylim=False):
+	def plot(self,all=False,ax=None,obj=[0],cos=[0],seg=[0],mul=[0],t_or_d=[0],options=[],prepend_label=False,ylim=False):
 		import numpy as np
 		import pylab as pl
 		import matplotlib.pyplot as plt
@@ -205,70 +205,95 @@ class tally:
 			plot_segments	= range(self.segment_bins)
 			plot_cosines	= range(self.cosine_bins)
 			plot_multipliers= range(self.multiplier_bins)
+			plot_t_or_d		= [0]
 		else:
 			plot_objects	= obj
 			plot_segments	= seg
 			plot_cosines	= cos
 			plot_multipliers= mul
+			plot_t_or_d		= t_or_d
 
 		### go through selected objets and plot them
 		for o in plot_objects:
-			for s in plot_segments:
-				for m in plot_multipliers:
-					for c in plot_cosines:
-						dex  		= self._hash(obj=o,cos=c,seg=s,mul=m)
-						tally 		= self.vals[dex]['data'][:-1]  # clip off totals from ends
-						err 		= self.vals[dex]['err'][:-1]
-						cosine_bin	= self.vals[dex]['cosine_bin']
-						name		= self.vals[dex]['object']
-						if len(tally) < 2:
-							print "tally has length <=1, aborting."
-							if show:
-								pl.close(fig)
-							return
-						bins 		= self.energies[:-1]
-						widths 	 	= np.diff(bins)
-						avg 		= np.divide(np.array(bins[:-1])+np.array(bins[1:]),2.0)
-						if 'normed' in options:
-							tally_norm  = np.divide(tally,widths)
-							if 'lethargy' in options:
-								tally_norm=np.multiply(tally_norm,avg)
-						else:
-							tally_norm = tally
-
-						if prepend_label:
-							label = prepend_label+r' obj %2d (%4d) seg %d cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1])
-						else:
-							label = r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1])
-
-						if 'ratio_mctal' in options:
-							total 		= self.vals[dex]['data'][-1]
-							total_err 	= self.vals[dex]['err'][-1]
-							label = label + '\n Total = {total:5.4f} +- {err:5.4f}'.format(total=total,err=total_err)
-						if 'ratio_cos' in options:
-							if c == plot_cosines[0]:
-								a     = tally_norm[:]
-								a_err = err[:]
-								a_bin = cosine_bin[:]
+			for td in plot_t_or_d:
+				for s in plot_segments:
+					for m in plot_multipliers:
+						for c in plot_cosines:
+							dex  		= self._hash(obj=o,cos=c,seg=s,mul=m,td=td)
+							tally 		= self.vals[dex]['data'][:-1]  # clip off totals from ends
+							err 		= self.vals[dex]['err'][:-1]
+							t_or_d 		= self.vals[dex]['t_or_d']
+							cosine_bin	= self.vals[dex]['cosine_bin']
+							name		= self.vals[dex]['object']
+							if len(tally) < 2:
+								print "tally has length <=1, aborting."
+								if show:
+									pl.close(fig)
+								return
+							bins 		= self.energies[:-1]
+							widths 	 	= np.diff(bins)
+							avg 		= np.divide(np.array(bins[:-1])+np.array(bins[1:]),2.0)
+							if 'normed' in options:
+								tally_norm  = np.divide(tally,widths)
+								if 'lethargy' in options:
+									tally_norm=np.multiply(tally_norm,avg)
 							else:
-								if prepend_label:
-									label = prepend_label+r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] / cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1],a_bin[0],a_bin[1])
-								else:
-									label = r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] / cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1],a_bin[0],a_bin[1])
-								self._make_steps(ax,bins,avg,np.divide(tally_norm,a),np.add(err,a_err),options=options,label=label,ylim=ylim)
-						if 'diff_cos' in options:
-							if c == plot_cosines[0]:
-								a     = tally_norm[:]
-								a_err = err[:]
-								a_bin = cosine_bin[:]
+								tally_norm = tally
+	
+							if prepend_label:
+								label = prepend_label+r' obj %2d (%4d) seg %d cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1])
 							else:
-								if prepend_label:
-									label = prepend_label+r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] - cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1],a_bin[0],a_bin[1])
+								label = r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1])
+	
+							if 'ratio_mctal' in options:
+								total 		= self.vals[dex]['data'][-1]
+								total_err 	= self.vals[dex]['err'][-1]
+								label = label + '\n Total = {total:5.4f} +- {err:5.4f}'.format(total=total,err=total_err)
+							if 'ratio_cos' in options:
+								if c == plot_cosines[0]:
+									a     = tally_norm[:]
+									a_err = err[:]
+									a_bin = cosine_bin[:]
 								else:
-									label = r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] - cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1],a_bin[0],a_bin[1])
-								self._make_steps(ax,bins,avg,np.subtract(tally_norm,a),np.add(err,a_err),options=options,label=label,ylim=ylim)
-						else:
-							self._make_steps(ax,bins,avg,tally_norm,err,options=options,label=label,ylim=ylim)
+									if prepend_label:
+										label = prepend_label+r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] / cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1],a_bin[0],a_bin[1])
+									else:
+										label = r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] / cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1],a_bin[0],a_bin[1])
+									self._make_steps(ax,bins,avg,np.divide(tally_norm,a),np.add(err,a_err),options=options,label=label,ylim=ylim)
+							if 'diff_cos' in options:
+								if c == plot_cosines[0]:
+									a     = tally_norm[:]
+									a_err = err[:]
+									a_bin = cosine_bin[:]
+								else:
+									if prepend_label:
+										label = prepend_label+r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] - cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1],a_bin[0],a_bin[1])
+									else:
+										label = r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] - cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1],a_bin[0],a_bin[1])
+									self._make_steps(ax,bins,avg,np.subtract(tally_norm,a),np.add(err,a_err),options=options,label=label,ylim=ylim)
+							if 'sum_cos' in options:
+								if c == plot_cosines[0]:
+									this_sum = tally_norm[:]
+									a_err    = err[:]
+									bin_min  = cosine_bin[0]
+									bin_max  = cosine_bin[1]
+								else:
+									this_sum = np.add(tally_norm,this_sum)
+									bin_min  = np.min([bin_min,cosine_bin[0]])
+									bin_max  = np.max([bin_max,cosine_bin[1]])
+								if 'degrees' in options:
+									bin_min_d = np.arccos(bin_min)*180.0/np.pi
+									bin_max_d = np.arccos(bin_max)*180.0/np.pi
+								else:
+									bin_min_d = bin_min
+									bin_max_d = bin_max
+								if prepend_label:
+									label = prepend_label+r'Obj %2d (%4d) seg %d cos [%5.4f - %5.4f]' % (o,name,s,bin_min_d,bin_max_d)
+								else:
+									label = r'Obj %2d (%4d) seg %d cos [%5.4f, %5.4f]' % (o,name,s,bin_min_d,bin_max_d)
+								self._make_steps(ax,bins,avg,this_sum,np.add(err,a_err),options=options,label=label,ylim=ylim)
+							else:
+								self._make_steps(ax,bins,avg,tally_norm,err,options=options,label=label,ylim=ylim)
 
 		### labeling
 		### get units
@@ -292,7 +317,7 @@ class tally:
 
 	def _process_vals(self):
 		# calculate based on binning
-		total_bins = self.object_bins*(self.multiplier_bins*self.segment_bins*self.cosine_bins)  ## update for user/multiplier
+		total_bins = self.object_bins*(self.multiplier_bins*self.segment_bins*self.cosine_bins*self.totalvsdirect_bins)  ## update for user/multiplier
 
 		# check based on e vec length
 		total_bins_e = len(self.vals)/(2*(len(self.energies)+1))
@@ -321,30 +346,33 @@ class tally:
 		num_cos=self.cosine_bins
 		num_obj=self.object_bins
 		num_mul=self.multiplier_bins
+		num_td =self.totalvsdirect_bins
 
 		for o in range(num_obj):
-			for s in range(num_seg):
-				for m in range(num_mul):
-					for c in range(num_cos):
-						if self.verbose:
+			for td in range(num_td):
+				for s in range(num_seg):
+					for m in range(num_mul):
+						for c in range(num_cos):
+							if self.verbose:
+								if self.multiplier_flag:
+									print "...... parsing object %2d (%4d) segment %2d multiplier %2d cosine bin %2d " % (o,self.objects[o],s,m,c)
+								else:
+									print "...... parsing object %2d (%4d) segment %2d cosine bin %2d " % (o,self.objects[o],s,c)
+							these_vals 					= {}
+							subset 						= self.vals[n*(self.energy_bins*2):(n+1)*(self.energy_bins*2)]
+							these_vals['object']		= self.objects[o]
 							if self.multiplier_flag:
-								print "...... parsing object %2d (%4d) segment %2d multiplier %2d cosine bin %2d " % (o,self.objects[o],s,m,c)
+								these_vals['multiplier']= m
 							else:
-								print "...... parsing object %2d (%4d) segment %2d cosine bin %2d " % (o,self.objects[o],s,c)
-						these_vals 					= {}
-						subset 						= self.vals[n*(self.energy_bins*2):(n+1)*(self.energy_bins*2)]
-						these_vals['object']		= self.objects[o]
-						if self.multiplier_flag:
-							these_vals['multiplier']= m
-						else:
-							these_vals['multiplier']= False
-						these_vals['segment'] 		= s
-						these_vals['cosine_bin']	= [self.cosines[c],self.cosines[c+1]]
-						these_vals['user_bin'] 		= self.user_bins       # replace once understood
-						these_vals['data'] 			= subset[0::2]
-						these_vals['err'] 			= subset[1::2]
-						new_vals.append(these_vals)
-						n = n+1
+								these_vals['multiplier']= False
+							these_vals['segment'] 		= s
+							these_vals['t_or_d'] 		= td
+							these_vals['cosine_bin']	= [self.cosines[c],self.cosines[c+1]]
+							these_vals['user_bin'] 		= self.user_bins       # replace once understood
+							these_vals['data'] 			= subset[0::2]
+							these_vals['err'] 			= subset[1::2]
+							new_vals.append(these_vals)
+							n = n+1
 		self.vals = new_vals 
 
 
