@@ -462,8 +462,13 @@ class mctal:
 			# read the object numbers (surfaces, cells)
 			self.tallies[k].object_bins 			= int(lines[n].split()[1])
 			n = n+1
-			n = read_array(lines,self.tallies[k].objects,n,mode='int')
+			if (self.tallies[k].name % 10) == 5:   # point detector objects are not listed, so skip
+				n = n
+				self.tallies[k].objects = range(0,self.tallies[k].object_bins)
+			else:
+				n = read_array(lines,self.tallies[k].objects,n,mode='int')
 			# read single numbers bins
+			print lines[n]
 			self.tallies[k].totalvsdirect_bins 		= int(lines[n+0].split()[1])
 			self.tallies[k].user_bins 				= int(lines[n+1].split()[1])
 			self.tallies[k].segment_bins 			= int(lines[n+2].split()[1])
