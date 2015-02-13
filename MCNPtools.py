@@ -468,7 +468,6 @@ class mctal:
 			else:
 				n = read_array(lines,self.tallies[k].objects,n,mode='int')
 			# read single numbers bins
-			print lines[n]
 			self.tallies[k].totalvsdirect_bins 		= int(lines[n+0].split()[1])
 			self.tallies[k].user_bins 				= int(lines[n+1].split()[1])
 			self.tallies[k].segment_bins 			= int(lines[n+2].split()[1])
