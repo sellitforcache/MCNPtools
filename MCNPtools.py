@@ -70,7 +70,7 @@ class tally:
 		self.comment 			= ''  
 		self.object_bins 		= 0
 		self.objects     		= []
-		self.totalvsdirect_bins = 0
+		self.totalvsdirect_bins = 1
 		self.user_bins 			= 0
 		self.segment_bins 		= 0
 		self.multiplier_bins 	= 0 
@@ -122,11 +122,7 @@ class tally:
 		avg=avg_in[:]
 		err=err_in[:]
 
-		### convert energy edges to wavelength
-		if 'wavelength' in options:
-			bins=numpy.divide(0.286014369,numpy.sqrt(numpy.array(bins)*1.0e6))
-			avg=numpy.divide(numpy.array(bins[:-1])+numpy.array(bins[1:]),2.0)
-
+		### make rectangles
 		x=[]
 		y=[]
 		x.append(bins[0])
@@ -144,26 +140,6 @@ class tally:
 			ax.plot(x,y,label=label)
 		else:   #default to log if lin not present
 			ax.semilogx(x,y,label=label)
-
-		### plot errorbars
-		if 'err' in options:
-			ax.errorbar(avg,values,yerr=numpy.multiply(numpy.array(err),numpy.array(values)),alpha=0.0,color='r')
-
-		### labels
-		if 'wavelength' in options:
-			if self.tex:
-				ax.set_xlabel(r'Wavelength (\AA)')
-			else:
-				ax.set_xlabel('Wavelength (A)')
-		else:
-			if self.tex:
-				ax.set_xlabel(r'Energy (MeV)')
-			else:
-				ax.set_xlabel('Energy (MeV)')
-
-		### limits
-		if ylim:
-			ax.set_ylim(ylim)
 
 
 	def plot(self,all=False,ax=None,obj=[0],cos=[0],seg=[0],mul=[0],t_or_d=[0],options=[],prepend_label=False,ylim=False):
@@ -234,12 +210,25 @@ class tally:
 							widths 	 	= np.diff(bins)
 							avg 		= np.divide(np.array(bins[:-1])+np.array(bins[1:]),2.0)
 							if 'normed' in options:
-								tally_norm  = np.divide(tally,widths)
-								if 'lethargy' in options:
-									tally_norm=np.multiply(tally_norm,avg)
+								if 'wavelength' in options:  
+									### do change of variables to make sure differentials are scaled correctly
+									w1 		= np.power(bins[:-1],5.0/2.0)
+									w2 		= np.power(bins[1:] ,5.0/2.0)
+									w_norm  = -4.0/(5.0*0.286014369)*np.divide(np.subtract(w2,w1),widths)
+									bins 	= np.divide(0.286014369,np.sqrt(np.array(bins)*1.0e6))
+									widths 	= np.diff(bins)
+									avg 	= np.divide(np.array(bins[:-1])+np.array(bins[1:]),2.0)
+									tally_norm = np.multiply(tally,w_norm)
+									tally_norm = np.divide(tally_norm,widths)
+								else:
+									tally_norm  = np.divide(tally,widths)
+									if 'lethargy' in options:   # defaults to being normed for lethargy
+										tally_norm	= np.multiply(tally_norm,avg)
 							else:
 								tally_norm = tally
-	
+								if 'wavelength' in options:
+									bins 	= np.divide(0.286014369,np.sqrt(np.array(bins)*1.0e6))
+									avg 	= np.divide(np.array(bins[:-1])+np.array(bins[1:]),2.0)
 							if prepend_label:
 								label = prepend_label+r' obj %2d (%4d) seg %d cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1])
 							else:
@@ -259,7 +248,7 @@ class tally:
 										label = prepend_label+r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] / cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1],a_bin[0],a_bin[1])
 									else:
 										label = r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] / cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1],a_bin[0],a_bin[1])
-									self._make_steps(ax,bins,avg,np.divide(tally_norm,a),np.add(err,a_err),options=options,label=label,ylim=ylim)
+									self._make_steps(ax,bins,avg,np.divide(tally_norm,a),np.add(err,a_err),options=options,label=label)
 							if 'diff_cos' in options:
 								if c == plot_cosines[0]:
 									a     = tally_norm[:]
@@ -270,7 +259,7 @@ class tally:
 										label = prepend_label+r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] - cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1],a_bin[0],a_bin[1])
 									else:
 										label = r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] - cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1],a_bin[0],a_bin[1])
-									self._make_steps(ax,bins,avg,np.subtract(tally_norm,a),np.add(err,a_err),options=options,label=label,ylim=ylim)
+									self._make_steps(ax,bins,avg,np.subtract(tally_norm,a),np.add(err,a_err),options=options,label=label)
 							if 'sum_cos' in options:
 								if c == plot_cosines[0]:
 									this_sum = tally_norm[:]
@@ -291,9 +280,30 @@ class tally:
 									label = prepend_label+r'Obj %2d (%4d) seg %d cos [%5.4f - %5.4f]' % (o,name,s,bin_min_d,bin_max_d)
 								else:
 									label = r'Obj %2d (%4d) seg %d cos [%5.4f, %5.4f]' % (o,name,s,bin_min_d,bin_max_d)
-								self._make_steps(ax,bins,avg,this_sum,np.add(err,a_err),options=options,label=label,ylim=ylim)
+								self._make_steps(ax,bins,avg,this_sum,np.add(err,a_err),options=options,label=label)
 							else:
-								self._make_steps(ax,bins,avg,tally_norm,err,options=options,label=label,ylim=ylim)
+								self._make_steps(ax,bins,avg,tally_norm,err,options=options,label=label)
+
+		### plot errorbars
+		if 'err' in options:
+			ax.errorbar(avg,values,yerr=numpy.multiply(numpy.array(err),numpy.array(values)),alpha=0.0,color='r')
+
+		### labels
+		if 'wavelength' in options:
+			if self.tex:
+				ax.set_xlabel(r'Wavelength (\AA)')
+			else:
+				ax.set_xlabel('Wavelength (A)')
+		else:
+			if self.tex:
+				ax.set_xlabel(r'Energy (MeV)')
+			else:
+				ax.set_xlabel('Energy (MeV)')
+
+		### limits
+		if ylim:
+			ax.set_ylim(ylim)
+
 
 		### labeling
 		### get units
@@ -323,6 +333,8 @@ class tally:
 		total_bins_e = len(self.vals)/(2*(len(self.energies)+1))
 		
 		# check consistency (should be thick by now)
+		#print total_bins, total_bins_e
+		#print self.energies
 		assert(total_bins == total_bins_e)
 		self.total_bins = total_bins
 		if self.verbose:
