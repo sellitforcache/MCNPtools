@@ -142,7 +142,7 @@ class tally:
 			ax.semilogx(x,y,label=label)
 
 
-	def plot(self,all=False,ax=None,obj=[0],cos=[0],seg=[0],mul=[0],t_or_d=[0],options=[],prepend_label=False,ylim=False):
+	def plot(self,all=False,ax=None,obj=[0],cos=[0],seg=[0],mul=[0],t_or_d=[0],options=[],prepend_label=False,ylim=False,xlim=False):
 		import numpy as np
 		import pylab as pl
 		import matplotlib.pyplot as plt
@@ -210,24 +210,17 @@ class tally:
 							widths 	 	= np.diff(bins)
 							avg 		= np.divide(np.array(bins[:-1])+np.array(bins[1:]),2.0)
 							if 'normed' in options:
-								if 'wavelength' in options:  
-									### do change of variables to make sure differentials are scaled correctly
-									w1 		= np.power(bins[:-1],5.0/2.0)
-									w2 		= np.power(bins[1:] ,5.0/2.0)
-									w_norm  = -4.0/(5.0*0.286014369)*np.divide(np.subtract(w2,w1),widths)
-									bins 	= np.divide(0.286014369,np.sqrt(np.array(bins)*1.0e6))
-									widths 	= np.diff(bins)
-									avg 	= np.divide(np.array(bins[:-1])+np.array(bins[1:]),2.0)
-									tally_norm = np.multiply(tally,w_norm)
-									tally_norm = np.divide(tally_norm,widths)
-								else:
-									tally_norm  = np.divide(tally,widths)
-									if 'lethargy' in options:   # defaults to being normed for lethargy
+								tally_norm = np.divide(tally,widths)
+								if 'lethargy' in options:   # defaults to being normed for lethargy
 										tally_norm	= np.multiply(tally_norm,avg)
 							else:
 								tally_norm = tally
-								if 'wavelength' in options:
+							if 'wavelength' in options:  
+									bins    = bins[::-1]
+									tally_norm   = tally_norm[::-1]
+									err     = err[::-1]
 									bins 	= np.divide(0.286014369,np.sqrt(np.array(bins)*1.0e6))
+									widths 	= np.diff(bins)
 									avg 	= np.divide(np.array(bins[:-1])+np.array(bins[1:]),2.0)
 							if prepend_label:
 								label = prepend_label+r' obj %2d (%4d) seg %d cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1])
@@ -303,6 +296,8 @@ class tally:
 		### limits
 		if ylim:
 			ax.set_ylim(ylim)
+		if xlim:
+			ax.set_xlim(xlim)
 
 
 		### labeling
@@ -665,7 +660,7 @@ def save_mctal_obj(obj,filepath):
 
 	print "Saved mctal object with the title '"+obj.title+"'' to: '"+filepath+"'"
 
-def _do_ratio(objects,ax=False,tal=False,obj=False,seg=False,mul=False,cos=False,td=False,options=False):
+def _do_ratio(objects,ax=False,tal=False,obj=False,seg=False,mul=False,cos=False,td=False,options=False,ylim=False,xlim=False):
 	### internal function to make a new mctal object with ratio values and plot it on ax
 	import numpy
 
@@ -676,6 +671,10 @@ def _do_ratio(objects,ax=False,tal=False,obj=False,seg=False,mul=False,cos=False
 	if 'normed' in options:
 		print "Norming is invalid for ratios, ignored."
 		options.remove('normed')
+	if 'lethargy' in options:
+		print "Lethargy is invalid for ratios, ignored."
+		options.remove('lethargy')
+
 
 	### set first title string
 	title = 'a = {a:s}'.format(a=objects[0].title.strip())
@@ -759,7 +758,7 @@ def _do_ratio(objects,ax=False,tal=False,obj=False,seg=False,mul=False,cos=False
 		### finally plot the sucker
 		for t in tal:
 			labelstr = '{a1:s} : {com:s}\n Tally {t:4d} :'.format(a1=letter[o_in+1],com=dummy.tallies[t].comment,t=t)
-			dummy.tallies[t].plot(all=True,ax=ax,options=options,prepend_label=labelstr)
+			dummy.tallies[t].plot(all=True,ax=ax,options=options,ylim=ylim,xlim=xlim,prepend_label=labelstr)
 
 		### append to title string
 		title = title + '\n {a:s} = {b:s}'.format(a=letter[o_in+1],b=objects[o_in+1].title.strip())
@@ -771,7 +770,7 @@ def _do_ratio(objects,ax=False,tal=False,obj=False,seg=False,mul=False,cos=False
 		ax.set_ylabel('Ratio ([x]/a)')
 	ax.set_title(title)
 
-def plot(objects,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,td=False,options=False):
+def plot(objects,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,td=False,options=False,ylim=False,xlim=False):
 	### plotting routines for inter-mctal plots
 	import numpy, pylab
 	import matplotlib.pyplot as plt
@@ -828,7 +827,7 @@ def plot(objects,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,td=Fa
 			cos = range(objects[0].tallies[tal[0]].cosine_bins)
 			mul = range(objects[0].tallies[tal[0]].multiplier_bins)
 			td  = range(objects[0].tallies[tal[0]].totalvsdirect_bins)
-			_do_ratio(objects,ax=ax,tal=tal,obj=obj,seg=seg,mul=mul,cos=cos,td=td,options=plot_options)
+			_do_ratio(objects,ax=ax,tal=tal,obj=obj,seg=seg,mul=mul,cos=cos,td=td,ylim=ylim,xlim=xlim,options=plot_options)
 		else:
 			for this_mctal in objects:
 				for t in tal:
@@ -845,11 +844,11 @@ def plot(objects,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,td=Fa
 		if not td:
 			td  = [0]
 		if 'ratio_mctal' in plot_options:
-			_do_ratio(objects,ax=ax,tal=tal,obj=obj,seg=seg,mul=mul,cos=cos,td=td,options=plot_options)
+			_do_ratio(objects,ax=ax,tal=tal,obj=obj,seg=seg,mul=mul,cos=cos,td=td,ylim=ylim,xlim=xlim,options=plot_options)
 		else:
 			for this_mctal in objects:
 				for t in tal:
-					this_mctal.tallies[t].plot(ax=ax,obj=obj,seg=seg,mul=mul,cos=cos,t_or_d=td,options=plot_options,prepend_label='{title:s}\n{com:s}\n Tally {a:4d} :'.format(title=this_mctal.title.strip(),com=this_mctal.tallies[t].comment,a=t))
+					this_mctal.tallies[t].plot(ax=ax,obj=obj,seg=seg,mul=mul,cos=cos,t_or_d=td,ylim=ylim,xlim=xlim,options=plot_options,prepend_label='{title:s}\n{com:s}\n Tally {a:4d} :'.format(title=this_mctal.title.strip(),com=this_mctal.tallies[t].comment,a=t))
 
 	### show
 	handles, labels = ax.get_legend_handles_labels()
