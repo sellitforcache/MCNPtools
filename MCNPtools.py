@@ -57,10 +57,10 @@ class tally:
 		  6 : ['photon, electron'			,'pe' ],
 		  7 : ['neutron, photon, electron'	,'npe']}
 	tally_units={
-          1 : r'n / (source p)',
-          2 : r'n / (cm$^2$ $\cdot$ source p)',
-	      4 : r'n / (cm$^2$ $\cdot$ source p)',
-	      5 : r'n / (cm$^2$ $\cdot$ source p)'}
+          1 : r'n p$^{-1}$',
+          2 : r'n cm$^{-2}$ p$^{-1}$',
+	      4 : r'n cm$^{-2}$ p$^{-1}$',
+	      5 : r'n cm$^{-2}$ p$^{-1}$'}
 
 	def __init__(self,verbose=False,tex=False):
 		self.name 				= 0    # tally name number
@@ -210,14 +210,22 @@ class tally:
 							widths 	 	= np.diff(bins)
 							avg 		= np.divide(np.array(bins[:-1])+np.array(bins[1:]),2.0)
 							if 'normed' in options:
-								tally_norm = np.divide(tally,widths)
-								if 'lethargy' in options:   # defaults to being normed for lethargy
-										tally_norm	= np.multiply(tally_norm,avg)
+								if 'wavelength' in options:
+									#tally_norm = -2.0/0.286014369*np.multiply(np.power(avg,3.0/2.0),tally)
+									bins 	= np.divide(0.286014369,np.sqrt(np.array(bins)*1.0e6))
+									widths 	= np.diff(bins)
+									avg 	= np.divide(np.array(bins[:-1])+np.array(bins[1:]),2.0)
+									tally_norm  = np.divide(tally,-widths)
+								elif 'lethargy' in options:   # defaults to being normed for lethargy
+									tally_norm  = np.divide(tally,widths)
+									tally_norm	= np.multiply(tally_norm,avg)
+								else:
+									tally_norm = np.divide(tally,widths)
 							else:
 								tally_norm = tally
-							if 'wavelength' in options:  
+								if 'wavelength' in options:  
 									bins    = bins[::-1]
-									tally_norm   = tally_norm[::-1]
+									tally_norm  = tally_norm[::-1]
 									err     = err[::-1]
 									bins 	= np.divide(0.286014369,np.sqrt(np.array(bins)*1.0e6))
 									widths 	= np.diff(bins)
@@ -305,9 +313,12 @@ class tally:
 		last_integer = self.name % 10
 		units = self.tally_units[last_integer]
 		if 'normed' in options:
-			ax.set_ylabel(units+r' / bin width')
+			if 'wavelength' in options:
+				ax.set_ylabel(r'$\Phi(\lambda)$ ('+units+r' \AA$^{-1}$)')
+			else:
+				ax.set_ylabel(r'$\Phi(E)$ ('+units+r' MeV$^{-1}$)')
 			if 'lethargy' in options:
-				ax.set_ylabel(units+r' / unit lethargy')
+				ax.set_ylabel(r'$\Phi(u)$ ('+units+r' $u^{-1}$)')
 		else:
 			ax.set_ylabel(units)
 
