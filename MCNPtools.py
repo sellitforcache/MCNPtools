@@ -112,7 +112,7 @@ class tally:
 		return dex
 
 
-	def _make_steps(self,ax,bins_in,avg_in,values_in,err_in,options=['log'],label='',ylim=False):
+	def _make_steps(self,ax,bins_in,avg_in,values_in,options=['log'],label='',ylim=False):
 		import numpy
 		assert(len(bins_in)==len(values_in)+1)
 
@@ -120,7 +120,7 @@ class tally:
 		bins=bins_in[:]
 		values=values_in[:]
 		avg=avg_in[:]
-		err=err_in[:]
+		#err=err_in[:]
 
 		### make rectangles
 		x=[]
@@ -137,9 +137,15 @@ class tally:
 
 		### plot with correct scale
 		if 'lin' in options:
-			ax.plot(x,y,label=label)
+			if 'logy' in options:
+				ax.semilogy(x,y,label=label)
+			else:
+				ax.plot(x,y,label=label)
 		else:   #default to log if lin not present
-			ax.semilogx(x,y,label=label)
+			if 'logy' in options:
+				ax.loglog(x,y,label=label)
+			else:
+				ax.semilogx(x,y,label=label)
 
 
 	def plot(self,all=False,ax=None,obj=[0],cos=[0],seg=[0],mul=[0],t_or_d=[0],options=[],prepend_label=False,ylim=False,xlim=False):
@@ -195,6 +201,7 @@ class tally:
 				for s in plot_segments:
 					for m in plot_multipliers:
 						for c in plot_cosines:
+							### GET DATA
 							dex  		= self._hash(obj=o,cos=c,seg=s,mul=m,td=td)
 							tally 		= self.vals[dex]['data'][:-1]  # clip off totals from ends
 							err 		= self.vals[dex]['err'][:-1]
@@ -209,6 +216,8 @@ class tally:
 							bins 		= self.energies[:-1]
 							widths 	 	= np.diff(bins)
 							avg 		= np.divide(np.array(bins[:-1])+np.array(bins[1:]),2.0)
+
+							### MODIFY DATA
 							if 'normed' in options:
 								if 'wavelength' in options:
 									#tally_norm = -2.0/0.286014369*np.multiply(np.power(avg,3.0/2.0),tally)
@@ -239,6 +248,8 @@ class tally:
 								total 		= self.vals[dex]['data'][-1]
 								total_err 	= self.vals[dex]['err'][-1]
 								label = label + '\n Total = {total:5.4f} +- {err:5.4f}'.format(total=total,err=total_err)
+
+							### PLOT
 							if 'ratio_cos' in options:
 								if c == plot_cosines[0]:
 									a     = tally_norm[:]
@@ -249,7 +260,7 @@ class tally:
 										label = prepend_label+r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] / cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1],a_bin[0],a_bin[1])
 									else:
 										label = r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] / cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1],a_bin[0],a_bin[1])
-									self._make_steps(ax,bins,avg,np.divide(tally_norm,a),np.add(err,a_err),options=options,label=label)
+									self._make_steps(ax,bins,avg,np.divide(tally_norm,a),options=options,label=label)
 							if 'diff_cos' in options:
 								if c == plot_cosines[0]:
 									a     = tally_norm[:]
@@ -260,7 +271,7 @@ class tally:
 										label = prepend_label+r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] - cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1],a_bin[0],a_bin[1])
 									else:
 										label = r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] - cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1],a_bin[0],a_bin[1])
-									self._make_steps(ax,bins,avg,np.subtract(tally_norm,a),np.add(err,a_err),options=options,label=label)
+									self._make_steps(ax,bins,avg,np.subtract(tally_norm,a),options=options,label=label)
 							if 'sum_cos' in options:
 								if c == plot_cosines[0]:
 									this_sum = tally_norm[:]
@@ -282,12 +293,12 @@ class tally:
 								else:
 									label = r'Obj %2d (%4d) seg %d cos [%5.4f, %5.4f]' % (o,name,s,bin_min_d,bin_max_d)
 								self._make_steps(ax,bins,avg,this_sum,np.add(err,a_err),options=options,label=label)
+								#if 'err' in options:
+								#	ax.errorbar(avg,values,yerr=numpy.multiply(numpy.array(err),numpy.array(values)),alpha=0.0,color='r')
 							else:
-								self._make_steps(ax,bins,avg,tally_norm,err,options=options,label=label)
-
-		### plot errorbars
-		if 'err' in options:
-			ax.errorbar(avg,values,yerr=numpy.multiply(numpy.array(err),numpy.array(values)),alpha=0.0,color='r')
+								self._make_steps(ax,bins,avg,tally_norm,options=options,label=label)
+								if 'err' in options:
+									ax.errorbar(avg,tally_norm,yerr=np.multiply(np.array(err),np.array(tally_norm)),alpha=1.0,color='r')		
 
 		### labels
 		if 'wavelength' in options:
