@@ -298,7 +298,7 @@ class tally:
 							else:
 								self._make_steps(ax,bins,avg,tally_norm,options=options,label=label)
 								if 'err' in options:
-									ax.errorbar(avg,tally_norm,yerr=np.multiply(np.array(err),np.array(tally_norm)),alpha=1.0,color='r')		
+									ax.errorbar(avg,tally_norm,yerr=np.multiply(np.array(err),np.array(tally_norm)),linestyle='None',alpha=1.0,color='r')		
 
 		### labels
 		if 'wavelength' in options:
@@ -832,8 +832,9 @@ def plot(objects,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,td=Fa
 
 	### init axes if not passed one
 	if ax:
-		pass
+		show = 0
 	else:
+		show = 1
 		fig = plt.figure(figsize=(10,6))
 		ax = fig.add_subplot(1,1,1)
 
@@ -876,7 +877,8 @@ def plot(objects,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,td=Fa
 	handles, labels = ax.get_legend_handles_labels()
 	ax.legend(handles,labels,loc=leg_loc,prop={'size':12})
 	ax.grid(True)
-	fig.show()
+	if show:
+		plt.show()
 
 def to_wavelength(E_in):
 	### assumes MeV, gives Angstrom
