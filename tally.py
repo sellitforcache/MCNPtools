@@ -235,6 +235,13 @@ class tally:
 									bins 	= np.divide(0.286014369,np.sqrt(np.array(bins)*1.0e6))
 									widths 	= np.diff(bins)
 									avg 	= np.divide(np.array(bins[:-1])+np.array(bins[1:]),2.0)
+							if 'mA' in options: 
+								if 'ratio_mctal' in options:
+									print "renormalizing to mA invalid for ratios, ignoring"
+								else:
+									tally_norm = np.multiply(tally_norm,6.241e15)  # convert protons to milliAmpere*seconds
+
+
 							if prepend_label:
 								label = prepend_label+r' obj %2d (%4d) seg %d cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1])
 							else:
@@ -319,6 +326,8 @@ class tally:
 		### get units
 		last_integer = self.name % 10
 		units = self.tally_units[last_integer]
+		if 'mA' in options:
+			units = units.replace(r'p$^{-1}$',r'mAs$^{-1}$')
 		if 'normed' in options:
 			if 'wavelength' in options:
 				ax.set_ylabel(r'$\Phi(\lambda)$ ('+units+r' \AA$^{-1}$)')
