@@ -79,6 +79,9 @@ def _do_ratio(objects,ax=False,tal=False,obj=False,seg=False,mul=False,cos=False
 								these_vals = {}
 								if 'rel' in options:
 									these_vals['data'] 		= numpy.subtract(numpy.divide(numpy.array(b),numpy.array(a)),1.0)
+									#a 		= numpy.subtract(numpy.array(b),numpy.array(a))
+									#b 		= numpy.add(numpy.array(b),numpy.array(a))
+									#these_vals['data'] = 2.0*numpy.divide(a,b)
 								else:
 									these_vals['data'] 		= numpy.divide(numpy.array(b),numpy.array(a))
 								these_vals['err'] 			= numpy.add(numpy.array(a_err),numpy.array(b_err))  # rel err of quotient is just the sum or errors?!

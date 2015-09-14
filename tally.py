@@ -107,9 +107,38 @@ class tally:
 		dex = obj*(self.segment_bins*self.cosine_bins*self.multiplier_bins*self.totalvsdirect_bins)+ td*(self.segment_bins*self.cosine_bins*self.multiplier_bins) +seg*(self.cosine_bins*self.multiplier_bins)+ mul*(self.cosine_bins) + cos
 		return dex
 
+	def _smooth(self,x,window_len=11,window='flat'):
+		# take from stackexchange
+		import numpy
+
+		if x.ndim != 1:
+			raise ValueError, "smooth only accepts 1 dimension arrays."
+
+		if x.size < window_len:
+			raise ValueError, "Input vector needs to be bigger than window size."
+
+
+		if window_len<3:
+			return x
+
+		if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
+			raise ValueError, "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'"
+
+
+		s=numpy.r_[x[window_len-1:0:-1],x,x[-1:-window_len:-1]]
+		#print(len(s))
+		if window == 'flat': #moving average
+			w=numpy.ones(window_len,'d')
+		else:
+			w=eval('numpy.'+window+'(window_len)')
+
+		y=numpy.convolve(w/w.sum(),s,mode='valid')
+		return y
+
+
 
 	def _make_steps(self,ax,bins_in,avg_in,values_in,options=['log'],label='',ylim=False):
-		import numpy
+		import numpy, re
 		assert(len(bins_in)==len(values_in)+1)
 
 		### make copies
@@ -130,6 +159,27 @@ class tally:
 			y.append(values[n])
 		x.append(bins[len(values)])
 		y.append(0.0)
+
+		### smooth data?  parse format
+		for opt in options:
+			res = re.match('smooth',opt)
+			if res:
+				smooth_opts = opt.split('=')
+				if len(smooth_opts)==1:
+					wlen = 7
+				elif len(smooth_opts)==2:
+					wlen = int(smooth_opts[1])
+				else:
+					wlen = int(smooth_opts[1])
+					print "MULTIPLE = SIGNS IN SMOOTH.  WHY?  ACCEPTING FIRST VALUE."
+				if wlen%2==0:
+					print "WINDOW LENGTH EVEN, ADDING 1..."
+					wlen = wlen + 1
+				print "smoothing %d bins..."%wlen
+				label = label + ' SMOOTHED %d BINS'%wlen
+				y = self._smooth(numpy.array(y),window_len=wlen)
+				y = y[(wlen-1)/2:-(wlen-1)/2]   # trim to original length
+
 
 		### plot with correct scale
 		if 'lin' in options:
