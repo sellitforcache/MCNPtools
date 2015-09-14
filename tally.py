@@ -147,19 +147,6 @@ class tally:
 		avg=avg_in[:]
 		#err=err_in[:]
 
-		### make rectangles
-		x=[]
-		y=[]
-		x.append(bins[0])
-		y.append(0.0)
-		for n in range(len(values)):
-			x.append(bins[n])
-			x.append(bins[n+1])
-			y.append(values[n])
-			y.append(values[n])
-		x.append(bins[len(values)])
-		y.append(0.0)
-
 		### smooth data?  parse format
 		for opt in options:
 			res = re.match('smooth',opt)
@@ -177,9 +164,21 @@ class tally:
 					wlen = wlen + 1
 				print "smoothing %d bins..."%wlen
 				label = label + ' SMOOTHED %d BINS'%wlen
-				y = self._smooth(numpy.array(y),window_len=wlen)
-				y = y[(wlen-1)/2:-(wlen-1)/2]   # trim to original length
+				values = self._smooth(numpy.array(values),window_len=wlen)
+				values = values[(wlen-1)/2:-(wlen-1)/2]   # trim to original length
 
+		### make rectangles
+		x=[]
+		y=[]
+		x.append(bins[0])
+		y.append(0.0)
+		for n in range(len(values)):
+			x.append(bins[n])
+			x.append(bins[n+1])
+			y.append(values[n])
+			y.append(values[n])
+		x.append(bins[len(values)])
+		y.append(0.0)
 
 		### plot with correct scale
 		if 'lin' in options:
