@@ -135,6 +135,18 @@ class tally:
 		y=numpy.convolve(w/w.sum(),s,mode='valid')
 		return y
 
+	def _coarsen(self,values,bins,bin_red=2):
+		import numpy
+		v_out=[]
+		b_out=[]
+		for i in range(0,len(values)/bin_red):
+			v = 0.0
+			for j in range(0,bin_red):
+				v = v + values[i*bin_red+j]
+			v_out.append(v)
+			b_out.append(bins[i*bin_red])
+		b_out.append(bins[-1])
+		return numpy.array(v_out),numpy.array(b_out)
 
 
 	def _make_steps(self,ax,bins_in,avg_in,values_in,options=['log'],label='',ylim=False):
@@ -166,6 +178,26 @@ class tally:
 				label = label + ' SMOOTHED %d BINS'%wlen
 				values = self._smooth(numpy.array(values),window_len=wlen)
 				values = values[(wlen-1)/2:-(wlen-1)/2]   # trim to original length
+
+		### coarsen data?  parse format
+		for opt in options:
+			res = re.match('coarsen',opt)
+			if res:
+				coarsen_opts = opt.split('=')
+				if len(coarsen_opts)==1:
+					bin_red = 2
+				elif len(coarsen_opts)==2:
+					bin_red = int(coarsen_opts[1])
+				else:
+					bin_red = int(coarsen_opts[1])
+					print "MULTIPLE = SIGNS IN SMOOTH.  WHY?  ACCEPTING FIRST VALUE."
+				if len(values)%bin_red==0:
+					print len(values)
+					print "Reducing bins by factor of %d ..."%bin_red
+					label = label + ' COMBINED %d BINS'%bin_red
+					values,bins = self._coarsen(numpy.array(values),numpy.array(bins),bin_red=bin_red)
+				else:
+					print "DATA LENGHTH NOT EVENLY DIVISIBLE BY COARSEN FACTOR, IGNORING..."
 
 		### make rectangles
 		x=[]
