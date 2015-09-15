@@ -192,7 +192,6 @@ class tally:
 					bin_red = int(coarsen_opts[1])
 					print "MULTIPLE = SIGNS IN SMOOTH.  WHY?  ACCEPTING FIRST VALUE."
 				if len(values)%bin_red==0:
-					print len(values)
 					print "Reducing bins by factor of %d ..."%bin_red
 					label = label + ' COMBINED %d BINS'%bin_red
 					values,bins = self._coarsen(numpy.array(values),numpy.array(bins),bin_red=bin_red)
