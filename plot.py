@@ -1,4 +1,4 @@
-def plot(objects,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,td=False,options=False,ylim=False,xlim=False):
+def plot(objects,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,td=False,options=False,ylim=False,xlim=False,color='b'):
 	### plotting routines for inter-mctal plots
 	import numpy, pylab
 	import matplotlib.pyplot as plt
@@ -58,7 +58,7 @@ def plot(objects,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,td=Fa
 			cos = range(objects[0].tallies[tal[0]].cosine_bins)
 			mul = range(objects[0].tallies[tal[0]].multiplier_bins)
 			td  = range(objects[0].tallies[tal[0]].totalvsdirect_bins)
-			MCNPtools._do_ratio._do_ratio(objects,ax=ax,tal=tal,obj=obj,seg=seg,mul=mul,cos=cos,td=td,ylim=ylim,xlim=xlim,options=plot_options)
+			MCNPtools._do_ratio._do_ratio(objects,ax=ax,tal=tal,obj=obj,seg=seg,mul=mul,cos=cos,td=td,ylim=ylim,xlim=xlim,color=color,options=plot_options)
 		else:
 			for this_mctal in objects:
 				for t in tal:
@@ -75,11 +75,11 @@ def plot(objects,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,td=Fa
 		if not td:
 			td  = [0]
 		if 'ratio_mctal' in plot_options:
-			MCNPtools._do_ratio._do_ratio(objects,ax=ax,tal=tal,obj=obj,seg=seg,mul=mul,cos=cos,td=td,ylim=ylim,xlim=xlim,options=plot_options)
+			MCNPtools._do_ratio._do_ratio(objects,ax=ax,tal=tal,obj=obj,seg=seg,mul=mul,cos=cos,td=td,ylim=ylim,xlim=xlim,options=plot_options,color=color)
 		else:
 			for this_mctal in objects:
 				for t in tal:
-					this_mctal.tallies[t].plot(ax=ax,obj=obj,seg=seg,mul=mul,cos=cos,t_or_d=td,ylim=ylim,xlim=xlim,options=plot_options,prepend_label='{title:s}\n{com:s}\n Tally {a:4d} :'.format(title=this_mctal.title.strip(),com=this_mctal.tallies[t].comment,a=t))
+					this_mctal.tallies[t].plot(ax=ax,obj=obj,seg=seg,mul=mul,cos=cos,t_or_d=td,ylim=ylim,xlim=xlim,color=color,options=plot_options,prepend_label='{title:s}\n{com:s}\n Tally {a:4d} :'.format(title=this_mctal.title.strip(),com=this_mctal.tallies[t].comment,a=t))
 
 	### show
 	handles, labels = ax.get_legend_handles_labels()

@@ -1,4 +1,4 @@
-def _do_ratio(objects,ax=False,tal=False,obj=False,seg=False,mul=False,cos=False,td=False,options=False,ylim=False,xlim=False):
+def _do_ratio(objects,ax=False,tal=False,obj=False,seg=False,mul=False,cos=False,td=False,color='b',options=False,ylim=False,xlim=False):
 	### internal function to make a new mctal object with ratio values and plot it on ax
 	import numpy
 	import MCNPtools.tally
@@ -101,7 +101,7 @@ def _do_ratio(objects,ax=False,tal=False,obj=False,seg=False,mul=False,cos=False
 		### finally plot the sucker
 		for t in tal:
 			labelstr = '{a1:s} : {com:s}\n Tally {t:4d} :'.format(a1=letter[o_in+1],com=dummy.tallies[t].comment,t=t)
-			dummy.tallies[t].plot(all=True,ax=ax,options=options,ylim=ylim,xlim=xlim,prepend_label=labelstr)
+			dummy.tallies[t].plot(all=True,ax=ax,options=options,ylim=ylim,xlim=xlim,color=color,prepend_label=labelstr)
 
 		### append to title string
 		title = title + '\n {a:s} = {b:s}'.format(a=letter[o_in+1],b=objects[o_in+1].title.strip())

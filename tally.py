@@ -149,7 +149,7 @@ class tally:
 		return numpy.array(v_out),numpy.array(b_out)
 
 
-	def _make_steps(self,ax,bins_in,avg_in,values_in,options=['log'],label='',ylim=False):
+	def _make_steps(self,ax,bins_in,avg_in,values_in,options=['log'],color='b',label='',ylim=False):
 		import numpy, re
 		assert(len(bins_in)==len(values_in)+1)
 
@@ -214,17 +214,17 @@ class tally:
 		### plot with correct scale
 		if 'lin' in options:
 			if 'logy' in options:
-				ax.semilogy(x,y,label=label)
+				ax.semilogy(x,y,color=color,label=label)
 			else:
-				ax.plot(x,y,label=label)
+				ax.plot(x,y,color=color,label=label)
 		else:   #default to log if lin not present
 			if 'logy' in options:
-				ax.loglog(x,y,label=label)
+				ax.loglog(x,y,color=color,label=label)
 			else:
-				ax.semilogx(x,y,label=label)
+				ax.semilogx(x,y,color=color,label=label)
 
 
-	def plot(self,all=False,ax=None,obj=[0],cos=[0],seg=[0],mul=[0],t_or_d=[0],options=[],prepend_label=False,ylim=False,xlim=False):
+	def plot(self,all=False,ax=None,obj=[0],cos=[0],seg=[0],mul=[0],t_or_d=[0],color=None,options=[],prepend_label=False,ylim=False,xlim=False):
 		import numpy as np
 		import pylab as pl
 		import matplotlib.pyplot as plt
@@ -233,10 +233,10 @@ class tally:
 
 		### make consistency checks
 		if 'lethargy' in options:
-			if 'normed' in options:
+			if 'enormed' in options:
 				pass
 			else:
-				options.append('normed')
+				options.append('enormed')
 
 		if 'wavelength' in options:
 			leg_loc = 1
@@ -294,27 +294,29 @@ class tally:
 							avg 		= np.divide(np.array(bins[:-1])+np.array(bins[1:]),2.0)
 
 							### MODIFY DATA
-							if 'normed' in options:
-								if 'wavelength' in options:
-									#tally_norm = -2.0/0.286014369*np.multiply(np.power(avg,3.0/2.0),tally)
-									bins 	= np.divide(0.286014369,np.sqrt(np.array(bins)*1.0e6))
-									widths 	= np.diff(bins)
-									avg 	= np.divide(np.array(bins[:-1])+np.array(bins[1:]),2.0)
-									tally_norm  = np.divide(tally,-widths)
-								elif 'lethargy' in options:   # defaults to being normed for lethargy
+							tally_norm = tally
+							if 'wavelength' in options:
+								bins 	= np.divide(0.286014369,np.sqrt(np.array(bins)*1.0e6))
+								widths 	= -np.diff(bins)
+								avg 	= np.divide(np.array(bins[:-1])+np.array(bins[1:]),2.0)
+								err     = err[::-1]
+								tally_norm = tally_norm[::-1]
+							else:
+								widths 	= np.diff(bins)
+								avg 	= np.divide(np.array(bins[:-1])+np.array(bins[1:]),2.0)
+
+							### NORM
+							if 'enormed' in options:   # divide by energy/wavelength bin width
+								if 'lethargy' in options:   # defaults to being normed for lethargy
 									tally_norm  = np.divide(tally,widths)
 									tally_norm	= np.multiply(tally_norm,avg)
 								else:
 									tally_norm = np.divide(tally,widths)
-							else:
-								tally_norm = tally
-								if 'wavelength' in options:  
-									bins    = bins[::-1]
-									tally_norm  = tally_norm[::-1]
-									err     = err[::-1]
-									bins 	= np.divide(0.286014369,np.sqrt(np.array(bins)*1.0e6))
-									widths 	= np.diff(bins)
-									avg 	= np.divide(np.array(bins[:-1])+np.array(bins[1:]),2.0)
+							if 'sanormed' in options:   #  divide by solid angle bin width
+								sa = 2.0*np.pi*(self.vals[dex]['cosine_bin'][1]-self.vals[dex]['cosine_bin'][0])
+								tally_norm = np.divide(tally_norm,sa)
+
+							### SCALE 
 							if 'mA' in options: 
 								if 'ratio_mctal' in options:
 									print "renormalizing to mA invalid for ratios, ignoring"
@@ -343,7 +345,7 @@ class tally:
 										label = prepend_label+r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] / cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1],a_bin[0],a_bin[1])
 									else:
 										label = r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] / cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1],a_bin[0],a_bin[1])
-									self._make_steps(ax,bins,avg,np.divide(tally_norm,a),options=options,label=label)
+									self._make_steps(ax,bins,avg,np.divide(tally_norm,a),color=color,options=options,label=label)
 							if 'diff_cos' in options:
 								if c == plot_cosines[0]:
 									a     = tally_norm[:]
@@ -354,7 +356,7 @@ class tally:
 										label = prepend_label+r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] - cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1],a_bin[0],a_bin[1])
 									else:
 										label = r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] - cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1],a_bin[0],a_bin[1])
-									self._make_steps(ax,bins,avg,np.subtract(tally_norm,a),options=options,label=label)
+									self._make_steps(ax,bins,avg,np.subtract(tally_norm,a),color=color,options=options,label=label)
 							if 'sum_cos' in options:
 								if c == plot_cosines[0]:
 									this_sum = tally_norm[:]
@@ -375,11 +377,11 @@ class tally:
 									label = prepend_label+r'Obj %2d (%4d) seg %d cos [%5.4f - %5.4f]' % (o,name,s,bin_min_d,bin_max_d)
 								else:
 									label = r'Obj %2d (%4d) seg %d cos [%5.4f, %5.4f]' % (o,name,s,bin_min_d,bin_max_d)
-								self._make_steps(ax,bins,avg,this_sum,np.add(err,a_err),options=options,label=label)
+								self._make_steps(ax,bins,avg,this_sum,np.add(err,a_err),color=color,options=options,label=label)
 								#if 'err' in options:
 								#	ax.errorbar(avg,values,yerr=numpy.multiply(numpy.array(err),numpy.array(values)),alpha=0.0,color='r')
 							else:
-								self._make_steps(ax,bins,avg,tally_norm,options=options,label=label)
+								self._make_steps(ax,bins,avg,tally_norm,color=color,options=options,label=label)
 								if 'err' in options:
 									ax.errorbar(avg,tally_norm,yerr=np.multiply(np.array(err),np.array(tally_norm)),linestyle='None',alpha=1.0,color='r')		
 
@@ -406,17 +408,20 @@ class tally:
 		### get units
 		last_integer = self.name % 10
 		units = self.tally_units[last_integer]
+		label = units
 		if 'mA' in options:
-			units = units.replace(r'p$^{-1}$',r'mAs$^{-1}$')
-		if 'normed' in options:
+			units = label.replace(r'p$^{-1}$',r'mAs$^{-1}$')
+		if 'enormed' in options:
 			if 'wavelength' in options:
-				ax.set_ylabel(r'$\Phi(\lambda)$ ('+units+r' \AA$^{-1}$)')
+				label = r'$\Phi(\lambda)$ (' + label + r' \AA$^{-1}$'
+			elif 'lethargy' in options:
+				label = r'$\Phi(u)$ (' + label + r' $u^{-1}$'
 			else:
-				ax.set_ylabel(r'$\Phi(E)$ ('+units+r' MeV$^{-1}$)')
-			if 'lethargy' in options:
-				ax.set_ylabel(r'$\Phi(u)$ ('+units+r' $u^{-1}$)')
-		else:
-			ax.set_ylabel(units)
+				label = r'$\Phi(E)$ (' + label + r' MeV$^{-1}$'
+		if 'sanormed' in options:
+			label = label + r'$\Omega^{-1}$'
+
+		ax.set_ylabel(label+r')')
 
 		### title legend grid, show if self-made
 		if show:
