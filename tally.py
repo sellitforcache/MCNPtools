@@ -299,8 +299,8 @@ class tally:
 								bins 	= np.divide(0.286014369,np.sqrt(np.array(bins)*1.0e6))
 								widths 	= -np.diff(bins)
 								avg 	= np.divide(np.array(bins[:-1])+np.array(bins[1:]),2.0)
-								err     = err[::-1]
-								tally_norm = tally_norm[::-1]
+								#err     = err[::-1]
+								#tally_norm = tally_norm[::-1]
 							else:
 								widths 	= np.diff(bins)
 								avg 	= np.divide(np.array(bins[:-1])+np.array(bins[1:]),2.0)
