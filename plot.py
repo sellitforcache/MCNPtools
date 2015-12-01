@@ -1,4 +1,4 @@
-def plot(objects,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,td=False,options=False,ylim=False,xlim=False,color='b'):
+def plot(objects,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,td=False,options=False,ylim=False,xlim=False,color=None):
 	### plotting routines for inter-mctal plots
 	import numpy, pylab
 	import matplotlib.pyplot as plt

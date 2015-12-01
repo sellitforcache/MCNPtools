@@ -94,14 +94,19 @@ class mctal:
 			# read single numbers bins
 			self.tallies[k].totalvsdirect_bins 		= int(lines[n+0].split()[1])
 			self.tallies[k].user_bins 				= int(lines[n+1].split()[1])
+			# read segments
 			self.tallies[k].segment_bins 			= int(lines[n+2].split()[1])
-			self.tallies[k].multiplier_bins 		= int(lines[n+3].split()[1])
-			n = n+4
+			n = n+3
+			if self.tallies[k].segment_bins == 0: # make 1-indexing, since if there is 1 bin, this number is 0, and if there are two, this number is 2!
+				self.tallies[k].segment_bins = 1
+			elif (self.tallies[k].name % 10) == 5:   # point detector objects can only be segmented in radiography tallies, will be floats, otherwise there is no list
+				n = read_array(lines,self.tallies[k].segments,n,mode='float')
+			# read multipliers
+			self.tallies[k].multiplier_bins 		= int(lines[n].split()[1])
+			n = n+1
 			if self.tallies[k].multiplier_bins == 0: # make 1-indexing, but flag to keep information that this tally is NOT multiplied
 				self.tallies[k].multiplier_bins = 1
 				self.tallies[k].multiplier_flag = False
-			if self.tallies[k].segment_bins == 0: # make 1-indexing, since if there is 1 bin, this number is 0, and if there are two, this number is 2!
-				self.tallies[k].segment_bins = 1
 			#  read cosine dbins
 			self.tallies[k].cosine_bins 			= int(lines[n].split()[1])
 			n = n+1

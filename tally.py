@@ -69,6 +69,7 @@ class tally:
 		self.totalvsdirect_bins = 1
 		self.user_bins 			= 0
 		self.segment_bins 		= 0
+		self.segments 			= []
 		self.multiplier_bins 	= 0 
 		self.multiplier_flag 	= True
 		self.cosine_bins 		= 0
