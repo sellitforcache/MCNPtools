@@ -493,7 +493,10 @@ class tally:
 								else:
 									these_vals['cosine_bin']	= [self.cosines[c],self.cosines[c+1]]
 							else:
-								these_vals['cosine_bin']	= [self.cosines[c]]
+								if self.cosine_bins > 1:
+									these_vals['cosine_bin']	= [self.cosines[c]] # radiography
+								else:
+									these_vals['cosine_bin']	= [-1,1]   # regular pd
 							these_vals['user_bin'] 		= self.user_bins       # replace once understood
 							these_vals['data'] 			= subset[0::2]
 							these_vals['err'] 			= subset[1::2]

@@ -113,6 +113,7 @@ class mctal:
 			n = read_array(lines,self.tallies[k].cosines,n)
 			if self.tallies[k].cosine_bins == 0:
 				self.tallies[k].cosine_bins = 1
+				self.tallies[k].cosines     = [-1.0,1.0]
 			#  read energy bins
 			self.tallies[k].energy_bins 			= int(lines[n].split()[1])
 			n = n+1
