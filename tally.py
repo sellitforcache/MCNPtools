@@ -448,10 +448,10 @@ class tally:
 		if self.verbose:
 			print "...... %d non-energy bins in tally" % (self.total_bins)
 
-		# make full vector of cosine edges
+		# make full vector of cosine edges if not a point detector
 		if self.cosine_bins==1:
-			self.cosines=[-1.0,1.0]
-		else:
+				self.cosines=[-1.0,1.0]
+		if (self.name % 10) != 5:
 			self.cosines.insert(0,-1.0)
 
 		# make ful vector of energy edges
@@ -487,7 +487,13 @@ class tally:
 								these_vals['multiplier']= False
 							these_vals['segment'] 		= s
 							these_vals['t_or_d'] 		= td
-							these_vals['cosine_bin']	= [self.cosines[c],self.cosines[c+1]]
+							if (self.name % 10) != 5:
+								if c == len(self.cosines)-1:  #  only happens when there is a total bin
+									these_vals['cosine_bin']	= [-1,1]
+								else:
+									these_vals['cosine_bin']	= [self.cosines[c],self.cosines[c+1]]
+							else:
+								these_vals['cosine_bin']	= [self.cosines[c]]
 							these_vals['user_bin'] 		= self.user_bins       # replace once understood
 							these_vals['data'] 			= subset[0::2]
 							these_vals['err'] 			= subset[1::2]

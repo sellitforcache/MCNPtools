@@ -107,7 +107,7 @@ class mctal:
 			if self.tallies[k].multiplier_bins == 0: # make 1-indexing, but flag to keep information that this tally is NOT multiplied
 				self.tallies[k].multiplier_bins = 1
 				self.tallies[k].multiplier_flag = False
-			#  read cosine dbins
+			#  read cosine bins
 			self.tallies[k].cosine_bins 			= int(lines[n].split()[1])
 			n = n+1
 			n = read_array(lines,self.tallies[k].cosines,n)
