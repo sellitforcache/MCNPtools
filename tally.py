@@ -410,17 +410,27 @@ class tally:
 		last_integer = self.name % 10
 		units = self.tally_units[last_integer]
 		label = units
+		if 'wavelength' in options:
+			label = r'$\Phi(\lambda)$ (' + label 
+		elif 'lethargy' in options:
+			label = r'$\Phi(u)$ (' + label 
+		else:
+			label = r'$\Phi(E)$ (' + label 
+
 		if 'mA' in options:
 			units = label.replace(r'p$^{-1}$',r'mAs$^{-1}$')
+
 		if 'enormed' in options:
 			if 'wavelength' in options:
-				label = r'$\Phi(\lambda)$ (' + label + r' \AA$^{-1}$'
+				label =  label + r' \AA$^{-1}$'
 			elif 'lethargy' in options:
-				label = r'$\Phi(u)$ (' + label + r' $u^{-1}$'
+				label = label + r' $u^{-1}$'
 			else:
-				label = r'$\Phi(E)$ (' + label + r' MeV$^{-1}$'
+				label = label + r' MeV$^{-1}$'
+
 		if 'sanormed' in options:
 			label = label + r'$\Omega^{-1}$'
+
 
 		ax.set_ylabel(label+r')')
 
