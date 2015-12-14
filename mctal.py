@@ -23,14 +23,20 @@ class mctal:
 	def read_mctal(self,filepath):
 
 		import MCNPtools.tally
+		import re, numpy
 
 		def read_array(lines,obj,n,mode='float'):
+			small=re.compile('([0-9].[0-9]+)([+-]+[0-9]+)')
 			while len(lines[n])>0 and lines[n][0]==' ':
 				for m in lines[n].split():
 					if mode == 'int':
 						obj.append(int(m))
 					elif mode == 'float':
-						obj.append(float(m))
+						check = small.match(m)
+						if check:
+							obj.append(float(check.group(1)) * numpy.power(10.0,float(check.group(2))))   #  workaround for mcnp omitting 'E' for exponents with 3 digits
+						else:
+							obj.append(float(m))
 				n = n+1
 			return n
 
