@@ -86,15 +86,37 @@ class mctal:
 				n = n+1
 				for p in t1:
 					self.tallies[k].particle_list.append(int(p)) 
-			if lines[n][0] != 'f':
-				self.tallies[k].comment 		= lines[n]
-				n = n+1
+			for i in range(0,5):
+				if lines[n][0] != 'f':
+					self.tallies[k].comment 		= lines[n]
+					n = n+1
+				else:
+					break
 			# read the object numbers (surfaces, cells)
 			self.tallies[k].object_bins 			= int(lines[n].split()[1])
 			n = n+1
 			if (self.tallies[k].name % 10) == 5:   # point detector objects are not listed, so skip
 				n = n
 				self.tallies[k].objects = range(0,self.tallies[k].object_bins)
+			elif len(lines[n-1].split())>2:
+				if self.verbose:
+					print "...... rejected.  Multiple entries on object line assumed to indicate mesh tally."
+				else:
+					print "Tally %d rejected.  Multiple entries on object line assumed to indicate mesh tally."%k
+				self.tallies[k].totalvsdirect_bins	= 0
+				self.tallies[k].user_bins			= 0
+				self.tallies[k].segment_bins		= 0
+				self.tallies[k].multiplier_bins		= 0
+				self.tallies[k].cosine_bins			= 0
+				self.tallies[k].energy_bins			= 0
+				self.tallies[k].time_bins			= 0
+				## find the start of the next tally (if any)
+				while len(lines[n])>0:
+					if lines[n].split()[0]=='tally':
+						break
+					else:
+						n=n+1
+				continue
 			else:
 				n = read_array(lines,self.tallies[k].objects,n,mode='int')
 			# read single numbers bins

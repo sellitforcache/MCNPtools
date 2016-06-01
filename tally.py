@@ -150,7 +150,7 @@ class tally:
 		return numpy.array(v_out),numpy.array(b_out)
 
 
-	def _make_steps(self,ax,bins_in,avg_in,values_in,options=['log'],color='b',label='',ylim=False):
+	def _make_steps(self,ax,bins_in,avg_in,values_in,options=['log'],color=None,label='',ylim=False):
 		import numpy, re
 		assert(len(bins_in)==len(values_in)+1)
 
