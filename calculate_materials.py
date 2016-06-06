@@ -1,32 +1,11 @@
-#! /home/l_bergmann/anaconda/bin/python -W ignore
-
-from pyne import mcnp, ace
-import math
-import pylab, numpy, sys, cPickle, progressbar, copy
-import matplotlib.pyplot as plt
-from matplotlib import cm, gridspec
-from MCNPtools.to_energy import to_energy
-from MCNPtools.to_temperature import to_temperature
-from MCNPtools.to_wavelength import to_wavelength
-from MCNPtools.mctal import mctal
-from MCNPtools.plot import plot
-import scipy.special
-import numpy.linalg
-
-plt.rc('text', usetex=True)
-plt.rc('font', family='serif')
-plt.rc('font', size=18)
-
-
-#
-# element class for materials
-#
 class element:
+
+	import numpy,copy
 
 	_elements = {}
 
 	def __init__(self,name):
-		if !isinstance(name,int):
+		if not isinstance(name,int):
 			print "input is not a integer.  rejected."
 			return
 		# must follow ZZZ000 naming?
@@ -40,13 +19,13 @@ class element:
 		self.mass_fractions	= {}
 
 	def add_isotope_atom(self,mass_num,amu,frac):
-		if !isinstance(mass_num,int):
+		if not isinstance(mass_num,int):
 			print "first input is not an int mass number.  rejected."
 			return
-		if !isinstance(frac,float):
+		if not isinstance(frac,float):
 			print "second input is not a float atomic fraction.  rejected."
 			return
-		if !isinstance(amu,float):
+		if not isinstance(amu,float):
 			print "third input is not a float amu number.  rejected."
 			return
 		if mode not in ['atom','none']:
@@ -56,15 +35,14 @@ class element:
 		self.n_isotopes 						= self.n_isotopes + 1
 		print "added isotope %d with amu %6.8f and atom fraction %6.8f in element %d"%(mass_num+self.name,amu,frac,self.name)
 
-
 	def add_isotope_mass(self,mass_num,amu,frac):
-		if !isinstance(mass_num,int):
+		if not isinstance(mass_num,int):
 			print "first input is not an int mass number.  rejected."
 			return
-		if !isinstance(frac,float):
+		if not isinstance(frac,float):
 			print "second input is not a float mass fraction.  rejected."
 			return
-		if !isinstance(amu,float):
+		if not isinstance(amu,float):
 			print "third input is not a float amu number.  rejected."
 			return
 		if mode not in ['mass','none']:
@@ -113,7 +91,7 @@ class element:
 
 		self.mode = 'finalized'
 
-		_elements.append(self.name)
+		_elements.append[self.name] = self
 
 
 
@@ -123,7 +101,7 @@ class element:
 class material:
 
 	def __init__(self,name):
-		if !isinstance(name,str):
+		if not isinstance(name,str):
 			print "input is not a string.  rejected."
 			return
 		self.name 			= copy.deepcopy(name)
@@ -134,25 +112,25 @@ class material:
 		self.mass_fractions	= []
 
 	def add_isotope_atom(self,name,frac):
-		if !isinstance(name,str):
+		if not isinstance(name,str):
 			print "first input is not a string.  rejected."
 			return
-		if !isinstance(name,float):
+		if not isinstance(name,float):
 			print "second input is not a float.  rejected."
 			return
 
 	def add_isotope_mass(self,name,frac):
-		if !isinstance(name,str):
+		if not isinstance(name,str):
 			print "first input is not a string.  rejected."
 			return
-		if !isinstance(name,float):
+		if not isinstance(name,float):
 			print "second input is not a float.  rejected."
 			return
 
 	def finalize_atom():
 		if len(self.mass_fractions)>0:
 			print "%d mass fractions overwritten to be consistent with the entered atom fractions."%len(self.mass_fractions)
-		for:
+		#for:
 
 
 	def finalize_mass():
@@ -166,7 +144,7 @@ class rod:
 	_materials = {}
 
 	def __init__(self,name):
-		if !isinstance(name,str):
+		if not isinstance(name,str):
 			print "input is not a string.  rejected."
 			return
 		self.name 				= copy.deepcopy(name)
@@ -177,7 +155,7 @@ class rod:
 
 	def add_material(self,mat_in):
 		# check if material object and a string
-		if !isinstance(mat_in, material):
+		if not isinstance(mat_in, material):
 			print "second input is not a material object.  rejected."
 			return
 
@@ -187,10 +165,10 @@ class rod:
 
 	def add_frac(self,name,frac):
 		# check if material object and a string
-		if !isinstance(frac, float):
+		if not isinstance(frac, float):
 			print "second input is not a float.  rejected."
 			return
-		if !isinstance(name,str):
+		if not isinstance(name,str):
 			print "first input is not a string.  rejected."
 			return
 
@@ -198,49 +176,4 @@ class rod:
 		self.volume_fractions[name]=copy.deepcopy(frac)
 
 	def calc_material_definition(self):
-
-
-#
-# init rod objects so we can add materials to it
-#
-rods=[]
-rods.append(rod("STIP-VII Rod 1"))
-rods.append(rod("STIP-VII Rod 2"))
-rods.append(rod("STIP-VII Rod 3"))
-rods.append(rod("STIP-VII Rod 4"))
-rods.append(rod("STIP-VII Rod 5"))
-rods.append(rod("STIP-VII Rod 6"))
-rods.append(rod("STIP-VII Rod 7"))
-rods.append(rod("STIP-VII Rod 8"))
-rods.append(rod("STIP-VII Rod 9"))
-rods.append(rod("STIP-VII Rod 10"))
-rods.append(rod("STIP-VII Rod 11"))
-rods.append(rod("STIP-VII Rod 12"))
-rods.append(rod("STIP-VII Rod 13"))
-rods.append(rod("STIP-VII Rod 14"))
-rods.append(rod("STIP-VII Rod 15"))
-rods.append(rod("STIP-VII Rod 16"))
-
-#
-#  materials
-#
-W
-SS 316L
-Ta
-He
-Zry-2
-SIMP
-T91
-CLAM
-Al
-Al6061
-Ti6Al4V
-Ti3AlC2
-Ti3SiC2
-Ti6Al4V
-Ti2AlC
-Pb
-Ta
-9Cr-ODS
-14Cr-ODS
-Fe-Cr alloy
+		return
