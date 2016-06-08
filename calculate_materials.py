@@ -127,8 +127,13 @@ class element(object):
 
 	def __new__(cls,name):
 		if not isinstance(name,int):
-			print "input is not a integer.  rejected."
-			return None
+			if isinstance(name,str):
+				name = name.strip()
+			if name in z_number:
+				name = z_number[name]
+			else:
+				print "input is not a integer or in the element symbol dictionary.  rejected."
+				return None
 		if name in element._elements.keys():
 			print "element %d already exists in the class list.  rejected."%name
 			return None
@@ -141,7 +146,12 @@ class element(object):
 
 	def __init__(self,name):
 		import copy
-		self.name 			= copy.deepcopy(name)
+		if isinstance(name,str):
+			name = name.strip()
+		if name in z_number:
+			self.name 		= copy.deepcopy(z_number[name])
+		else:
+			self.name 		= copy.deepcopy(name)
 		self.n_isotopes		= 0
 		self.mode 			= 'none'
 		self.avg_amu 		= 0.0
@@ -163,7 +173,7 @@ class element(object):
 		self.mode 								= 'atom'
 		self.atom_fractions[mass_num+self.name]	= [amu,frac]
 		self.n_isotopes 						= self.n_isotopes + 1
-		if verbose: print "added isotope %d with amu %6.8f and atom fraction %6.8f into element %d"%(mass_num+self.name,amu,frac,self.name)
+		if verbose: print "added isotope %6d with amu %12.8f and atom fraction %15.8f into element %6d"%(mass_num+self.name,amu,frac,self.name)
 
 	def add_isotope_mass(self,mass_num,amu,frac):
 		if not isinstance(mass_num,int):
@@ -181,7 +191,7 @@ class element(object):
 		self.mode 								= 'mass'
 		self.mass_fractions[mass_num+self.name]	= [amu,frac]
 		self.n_isotopes 						= self.n_isotopes + 1
-		if verbose: print "added isotope %d with amu %6.8f and mass fraction %6.8f into element %d"%(mass_num+self.name,amu,frac,self.name)
+		if verbose: print "added isotope %6d with amu %12.8f and mass fraction %15.8f into element %6d"%(mass_num+self.name,amu,frac,self.name)
 
 	def delete(self):
 		element._elements.pop(self.name, None)
@@ -228,7 +238,7 @@ class element(object):
 			print "uninitialized!  cannot finalize."
 			return
 
-		if verbose: print "added element %d to the class dictionary."%self.name
+		if verbose: print "added element %6d to the class dictionary."%self.name
 		self.mode = 'finalized'
 		element._elements[self.name] = self
 
@@ -241,14 +251,14 @@ class material(object):
 
 	_materials = {}
 
-	def __new__(self,name,den):
-		import copy
+	def __new__(cls,name,den):
 		if not isinstance(name,str):
 			print "first input is not a string.  rejected."
 			return None
 		if not isinstance(den,float):
 			print "second input is not a float.  rejected."
 			return None
+		name = name.strip()
 		if name in material._materials.keys():
 			print "material %s already exists in the class list.  rejected."%name
 			return None
@@ -256,7 +266,8 @@ class material(object):
 		return super(material,cls).__new__(cls)
 
 	def __init__(self,name,den):
-		self.name 			= copy.deepcopy(name)
+		import copy
+		self.name 			= copy.deepcopy(name.strip())
 		self.n_elements		= 0
 		self.density 		= copy.deepcopy(den)
 		self.avg_amu 		= 0.0
@@ -266,8 +277,13 @@ class material(object):
 
 	def add_element_atom(self,name,frac):
 		if not isinstance(name,int):
-			print "first input is not an int.  rejected."
-			return
+			if isinstance(name,str):
+				name = name.strip()
+			if name in z_number:
+				name = z_number[name]
+			else:
+				print "first input is not an int or in the element symbol dictionary.  rejected."
+				return
 		if not isinstance(frac,float):
 			print "second input is not a float.  rejected."
 			return
@@ -280,12 +296,17 @@ class material(object):
 		self.mode = 'atom'
 		self.atom_fractions[name]	= frac
 		self.n_elements				= self.n_elements + 1
-		if verbose: print "added element %d with atom fraction %6.8f into material %s"%(name,frac,self.name)
+		if verbose: print "added element %6d with atom fraction %15.8f into material %s"%(name,frac,self.name)
 
 	def add_element_mass(self,name,frac):
 		if not isinstance(name,int):
-			print "first input is not an int.  rejected."
-			return
+			if isinstance(name,str):
+				name = name.strip()
+			if name in z_number:
+				name = z_number[name]
+			else:
+				print "first input is not an int or in the element symbol dictionary.  rejected."
+				return
 		if not isinstance(frac,float):
 			print "second input is not a float.  rejected."
 			return
@@ -298,7 +319,7 @@ class material(object):
 		self.mode = 'mass'
 		self.mass_fractions[name]	= frac
 		self.n_elements				= self.n_elements + 1
-		if verbose: print "added element %d with mass fraction %6.8f into material %s"%(name,frac,self.name)
+		if verbose: print "added element %6d with mass fraction %15.8f into material %s"%(name,frac,self.name)
 
 	def delete(self):
 		material._materials.pop(self.name, None)
@@ -330,8 +351,8 @@ class material(object):
 				self.mass_fractions[e] = self.mass_fractions[e] / frac_total
 			# calculate averge amu from mass fractions
 			self.avg_amu = 0.0 
-			for e in self.atom_fractions.keys():
-				self.avg_amu = self.avg_amu + self.mass_fractions[e][1]/element._elements[e].avg_amu
+			for e in self.mass_fractions.keys():
+				self.avg_amu = self.avg_amu + self.mass_fractions[e]/element._elements[e].avg_amu
 			self.avg_amu = 1.0 / self.avg_amu
 			# calculate the atom factions
 			for e in self.mass_fractions.keys():
@@ -352,24 +373,21 @@ class rod(object):
 
 	_rods = {}
 
-	def __new__(self,name,vol):
-		import copy
+	def __new__(cls,name):
 		if not isinstance(name,str):
 			print "first input is not a string.  rejected."
 			return None
-		if not isinstance(vol,float):
-			print "second input is not a float.  rejected."
-			return None
+		name = name.strip()
 		if name in rod._rods.keys():
 			print "rod %s already exists in the class list.  rejected."%name
 			return None
 		# else return a new instance
 		return super(rod,cls).__new__(cls)
 
-	def __init__(self,name,vol):
-		self.name 			= copy.deepcopy(name)
+	def __init__(self,name):
+		import copy
+		self.name 			= copy.deepcopy(name.strip())
 		self.n_materials	= 0
-		self.volume 		= copy.deepcopy(vol)
 		self.avg_den 		= 0.0
 		self.avg_amu 		= 0.0
 		self.mass_total		= 0.0
@@ -382,6 +400,7 @@ class rod(object):
 		if not isinstance(name,str):
 			print "first input is not an str.  rejected."
 			return
+		name = name.strip()
 		if not isinstance(frac,float):
 			print "second input is not a float.  rejected."
 			return
@@ -394,7 +413,7 @@ class rod(object):
 		self.mode = 'volume'
 		self.vol_fractions[name]	= frac
 		self.n_materials			= self.n_materials + 1
-		if verbose: print "added material %s with volume fraction %6.8f into rod %s"%(name,frac,self.name)
+		if verbose: print "added material %s with volume fraction %15.8f into rod %s"%(name,frac,self.name)
 
 	#def add_element_mass(self,name,frac):
 	#	if not isinstance(name,int):
@@ -433,9 +452,8 @@ class rod(object):
 			for m in self.vol_fractions.keys():
 				self.avg_den = self.avg_den + self.vol_fractions[m]*material._materials[m].density
 			# calculate the mass factions
-			self.mass_total = self.avg_den*self.volume
 			for m in self.vol_fractions.keys():
-				self.mass_fractions[m] = self.vol_fractions[m]*material._materials[m].density/self.mass_total
+				self.mass_fractions[m] = self.vol_fractions[m]*material._materials[m].density / self.avg_den
 			# calculate averge amu from mass fractions
 			self.avg_amu = 0.0 
 			for m in self.mass_fractions.keys():
@@ -443,7 +461,7 @@ class rod(object):
 			self.avg_amu = 1.0 / self.avg_amu
 			# calculate the atom factions
 			for m in self.mass_fractions.keys():
-				self.atom_fractions[m] = self.mass_fractions[m] * material._materials[m].avg_amu / self.avg_amu
+				self.atom_fractions[m] = self.mass_fractions[m] * self.avg_amu / material._materials[m].avg_amu
 		#elif self.mode == 'mass':
 		#	# sum the fractions, renormalize
 		#	frac_total = 0.0
@@ -487,5 +505,18 @@ class rod(object):
 
 		isotope_list_total = atom_fractions_total.keys()
 		isotope_list_total.sort()
+
+		print "c"
+		print "c         %s"%self.name
+		print "c"
+		print "c         material    density    avg. amu     volume fraction    atom fraction    mass fraction"
+		print "c         --------    -------    --------     ---------------    -------------    -------------"
+		for m in self.atom_fractions.keys():
+			print "c  %15s    %7.4f   %8.4f      %10.8f         %10.8f       %10.8f"%(m,material._materials[m].density,material._materials[m].avg_amu,self.vol_fractions[m],self.atom_fractions[m],self.mass_fractions[m])
+		print "c"
+		print "c         average amu     = %12.8f"%self.avg_amu
+		print "c         average density =  %11.8f"%self.avg_den
+		print "c"
 		for i in isotope_list_total:
 			print "     %6d   %8.10E"%(i,atom_fractions_total[i])
+		print "c"
