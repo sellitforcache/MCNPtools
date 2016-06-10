@@ -221,7 +221,7 @@ class element(object):
 			for isotope in self.mass_fractions.keys():
 				frac_total = frac_total + self.mass_fractions[isotope][1]
 			for isotope in self.mass_fractions.keys():
-				self.mass_fractions[isotope] = self.mass_fractions[isotope][1] / frac_total
+				self.mass_fractions[isotope] = [self.mass_fractions[isotope][0] , self.mass_fractions[isotope][1] / frac_total]
 			# calculate averge amu from mass fractions
 			self.avg_amu = 0.0 
 			for isotope in self.atom_fractions.keys():
@@ -230,7 +230,7 @@ class element(object):
 			# calculate the atom factions
 			for isotope in self.mass_fractions.keys():
 				atom_frac = self.avg_amu * self.mass_fractions[isotope][1] / self.mass_fractions[isotope][0]
-				self.mass_fractions[isotope] = [self.atom_fractions[isotope][0],mass_frac]
+				self.atom_fractions[isotope] = [self.mass_fractions[isotope][0] , atom_frac]
 		elif self.mode == 'finalized':
 			print "already finalized."
 			return
@@ -356,7 +356,7 @@ class material(object):
 			self.avg_amu = 1.0 / self.avg_amu
 			# calculate the atom factions
 			for e in self.mass_fractions.keys():
-				self.mass_fractions[e] = self.avg_amu * self.mass_fractions[e] / element._elements[e].avg_amu
+				self.atom_fractions[e] = self.avg_amu * self.mass_fractions[e] / element._elements[e].avg_amu
 		elif self.mode == 'finalized':
 			print "already finalized."
 			return
@@ -367,6 +367,37 @@ class material(object):
 		if verbose: print "added material %s to the class dictionary."%self.name
 		self.mode = 'finalized'
 		material._materials[self.name] = self
+
+	def print_material_card(self):
+
+		atom_fractions_total = {}
+
+		# init
+		for e in self.atom_fractions.keys():
+				for i in element._elements[e].atom_fractions.keys():
+					atom_fractions_total[i] = 0.0
+		# set
+		for e in self.atom_fractions.keys():
+				for i in element._elements[e].atom_fractions.keys():
+					atom_fractions_total[i] = atom_fractions_total[i] + self.atom_fractions[e]*element._elements[e].atom_fractions[i][1]
+
+		isotope_list_total = atom_fractions_total.keys()
+		isotope_list_total.sort()
+
+		print "c"
+		print "c         %s"%self.name
+		print "c"
+		print "c         element     avg. amu     atom fraction    mass fraction"
+		print "c         --------    --------     -------------    -------------"
+		for e in self.atom_fractions.keys():
+			print "c  %15s    %8.4f     %10.8f       %10.8f"%(e,element._elements[e].avg_amu,self.atom_fractions[e],self.mass_fractions[e])
+		print "c"
+		print "c         average amu     = %12.8f"%self.avg_amu
+		print "c         density         =  %11.8f"%self.density
+		print "c"
+		for i in isotope_list_total:
+			print "     %6d   %8.10E"%(i,atom_fractions_total[i])
+		print "c"
 
 
 class rod(object):
@@ -415,24 +446,6 @@ class rod(object):
 		self.n_materials			= self.n_materials + 1
 		if verbose: print "added material %s with volume fraction %15.8f into rod %s"%(name,frac,self.name)
 
-	#def add_element_mass(self,name,frac):
-	#	if not isinstance(name,int):
-	#		print "first input is not an int.  rejected."
-	#		return
-	#	if not isinstance(frac,float):
-	#		print "second input is not a float.  rejected."
-	#		return
-	#	if not name in element._elements.keys():
-	#		print "element %d is not in the element class dictionary.  rejected."%name
-	#		return
-	#	if self.mode not in ['mass','none']:
-	#		print "material object is in %s mode.   delete and start over in mass mode."%self.mode
-	#		return
-	#	self.mode = 'mass'
-	#	self.mass_fractions[name]	= frac
-	#	self.n_elements				= self.n_elements + 1
-	#	print "added element %d with mass fraction %6.8f into material %s"%(name,frac,self.name)
-
 	def delete(self):
 		rod._rods.pop(self.name, None)
 		self.__init__(self.name)
@@ -462,21 +475,6 @@ class rod(object):
 			# calculate the atom factions
 			for m in self.mass_fractions.keys():
 				self.atom_fractions[m] = self.mass_fractions[m] * self.avg_amu / material._materials[m].avg_amu
-		#elif self.mode == 'mass':
-		#	# sum the fractions, renormalize
-		#	frac_total = 0.0
-		#	for e in self.mass_fractions.keys():
-		#		frac_total = frac_total + self.mass_fractions[e]
-		#	for e in self.mass_fractions.keys():
-		#		self.mass_fractions[e] = self.mass_fractions[e] / frac_total
-		#	# calculate averge amu from mass fractions
-		#	self.avg_amu = 0.0 
-		#	for e in self.atom_fractions.keys():
-		#		self.avg_amu = self.avg_amu + self.mass_fractions[e][1]/element._elements[e].avg_amu
-		#	self.avg_amu = 1.0 / self.avg_amu
-		#	# calculate the atom factions
-		#	for e in self.mass_fractions.keys():
-		#		self.mass_fractions[e] = self.avg_amu * self.mass_fractions[e] / element._elements[e].avg_amu
 		elif self.mode == 'finalized':
 			print "already finalized."
 			return

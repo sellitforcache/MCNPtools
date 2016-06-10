@@ -4,6 +4,7 @@
 #  ryan.bergmann@psi.ch, ryanmbergmann@gmail.com
 
 from MCNPtools import calculate_materials
+import copy
 
 calculate_materials.verbose=0
 
@@ -11,6 +12,36 @@ execfile("natural_abundances.py")
 execfile("compounds.py")
 execfile("material_collection.py")
 
+total_width = len('                                         ')
+name = 'Ryan M. Bergmann'
+
+print "c |=========================================|"
+print "c |                                         |" 
+print "c |    Calculated by ryan.bergmann@psi.ch   |" 
+print "c |              June 10, 2016              |" 
+print "c |                                         |" 
+print "c |                                         |" 
+print "c |=========================================|"
+print "c "
+print "c |=========================================|"
+print "c |                                         |" 
+print "c |                                         |"  
+print "c |          INDIVIDUAL MATERIALS           |"
+print "c |                                         |" 
+print "c |                                         |" 
+print "c |=========================================|"
+ 
+
+for mat in calculate_materials.material._materials.keys():
+	calculate_materials.material._materials[mat].print_material_card()
+
+print "c |=========================================|"
+print "c |                                         |" 
+print "c |                                         |"  
+print "c | VOLUME AVERAGED MATERIALS FOR STIP RODS |"
+print "c |                                         |" 
+print "c |                                         |" 
+print "c |=========================================|"
 
 r1=calculate_materials.rod('STIP-VII Rod 1')
 r1.add_material_vol('W',          46.83)
@@ -177,3 +208,18 @@ r16.add_material_vol('He  ',		45.02)
 r16.finalize()
 r16.print_material_card()
 
+
+
+
+
+#rt=calculate_materials.rod('Test Rod 1')
+#rt.add_material_vol('SS316',      1.0)
+#rt.finalize()
+#rt.print_material_card()
+#
+#
+#
+#b4c=calculate_materials.rod('B4C rod')
+#b4c.add_material_vol('B4C',		 1.0)
+#b4c.finalize()
+#b4c.print_material_card()

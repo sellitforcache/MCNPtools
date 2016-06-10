@@ -1,81 +1,81 @@
 # Stainless Steel 316
 ss316=calculate_materials.material('SS316',7.85)
-ss316.add_element_atom( 'P'  ,    210.00)
-ss316.add_element_atom( 'Mo' ,   1990.00)
-ss316.add_element_atom( 'Zn' ,     12.00)
-ss316.add_element_atom( 'Pb' ,     40.00)
-ss316.add_element_atom( 'Co' ,   1330.00)
-ss316.add_element_atom( 'Ni' ,  87600.00)
-ss316.add_element_atom( 'Si' ,   4010.00)
-ss316.add_element_atom( 'Mn' ,  13600.00)
-ss316.add_element_atom( 'Fe' , 715109.00)
-ss316.add_element_atom( 'Cr' , 172000.00)
-ss316.add_element_atom( 'Mg' ,      3.10)
-ss316.add_element_atom( 'V'  ,    800.00)
-ss316.add_element_atom( 'Cu' ,   1240.00)
-ss316.add_element_atom( 'Ag' ,      6.00)
-ss316.add_element_atom( 'Ti' ,    128.00)
-ss316.add_element_atom( 'Ca' ,      4.40)
-ss316.add_element_atom( 'Al' ,     35.00)
-ss316.add_element_atom( 'Sr' ,      0.30)
-ss316.add_element_atom( 'K'  ,      2.10)
-ss316.add_element_atom( 'Cs' ,     13.00)
-ss316.add_element_atom( 'Rb' ,      5.00)
-ss316.add_element_atom( 'W'  ,   1350.00)
-ss316.add_element_atom( 'Ga' ,    123.00)
-ss316.add_element_atom( 'C'  ,    390.00)
+ss316.add_element_mass( 'P'  ,    210.00)
+ss316.add_element_mass( 'Mo' ,   1990.00)
+ss316.add_element_mass( 'Zn' ,     12.00)
+ss316.add_element_mass( 'Pb' ,     40.00)
+ss316.add_element_mass( 'Co' ,   1330.00)
+ss316.add_element_mass( 'Ni' ,  87600.00)
+ss316.add_element_mass( 'Si' ,   4010.00)
+ss316.add_element_mass( 'Mn' ,  13600.00)
+ss316.add_element_mass( 'Fe' , 715109.00)
+ss316.add_element_mass( 'Cr' , 172000.00)
+ss316.add_element_mass( 'Mg' ,      3.10)
+ss316.add_element_mass( 'V'  ,    800.00)
+ss316.add_element_mass( 'Cu' ,   1240.00)
+ss316.add_element_mass( 'Ag' ,      6.00)
+ss316.add_element_mass( 'Ti' ,    128.00)
+ss316.add_element_mass( 'Ca' ,      4.40)
+ss316.add_element_mass( 'Al' ,     35.00)
+ss316.add_element_mass( 'Sr' ,      0.30)
+ss316.add_element_mass( 'K'  ,      2.10)
+ss316.add_element_mass( 'Cs' ,     13.00)
+ss316.add_element_mass( 'Rb' ,      5.00)
+ss316.add_element_mass( 'W'  ,   1350.00)
+ss316.add_element_mass( 'Ga' ,    123.00)
+ss316.add_element_mass( 'C'  ,    390.00)
 ss316.finalize()
 
 # pure aluminum
 al_pure=calculate_materials.material('Al',2.70)
-al_pure.add_element_atom( 'Al'  , 1000000.00)
+al_pure.add_element_atom( 'Al'  , 1.00)
 al_pure.finalize()
 
 #
 #  pure tungsten
 #
 tungsten = calculate_materials.material('W',19.25)
-tungsten.add_element_atom( 'W'  , 1000000.00)
+tungsten.add_element_atom( 'W'  , 1.00)
 tungsten.finalize()
 
 #
 #  pure tantalum
 #
 tantalum = calculate_materials.material('Ta',16.4)
-tantalum.add_element_atom( 'Ta'  , 1000000.00)
+tantalum.add_element_atom( 'Ta'  , 1.00)
 tantalum.finalize()
 
 #
 #  pure titanium
 #
 titanium = calculate_materials.material('Ti',4.43)
-titanium.add_element_atom( 'Ti'  , 1000000.00)
+titanium.add_element_atom( 'Ti'  , 1.00)
 titanium.finalize()
 
 #
 #  pure helium
 #
 helium = calculate_materials.material('He',0.164)
-helium.add_element_atom( 'He'  , 1000000.00)
+helium.add_element_atom( 'He'  , 1.00)
 helium.finalize()
 
 #
 #  pure lead
 #
 lead = calculate_materials.material('Pb',11.32)
-lead.add_element_atom( 'Pb'  , 1000000.00)
+lead.add_element_atom( 'Pb'  , 1.00)
 lead.finalize()
 
 #
 #  zircaloy-2
 #
 lead = calculate_materials.material('Zircaloy-II',11.32)
-lead.add_element_atom( 'Zr',980700.0)
-lead.add_element_atom( 'Sn', 14600.0)
-lead.add_element_atom( 'Fe',  1500.0)
-lead.add_element_atom( 'Cr',  2500.0)
-lead.add_element_atom( 'Ni',   500.0)
-lead.add_element_atom( 'Hf',   200.0)
+lead.add_element_mass( 'Zr',980700.0)
+lead.add_element_mass( 'Sn', 14600.0)
+lead.add_element_mass( 'Fe',  1500.0)
+lead.add_element_mass( 'Cr',  2500.0)
+lead.add_element_mass( 'Ni',   500.0)
+lead.add_element_mass( 'Hf',   200.0)
 lead.finalize()
 
 #
@@ -212,3 +212,11 @@ sic = calculate_materials.material('SiC',3.21)
 sic.add_element_atom( 'Si', 1.0   )
 sic.add_element_atom( 'C',  1.0    )
 sic.finalize()
+
+#
+# B4C
+#
+b4c = calculate_materials.material('B4C',2.52)
+b4c.add_element_atom( 'B',  4.0   )
+b4c.add_element_atom( 'C',  1.0    )
+b4c.finalize()
