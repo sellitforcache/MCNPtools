@@ -220,3 +220,46 @@ b4c = calculate_materials.material('B4C',2.52)
 b4c.add_element_atom( 'B',  4.0   )
 b4c.add_element_atom( 'C',  1.0    )
 b4c.finalize()
+
+#
+# Borated concrete
+#
+concrete_borated = calculate_materials.material('Borated Concrete',3.10)
+concrete_borated.add_element_mass( 'H ', 0.005600)
+concrete_borated.add_element_mass( 'B ', 0.010400)
+concrete_borated.add_element_mass( 'O ', 0.338000)
+concrete_borated.add_element_mass( 'F ', 0.002300)
+concrete_borated.add_element_mass( 'Na', 0.012100)
+concrete_borated.add_element_mass( 'Mg', 0.002300)
+concrete_borated.add_element_mass( 'Al', 0.006400)
+concrete_borated.add_element_mass( 'Si', 0.033100)
+concrete_borated.add_element_mass( 'S ', 0.091500)
+concrete_borated.add_element_mass( 'K ', 0.001000)
+concrete_borated.add_element_mass( 'Ca', 0.062600)
+concrete_borated.add_element_mass( 'Mn', 0.000200)
+concrete_borated.add_element_mass( 'Fe', 0.021900)
+concrete_borated.add_element_mass( 'Zn', 0.006600)
+concrete_borated.add_element_mass( 'Ba', 0.401300)
+concrete_borated.finalize()
+
+#
+# borosilicate glass
+#
+glass_borosilicate = calculate_materials.material('Borosilicate Glass',2.23)
+glass_borosilicate.add_element_mass( 'B ', 0.040066)
+glass_borosilicate.add_element_mass( 'O ', 0.539559)
+glass_borosilicate.add_element_mass( 'Na', 0.028191)
+glass_borosilicate.add_element_mass( 'Al', 0.011644)
+glass_borosilicate.add_element_mass( 'Si', 0.377220)
+glass_borosilicate.add_element_mass( 'K ', 0.003321)
+glass_borosilicate.finalize()
+
+#
+# plate glass
+#
+glass_plate = calculate_materials.material('Plate Glass',2.40)
+glass_plate.add_element_mass(  'O ', 0.459800) 
+glass_plate.add_element_mass(  'Na', 0.096441) 
+glass_plate.add_element_mass(  'Si', 0.336553) 
+glass_plate.add_element_mass(  'Ca', 0.107205)
+glass_plate.finalize()
