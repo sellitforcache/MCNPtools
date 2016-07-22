@@ -220,6 +220,40 @@ class mctal:
 
 		file_in.close()
 
+	def write_csv(self,filename,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,t_or_d=False,options=False,ylim=False):
+
+		### options
+		if not options:
+			plot_options=['lin']
+		else:
+			plot_options=options[:]
+
+		### deal with a non-specified tally
+		if not tal:
+			tal = [self.tally_n[0]]
+
+		### non-spec total/direct
+		if not t_or_d:
+			t_or_d = [0]
+
+		### input logic and plotting
+		if not obj and not cos and not seg and not mul:
+			for t in tal:
+				self.tallies[t].plot(filename,all=True,options=plot_options)
+		else:
+			if not obj:
+				obj = [0]
+			if not cos:
+				cos = [0]
+			if not seg:
+				seg = [0]
+			if not mul:
+				mul = [0]
+			for t in tal:
+				self.tallies[t].write_csv(filename,obj=obj,seg=seg,mul=mul,cos=cos,options=plot_options,prepend_label='{com:s}\n Tally {a:4d} :'.format(com=self.tallies[t].comment,a=t))
+
+
+
 	def plot(self,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,t_or_d=False,options=False,ylim=False):
 		### general plotting
 		import numpy, pylab

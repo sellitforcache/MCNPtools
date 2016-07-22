@@ -224,7 +224,7 @@ class tally:
 			else:
 				ax.semilogx(x,y,color=color,label=label)
 
-	def write_csv(self,filename,all=False,obj=[0],cos=[0],seg=[0],mul=[0],t_or_d=[0],color=None,options=[],prepend_label=False,ylim=False,xlim=False):
+	def write_csv(self,filename,all=False,obj=[0],cos=[0],seg=[0],mul=[0],t_or_d=[0],options=[],prepend_label=False):
 		import numpy as np
 		import pylab as pl
 		import matplotlib.pyplot as plt
@@ -239,7 +239,7 @@ class tally:
 				options.append('enormed')
 
 		### open file
-		this_file = open('filename','w')
+		this_file = open(filename,'w')
 
 		### deal with data to be plotted
 		if all:
@@ -265,6 +265,8 @@ class tally:
 							dex  		= self._hash(obj=o,cos=c,seg=s,mul=m,td=td)
 							tally 		= self.vals[dex]['data'][:-1]  # clip off totals from ends
 							err 		= self.vals[dex]['err'][:-1]
+							tally_total = self.vals[dex]['data'][-1]
+							err_total 	= self.vals[dex]['err'][-1]
 							t_or_d 		= self.vals[dex]['t_or_d']
 							cosine_bin	= self.vals[dex]['cosine_bin']
 							name		= self.vals[dex]['object']
@@ -324,6 +326,7 @@ class tally:
 							if 'mA' in options: 
 								units = units + '/mA'
 								tally_norm = np.multiply(tally_norm,6.241e15)  # convert protons to milliAmpere*seconds
+								tally_total = tally_total*6.241e15
 							else:
 								units = units + '/p'
 
@@ -334,13 +337,29 @@ class tally:
 								label = r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1])
 	
 							### WRITE
-							this_file.write('\n'+label+'\n')
+							this_file.write('\n\n'+label+'\n\n')
 							if 'wavelength' in options:
-								this_file.write("Bin Boundaries (AA),    ,  "+units)
+								this_file.write("Bin Boundaries (AA),     ,   "+units+",          Rel. Err.\n")
 							else:
-								this_file.write("Bin Boundaries (MeV),   ,  "+units)
+								this_file.write("Bin Boundaries (MeV),    ,   "+units+",          Rel. Err.\n")
 							for i in range(0,len(bins)-1):
-								this_file.write("% 6.4E,  % 6.4E,  %6.4E"%(bins[i],bins[i+1],tally_norm[i]))
+								this_file.write("% 6.4E,  % 6.4E,  % 6.4E,  % 6.4E\n"%(bins[i],bins[i+1],tally_norm[i],err[i]))
+
+							if self.name%10 == 1:
+								units = 'n'
+							elif self.name%10 ==2:
+								units = 'n/cm2'
+							elif self.name%10 ==4:
+								units = 'n/cm2'
+							elif self.name%10 ==5:
+								units = 'n/cm2'
+							elif self.name%10 ==6:
+								units = 'MeV/g'
+							if 'mA' in options: 
+								units = units + '/mA'
+							else:
+								units = units + '/p'
+							this_file.write(    "TOTAL, "+units+", % 6.4E,  % 6.4E\n"%(tally_total,err_total))
 
 		this_file.close()
 
