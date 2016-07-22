@@ -1,29 +1,29 @@
 # Stainless Steel 316
-ss316=calculate_materials.material('SS316',7.85)
-ss316.add_element_mass( 'P'  ,    210.00)
+ss316=calculate_materials.material('SS316',7.95)
+#ss316.add_element_mass( 'P'  ,    210.00)
 ss316.add_element_mass( 'Mo' ,   1990.00)
-ss316.add_element_mass( 'Zn' ,     12.00)
-ss316.add_element_mass( 'Pb' ,     40.00)
+#ss316.add_element_mass( 'Zn' ,     12.00)
+#ss316.add_element_mass( 'Pb' ,     40.00)
 ss316.add_element_mass( 'Co' ,   1330.00)
 ss316.add_element_mass( 'Ni' ,  87600.00)
 ss316.add_element_mass( 'Si' ,   4010.00)
 ss316.add_element_mass( 'Mn' ,  13600.00)
 ss316.add_element_mass( 'Fe' , 715109.00)
 ss316.add_element_mass( 'Cr' , 172000.00)
-ss316.add_element_mass( 'Mg' ,      3.10)
+#ss316.add_element_mass( 'Mg' ,      3.10)
 ss316.add_element_mass( 'V'  ,    800.00)
 ss316.add_element_mass( 'Cu' ,   1240.00)
-ss316.add_element_mass( 'Ag' ,      6.00)
-ss316.add_element_mass( 'Ti' ,    128.00)
-ss316.add_element_mass( 'Ca' ,      4.40)
-ss316.add_element_mass( 'Al' ,     35.00)
-ss316.add_element_mass( 'Sr' ,      0.30)
-ss316.add_element_mass( 'K'  ,      2.10)
-ss316.add_element_mass( 'Cs' ,     13.00)
-ss316.add_element_mass( 'Rb' ,      5.00)
+#ss316.add_element_mass( 'Ag' ,      6.00)
+#ss316.add_element_mass( 'Ti' ,    128.00)
+#ss316.add_element_mass( 'Ca' ,      4.40)
+#ss316.add_element_mass( 'Al' ,     35.00)
+#ss316.add_element_mass( 'Sr' ,      0.30)
+#ss316.add_element_mass( 'K'  ,      2.10)
+#ss316.add_element_mass( 'Cs' ,     13.00)
+#ss316.add_element_mass( 'Rb' ,      5.00)
 ss316.add_element_mass( 'W'  ,   1350.00)
-ss316.add_element_mass( 'Ga' ,    123.00)
-ss316.add_element_mass( 'C'  ,    390.00)
+#ss316.add_element_mass( 'Ga' ,    123.00)
+#ss316.add_element_mass( 'C'  ,    390.00)
 ss316.finalize()
 
 # pure aluminum
@@ -64,6 +64,29 @@ helium.finalize()
 #
 lead = calculate_materials.material('Pb',11.32)
 lead.add_element_atom( 'Pb'  , 1.00)
+lead.finalize()
+
+#
+#  pure copper
+#
+lead = calculate_materials.material('Cu',8.96)
+lead.add_element_atom( 'Cu'  , 1.00)
+lead.finalize()
+
+#
+#  pure iron
+#
+lead = calculate_materials.material('Fe', 7.874)
+lead.add_element_atom( 'Fe'  , 1.00)
+lead.finalize()
+
+#
+#  Neodymium permanent magnets
+#
+lead = calculate_materials.material('NeoMag', 7.4)
+lead.add_element_atom( 'Nd'  ,  2.00)
+lead.add_element_atom( 'Fe'  , 14.00)
+lead.add_element_atom( 'B'   ,  1.00)
 lead.finalize()
 
 #
@@ -222,6 +245,14 @@ b4c.add_element_atom( 'C',  1.0    )
 b4c.finalize()
 
 #
+# high density polyethylene
+#
+hdpe = calculate_materials.material('HDPE',0.95)
+hdpe.add_element_atom( 'H',  4.0   )
+hdpe.add_element_atom( 'C',  2.0    )
+hdpe.finalize()
+
+#
 # Borated concrete
 #
 concrete_borated = calculate_materials.material('Borated Concrete',3.10)
@@ -263,3 +294,288 @@ glass_plate.add_element_mass(  'Na', 0.096441)
 glass_plate.add_element_mass(  'Si', 0.336553) 
 glass_plate.add_element_mass(  'Ca', 0.107205)
 glass_plate.finalize()
+
+
+#
+# Schrottbeton/heavy concrete/heavy mortar
+# Assay number   10 : Representative Schrottbeton
+#
+schrottbeton = calculate_materials.material('Schrottbeton',5.7)
+schrottbeton.add_element_mass( 'H ',   3000.00 )
+#schrottbeton.add_element_mass( 'Li',      0.10 )
+#schrottbeton.add_element_mass( 'Be',      0.09 )
+#schrottbeton.add_element_mass( 'B ',     63.0  )
+schrottbeton.add_element_mass( 'C ',   3000.00 )
+#schrottbeton.add_element_mass( 'N ',     70.00 )
+schrottbeton.add_element_mass( 'O ',  80000.00 )
+#schrottbeton.add_element_mass( 'Na',     87.00 )
+schrottbeton.add_element_mass( 'Mg',    837.00 )
+schrottbeton.add_element_mass( 'Al',   3270.00 )
+schrottbeton.add_element_mass( 'Si',  17600.00 )
+schrottbeton.add_element_mass( 'P ',   5770.00 )
+schrottbeton.add_element_mass( 'S ',   2560.00 )
+#schrottbeton.add_element_mass( 'Cl',     30.00 )
+schrottbeton.add_element_mass( 'K ',    260.00 )
+schrottbeton.add_element_mass( 'Ca',    280.00 )
+schrottbeton.add_element_mass( 'Ti',    555.00 )
+schrottbeton.add_element_mass( 'V ',    510.00 )
+schrottbeton.add_element_mass( 'Cr',    710.00 )
+schrottbeton.add_element_mass( 'Mn',   4300.00 )
+schrottbeton.add_element_mass( 'Fe', 861000.00 )
+schrottbeton.add_element_mass( 'Co',    120.00 )
+schrottbeton.add_element_mass( 'Ni',    615.00 )
+schrottbeton.add_element_mass( 'Cu',   1700.00 )
+#schrottbeton.add_element_mass( 'Zn',     77.00 )
+#schrottbeton.add_element_mass( 'Ga',     10.00 )
+schrottbeton.add_element_mass( 'As',    238.00 )
+#schrottbeton.add_element_mass( 'Rb',      3.00 )
+schrottbeton.add_element_mass( 'Sr',    140.00 )
+#schrottbeton.add_element_mass( 'Y ',      1.00 )
+#schrottbeton.add_element_mass( 'Zr',     10.00 )
+#schrottbeton.add_element_mass( 'Nb',      1.00 )
+#schrottbeton.add_element_mass( 'Mo',     50.00 )
+#schrottbeton.add_element_mass( 'Ag',      0.70 )
+#schrottbeton.add_element_mass( 'Sn',      5.00 )
+#schrottbeton.add_element_mass( 'Sb',     70.00 )
+schrottbeton.add_element_mass( 'Te',    100.00 )
+#schrottbeton.add_element_mass( 'Cs',      6.00 )
+#schrottbeton.add_element_mass( 'Ba',     55.00 )
+#schrottbeton.add_element_mass( 'La',      5.00 )
+#schrottbeton.add_element_mass( 'Ce',      1.00 )
+#schrottbeton.add_element_mass( 'Sm',      1.00 )
+#schrottbeton.add_element_mass( 'Eu',      0.10 )
+#schrottbeton.add_element_mass( 'Gd',      0.50 )
+#schrottbeton.add_element_mass( 'Dy',      0.30 )
+#schrottbeton.add_element_mass( 'Ho',      0.50 )
+#schrottbeton.add_element_mass( 'Yb',      0.10 )
+#schrottbeton.add_element_mass( 'Lu',     20.00 )
+schrottbeton.add_element_mass( 'W ',    380.00 )
+#schrottbeton.add_element_mass( 'Tl',      2.00 ) 
+#schrottbeton.add_element_mass( 'Pb',      6.00 )
+#schrottbeton.add_element_mass( 'Bi',      1.00 )
+#schrottbeton.add_element_mass( 'Th',      0.50 )
+#schrottbeton.add_element_mass( 'U ',      1.00 )
+schrottbeton.finalize()
+
+#
+# Bundeseisen
+#
+bundeseisen = calculate_materials.material('Bundeseisen',7.80488)  # calculated from drawing 0-10009.22.026
+bundeseisen.add_element_mass( 'C' 	,	2689.	)
+#bundeseisen.add_element_mass( 'Na' 	,	2.		)
+#bundeseisen.add_element_mass( 'Mg' 	,	5.		)
+bundeseisen.add_element_mass( 'Al' 	,	100.	)
+bundeseisen.add_element_mass( 'Si' 	,	7451.	)
+bundeseisen.add_element_mass( 'P' 	,	344.	)
+bundeseisen.add_element_mass( 'S' 	,	303.	)
+#bundeseisen.add_element_mass( 'K' 	,	17.		)
+#bundeseisen.add_element_mass( 'Ca' 	,	13.		)
+#bundeseisen.add_element_mass( 'Ti' 	,	12.		)
+bundeseisen.add_element_mass( 'V' 	,	310.	)
+bundeseisen.add_element_mass( 'Cr' 	,	728.	)
+bundeseisen.add_element_mass( 'Mn' 	,	9699.	)
+bundeseisen.add_element_mass( 'Fe' 	,	971278.	)
+bundeseisen.add_element_mass( 'Co' 	,	153.	)
+bundeseisen.add_element_mass( 'Ni' 	,	1796.	)
+bundeseisen.add_element_mass( 'Cu' 	,	3701.	)
+#bundeseisen.add_element_mass( 'Zn' 	,	70.		)
+bundeseisen.add_element_mass( 'As' 	,	245.	)
+#bundeseisen.add_element_mass( 'Rb' 	,	19.		)
+bundeseisen.add_element_mass( 'Mo' 	,	95.		)
+bundeseisen.add_element_mass( 'Sn' 	,	769.	)
+bundeseisen.add_element_mass( 'Cs' 	,	93.		)
+#bundeseisen.add_element_mass( 'Yb' 	,	1.		)
+#bundeseisen.add_element_mass( 'W' 	,	3.		)
+#bundeseisen.add_element_mass( 'Pb' 	,	84.		)
+bundeseisen.finalize()
+
+#
+#  Granatsand, Australien
+#  4.1 g/cc solid, 2.4 bulk, from http://www.abritec.ch/index.php?nav=5,32
+granatsand1 = calculate_materials.material('Granatsand 1',2.40)
+granatsand1.add_element_mass( 'P' 	,240.	)
+granatsand1.add_element_mass( 'S' 	,270.	)
+#granatsand1.add_element_mass( 'As' 	,20.	)
+#granatsand1.add_element_mass( 'Sn' 	,20.	)
+#granatsand1.add_element_mass( 'Hg' 	,5.		)
+#granatsand1.add_element_mass( 'Mo' 	,3.		)
+granatsand1.add_element_mass( 'Cr' 	,142.	)
+#granatsand1.add_element_mass( 'Zn' 	,43.4	)
+#granatsand1.add_element_mass( 'Pb' 	,46.	)
+#granatsand1.add_element_mass( 'Co' 	,34.	)
+#granatsand1.add_element_mass( 'Cd' 	,1.0	)
+#granatsand1.add_element_mass( 'Ni' 	,20.	)
+#granatsand1.add_element_mass( 'B' 	,7.		)
+granatsand1.add_element_mass( 'Si' 	,17.6e4	)
+granatsand1.add_element_mass( 'Mn' 	,0.72e4	)
+granatsand1.add_element_mass( 'Fe' 	,22.9e4	)
+granatsand1.add_element_mass( 'Mg' 	,3.57e4	)
+granatsand1.add_element_mass( 'V' 	,140.	)
+#granatsand1.add_element_mass( 'Be' 	,0.5	)
+#granatsand1.add_element_mass( 'Cu' 	,2.		)
+#granatsand1.add_element_mass( 'Ag' 	,2.		)
+#granatsand1.add_element_mass( 'Ti' 	,89.5	)
+#granatsand1.add_element_mass( 'Zr' 	,33.	)
+granatsand1.add_element_mass( 'Ca' 	,1.03e4	)
+granatsand1.add_element_mass( 'Al' 	,10.6e4	)
+#granatsand1.add_element_mass( 'Sr' 	,11.8	)
+#granatsand1.add_element_mass( 'Ba' 	,64.4	)
+#granatsand1.add_element_mass( 'Na' 	,72.	)
+#granatsand1.add_element_mass( 'Li' 	,8.		)
+#granatsand1.add_element_mass( 'K' 	,85.	)
+#granatsand1.add_element_mass( 'Rb' 	,1.		)
+#granatsand1.add_element_mass( 'Cs' 	,10.	)
+#granatsand1.add_element_mass( 'Se' 	,20.	)
+#granatsand1.add_element_mass( 'W' 	,10.	)
+granatsand1.add_element_mass( 'Te' 	,108.	)
+#granatsand1.add_element_mass( 'Sb' 	,10.	)
+#granatsand1.add_element_mass( 'Re' 	,5.		)
+#granatsand1.add_element_mass( 'Bi' 	,15.	)
+#granatsand1.add_element_mass( 'Ir' 	,10.	)
+#granatsand1.add_element_mass( 'Os' 	,20.	)
+#granatsand1.add_element_mass( 'In' 	,20.	)
+#granatsand1.add_element_mass( 'Ru' 	,10.	)
+#granatsand1.add_element_mass( 'Au' 	,5.		)
+#granatsand1.add_element_mass( 'Ge' 	,10.	)
+#granatsand1.add_element_mass( 'Ta' 	,10.	)
+#granatsand1.add_element_mass( 'Ga' 	,23.	)
+#granatsand1.add_element_mass( 'Pr' 	,50.	)
+#granatsand1.add_element_mass( 'Nb' 	,2.		)
+#granatsand1.add_element_mass( 'Hf' 	,10.	)
+#granatsand1.add_element_mass( 'Pd' 	,10.	)
+#granatsand1.add_element_mass( 'Rh' 	,5.		)
+#granatsand1.add_element_mass( 'Tl' 	,26.	)
+#granatsand1.add_element_mass( 'U' 	,10.	)
+#granatsand1.add_element_mass( 'Th' 	,5.		)
+#granatsand1.add_element_mass( 'Lu' 	,17.2	)
+#granatsand1.add_element_mass( 'Yb' 	,46.9	)
+granatsand1.add_element_mass( 'Gd' 	,98.	)
+#granatsand1.add_element_mass( 'Ho' 	,8.		)
+#granatsand1.add_element_mass( 'Tm' 	,5.		)
+#granatsand1.add_element_mass( 'Dy' 	,30.	)
+#granatsand1.add_element_mass( 'Sm' 	,10.	)
+granatsand1.add_element_mass( 'Sc' 	,1333.	)
+#granatsand1.add_element_mass( 'Tb' 	,5.		)
+granatsand1.add_element_mass( 'Y' 	,322.	)
+#granatsand1.add_element_mass( 'La' 	,15.	)
+#granatsand1.add_element_mass( 'Eu' 	,0.5	)
+#ranatsand1.add_element_mass( 'Er' 	,35.	)
+#ranatsand1.add_element_mass( 'Pr' 	,3.		)
+#granatsand1.add_element_mass( 'Ce' 	,25.	)
+#granatsand1.add_element_mass( 'Nd' 	,11. 	)
+granatsand1.add_element_mass( 'O' 	,432070.8)  # balance
+granatsand1.finalize()
+
+
+#
+#  Granatsand, "Neuer Abschirmsand"
+#  4.1 g/cc solid, 2.4 bulk, from http://www.abritec.ch/index.php?nav=5,32
+granatsand2 = calculate_materials.material('Granatsand 2',2.40)
+#granatsand2.add_element_mass(  'Lu'	,	15.3		)
+#granatsand2.add_element_mass(  'Yb'	,	18.4		)
+granatsand2.add_element_mass(  'Gd'	,	103.		)
+#granatsand2.add_element_mass(  'Ho'	,	1.			)
+#granatsand2.add_element_mass(  'Tm'	,	2.			)
+#granatsand2.add_element_mass(  'Dy'	,	1.			)
+#granatsand2.add_element_mass(  'Sm'	,	5.			)
+granatsand2.add_element_mass(  'Sc'	,	119.		)
+#granatsand2.add_element_mass(  'Tb'	,	10.			)
+granatsand2.add_element_mass(  'Y'	,	133.		)
+#granatsand2.add_element_mass(  'La'	,	12.			)
+#granatsand2.add_element_mass(  'Eu'	,	1.			)
+#granatsand2.add_element_mass(  'Er'	,	13.			)
+#granatsand2.add_element_mass(  'Pr'	,	10.			)
+#granatsand2.add_element_mass(  'Ce'	,	10.			)
+#granatsand2.add_element_mass(  'Nd'	,	10.			)
+granatsand2.add_element_mass(  'P'	,	450.		)
+granatsand2.add_element_mass(  'S'	,	370.		)
+#granatsand2.add_element_mass(  'As'	,	20.			)
+#granatsand2.add_element_mass(  'Sn'	,	20.			)
+#granatsand2.add_element_mass(  'Hg'	,	20.			)
+#granatsand2.add_element_mass(  'Mo'	,	5.			)
+#granatsand2.add_element_mass(  'Zn'	,	79.			)
+#granatsand2.add_element_mass(  'Pb'	,	20.			)
+#granatsand2.add_element_mass(  'Co'	,	30.			)
+#granatsand2.add_element_mass(  'Cd'	,	1.			)
+#granatsand2.add_element_mass(  'Ni'	,	3.			)
+#granatsand2.add_element_mass(  'B'	,	10.			)
+granatsand2.add_element_mass(  'Si'	,	206000.		)
+granatsand2.add_element_mass(  'Mn'	,	5550.		)
+granatsand2.add_element_mass(  'Fe'	,	301000.		)
+#granatsand2.add_element_mass(  'Cr'	,	49.			)
+granatsand2.add_element_mass(  'Mg'	,	28100.		)
+#granatsand2.add_element_mass(  'V'	,	74.			)
+#granatsand2.add_element_mass(  'Be'	,	0.5			)
+#granatsand2.add_element_mass(  'Cu'	,	26.			)
+#granatsand2.add_element_mass(  'Ag'	,	9.			)
+granatsand2.add_element_mass(  'Ti'	,	1790.		)
+#granatsand2.add_element_mass(  'Zr'	,	84.			)
+granatsand2.add_element_mass(  'Ca'	,	14900.		)
+granatsand2.add_element_mass(  'Al'	,	127000.		)
+#granatsand2.add_element_mass(  'Sr'	,	9.86		)
+granatsand2.add_element_mass(  'Ba'	,	225.		)
+granatsand2.add_element_mass(  'Na'	,	837.		)
+#granatsand2.add_element_mass(  'Li'	,	5.			)
+granatsand2.add_element_mass(  'K'	,	1050.		)
+#granatsand2.add_element_mass(  'Cs'	,	3.			)
+#granatsand2.add_element_mass(  'Rb'	,	18.			)
+#granatsand2.add_element_mass(  'Se'	,	20.			)
+#granatsand2.add_element_mass(  'W'	,	10.			)
+#granatsand2.add_element_mass(  'Te'	,	50.			)
+#granatsand2.add_element_mass(  'Sb'	,	20.			)
+#granatsand2.add_element_mass(  'Re'	,	5.			)
+#granatsand2.add_element_mass(  'Bi'	,	10.			)
+#granatsand2.add_element_mass(  'Ir'	,	10.			)
+#granatsand2.add_element_mass(  'Os'	,	20.			)
+#granatsand2.add_element_mass(  'In'	,	50.			)
+#granatsand2.add_element_mass(  'Ru'	,	10.			)
+#ranatsand2.add_element_mass(  'Au'	,	10.			)
+#granatsand2.add_element_mass(  'Ge'	,	10.			)
+#granatsand2.add_element_mass(  'Ta'	,	10.			)
+#granatsand2.add_element_mass(  'Ga'	,	28.			)
+#granatsand2.add_element_mass(  'Pt'	,	50.			)
+#granatsand2.add_element_mass(  'Nb'	,	5.			)
+#granatsand2.add_element_mass(  'Hf'	,	10.			)
+#granatsand2.add_element_mass(  'Pd'	,	10.			)
+#granatsand2.add_element_mass(  'Rh'	,	10.			)
+#granatsand2.add_element_mass(  'Tl'	,	50.			)
+#granatsand2.add_element_mass(  'U'	,	10.			)
+#granatsand2.add_element_mass(  'Th'	,	5.			)
+granatsand2.add_element_mass(  'O'	,	311364.94  	) # balance
+granatsand2.finalize()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -224,13 +224,134 @@ class tally:
 			else:
 				ax.semilogx(x,y,color=color,label=label)
 
+	def write_csv(self,filename,all=False,obj=[0],cos=[0],seg=[0],mul=[0],t_or_d=[0],color=None,options=[],prepend_label=False,ylim=False,xlim=False):
+		import numpy as np
+		import pylab as pl
+		import matplotlib.pyplot as plt
+
+		### I don't care that I'm overriding the built-in 'all' within this method
+
+		### make consistency checks
+		if 'lethargy' in options:
+			if 'enormed' in options:
+				pass
+			else:
+				options.append('enormed')
+
+		### open file
+		this_file = open('filename','w')
+
+		### deal with data to be plotted
+		if all:
+			plot_objects	= range(self.object_bins)
+			plot_segments	= range(self.segment_bins)
+			plot_cosines	= range(self.cosine_bins)
+			plot_multipliers= range(self.multiplier_bins)
+			plot_t_or_d		= [0]
+		else:
+			plot_objects	= obj
+			plot_segments	= seg
+			plot_cosines	= cos
+			plot_multipliers= mul
+			plot_t_or_d		= t_or_d
+
+		### go through selected objets and write them
+		for o in plot_objects:
+			for td in plot_t_or_d:
+				for s in plot_segments:
+					for m in plot_multipliers:
+						for c in plot_cosines:
+							### GET DATA
+							dex  		= self._hash(obj=o,cos=c,seg=s,mul=m,td=td)
+							tally 		= self.vals[dex]['data'][:-1]  # clip off totals from ends
+							err 		= self.vals[dex]['err'][:-1]
+							t_or_d 		= self.vals[dex]['t_or_d']
+							cosine_bin	= self.vals[dex]['cosine_bin']
+							name		= self.vals[dex]['object']
+							if len(tally) < 2:
+								print "tally has length <=1, aborting."
+								if show:
+									pl.close(fig)
+								return
+							bins 		= self.energies[:-1]
+							widths 	 	= np.diff(bins)
+							avg 		= np.divide(np.array(bins[:-1])+np.array(bins[1:]),2.0)
+
+							### UNITS
+							if self.name%10 == 1:
+								units = 'n'
+							elif self.name%10 ==2:
+								units = 'n/cm2'
+							elif self.name%10 ==4:
+								units = 'n/cm2'
+							elif self.name%10 ==5:
+								units = 'n/cm2'
+							elif self.name%10 ==6:
+								units = 'MeV/g'
+							else:
+								print "Tally type %d not handled!!!!!"%(self.name%10)
+
+							### MODIFY DATA
+							tally_norm = tally
+							if 'wavelength' in options:
+								bins 	= np.divide(0.286014369,np.sqrt(np.array(bins)*1.0e6))
+								widths 	= -np.diff(bins)
+								avg 	= np.divide(np.array(bins[:-1])+np.array(bins[1:]),2.0)
+								#err     = err[::-1]
+								#tally_norm = tally_norm[::-1]
+							else:
+								widths 	= np.diff(bins)
+								avg 	= np.divide(np.array(bins[:-1])+np.array(bins[1:]),2.0)
+
+							### NORM
+							if 'enormed' in options:   # divide by energy/wavelength bin width
+								if 'lethargy' in options:   # defaults to being normed for lethargy
+									units = units + '/lethargy'
+									tally_norm  = np.divide(tally,widths)
+									tally_norm	= np.multiply(tally_norm,avg)
+								else:
+									tally_norm = np.divide(tally,widths)
+									if 'wavelength' in options:
+										units = units + '/AA'
+									else:
+										units = units + '/MeV'
+							if 'sanormed' in options:   #  divide by solid angle bin width
+								units = units + '/str'
+								sa = 2.0*np.pi*(self.vals[dex]['cosine_bin'][1]-self.vals[dex]['cosine_bin'][0])
+								tally_norm = np.divide(tally_norm,sa)
+
+							### SCALE 
+							if 'mA' in options: 
+								units = units + '/mA'
+								tally_norm = np.multiply(tally_norm,6.241e15)  # convert protons to milliAmpere*seconds
+							else:
+								units = units + '/p'
+
+							#### LABEL
+							if prepend_label:
+								label = prepend_label+r' obj %2d (%4d) seg %d cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1])
+							else:
+								label = r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1])
+	
+							### WRITE
+							this_file.write('\n'+label+'\n')
+							if 'wavelength' in options:
+								this_file.write("Bin Boundaries (AA),    ,  "+units)
+							else:
+								this_file.write("Bin Boundaries (MeV),   ,  "+units)
+							for i in range(0,len(bins)-1):
+								this_file.write("% 6.4E,  % 6.4E,  %6.4E"%(bins[i],bins[i+1],tally_norm[i]))
+
+		this_file.close()
+
+
 
 	def plot(self,all=False,ax=None,obj=[0],cos=[0],seg=[0],mul=[0],t_or_d=[0],color=None,options=[],prepend_label=False,ylim=False,xlim=False):
 		import numpy as np
 		import pylab as pl
 		import matplotlib.pyplot as plt
 
-		### I don't care the I'm overriding the built-in 'all' within this method
+		### I don't care that I'm overriding the built-in 'all' within this method
 
 		### make consistency checks
 		if 'lethargy' in options:
@@ -378,13 +499,13 @@ class tally:
 									label = prepend_label+r'Obj %2d (%4d) seg %d cos [%5.4f - %5.4f]' % (o,name,s,bin_min_d,bin_max_d)
 								else:
 									label = r'Obj %2d (%4d) seg %d cos [%5.4f, %5.4f]' % (o,name,s,bin_min_d,bin_max_d)
-								self._make_steps(ax,bins,avg,this_sum,np.add(err,a_err),color=color,options=options,label=label)
+								self._make_steps(ax,bins,avg,this_sum,color=color,options=options,label=label)
 								#if 'err' in options:
-								#	ax.errorbar(avg,values,yerr=numpy.multiply(numpy.array(err),numpy.array(values)),alpha=0.0,color='r')
+								#	ax.errorbar(avg,values,yerr=numpy.multiply(numpy.array(err),numpy.array(values)),linestyle='None',alpha=1.0,color='r')
 							else:
 								self._make_steps(ax,bins,avg,tally_norm,color=color,options=options,label=label)
 								if 'err' in options:
-									ax.errorbar(avg,tally_norm,yerr=np.multiply(np.array(err),np.array(tally_norm)),linestyle='None',alpha=1.0,color='r')		
+									ax.errorbar(avg,tally_norm,yerr=np.multiply(np.array(err),np.array(tally_norm)),linestyle='None',alpha=1.0,color='r')
 
 		### labels
 		if 'wavelength' in options:
@@ -441,6 +562,8 @@ class tally:
 			ax.legend(handles,labels,loc=leg_loc,prop={'size':12})
 			ax.grid(True)
 			pl.show()
+
+
 
 
 	def _process_vals(self):

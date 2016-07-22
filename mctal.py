@@ -231,6 +231,14 @@ class mctal:
 			plt.rc('font', family='serif')
 			plt.rc('font', size=16)
 
+		### init axes if not passed one
+		if ax:
+			show = False
+		else:
+			show = True
+			fig = plt.figure(figsize=(10,6))
+			ax  = fig.add_subplot(1,1,1)
+
 		### options
 		if not options:
 			plot_options=['lin','wavelength','err']
@@ -278,4 +286,6 @@ class mctal:
 		handles, labels = ax.get_legend_handles_labels()
 		ax.legend(handles,labels,loc=leg_loc,prop={'size':12})
 		ax.grid(True)
-		fig.show()
+
+		if show:
+			fig.show()
