@@ -431,12 +431,11 @@ class tally:
 		this_file.write("       dir=1\n")
 		this_file.write("c\n")
 		this_file.write("c\n")
-		this_file.write("c  x coord\n")
-		string1 = "si%d H % 6.4E"%(dist_number,bins[0])
-		string2 = "sp%d   % 6.4E"%(dist_number,0.0)
+		string1 = "si%d H"%(dist_number)
+		string2 = "sp%d  "%(dist_number)
 		for i in range(0,len(tally)):
-			string1 = string1 + (" % 6.4E"%(tally[i]))
-			string2 = string2 + (" % 6.4E"%(bins[i+1]))
+			string1 = string1 + (" % 6.4E"%(bins[i+1]))
+			string2 = string2 + (" % 6.4E"%(tally[i]))
 			l = len(string1.split('\n')[-1])
 			if l>68:
 				string1 = string1+"\n     "
