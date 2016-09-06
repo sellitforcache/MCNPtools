@@ -358,6 +358,21 @@ schrottbeton.add_element_mass( 'W ',    380.00 )
 schrottbeton.finalize()
 
 #
+#  
+# schrottbeton from some old mcnp definition
+#
+schrottbeton2 = calculate_materials.material('Schrottbeton-PSI',4.783)
+schrottbeton2.add_element_mass( 'H ',   0.004395  )
+schrottbeton2.add_element_mass( 'O ',   0.184241  ) 
+schrottbeton2.add_element_mass( 'Fe',   0.765413  )
+schrottbeton2.add_element_mass( 'Ca',   0.002704  )
+schrottbeton2.add_element_mass( 'Si',   0.020705  )
+schrottbeton2.add_element_mass( 'Al',   0.002077  )
+schrottbeton2.finalize()
+
+
+
+#
 # Bundeseisen
 #
 bundeseisen = calculate_materials.material('Bundeseisen',7.80488)  # calculated from drawing 0-10009.22.026
@@ -546,6 +561,49 @@ granatsand2.finalize()
 
 
 
+
+
+#
+# soil, from PNNL-15870 Rev. 1
+#
+soil = calculate_materials.material('soil',1.52)
+soil.add_element_atom(  'H ', 0.316855) 
+soil.add_element_atom(  'O ', 0.501581) 
+soil.add_element_atom(  'Al', 0.039951) 
+soil.add_element_atom(  'Si', 0.141613)
+soil.finalize()
+
+#
+# asphalt/bitumen full density from PNNL-15870 Rev. 1
+#
+asphalt = calculate_materials.material('asphalt',1.3)
+asphalt.add_element_atom(  'H ', 0.586755) 
+asphalt.add_element_atom(  'C ', 0.402588) 
+asphalt.add_element_atom(  'N ', 0.002463) 
+asphalt.add_element_atom(  'O ', 0.001443)
+asphalt.add_element_atom(  'S ', 0.006704) 
+asphalt.add_element_atom(  'V ', 0.000044) 
+asphalt.add_element_atom(  'Ni', 0.000003)
+asphalt.finalize()
+
+#
+# polyurethane foam insulation, from PNNL-15870 Rev. 1, swisspor PUR premium
+#
+pur = calculate_materials.material('pur',0.03)
+pur.add_element_atom(  'H ', 0.360023) 
+pur.add_element_atom(  'C ', 0.400878) 
+pur.add_element_atom(  'N ', 0.076459) 
+pur.add_element_atom(  'O ', 0.162639)
+pur.finalize()
+
+
+#
+#  swisspor Drain WS20, 20mm polypropylene stuff, mostly air
+#
+ws20 = calculate_materials.material('ws20',0.0325)
+ws20.add_element_atom(  'H ', 0.666653) 
+ws20.add_element_atom(  'C ', 0.333347) 
+ws20.finalize()
 
 
 

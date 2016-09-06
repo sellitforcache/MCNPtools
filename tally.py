@@ -85,17 +85,27 @@ class tally:
 		self.verbose 			= verbose
 		self.tex				= tex
 
-	def what_particles(self):
-		ret_string=''
+	def what_particles(self,flag):
 		### decode particle data to human-readable
 		if self.particle_type>0:
 			### shorthand list, can return directly
 			ret_string = self.particles_shorthand[self.particle_type][0]
 		else:
 			### explicit list, collect results
+			if flag == 'number':
+				ret_string=[]
+			else:
+				ret_string=''
 			for x in range(len(self.particle_list)):
 				if self.particle_list[x] != 0:
-					ret_string = ret_string + self.particles[(x+1)*self.particle_list[x]][0]   ### the multiplication is ti switch the sign if anti-particle and then the dictionary will know!
+					if flag == 'name':
+						ret_string = ret_string + self.particles[(x+1)*self.particle_list[x]][0]   ### the multiplication is to switch the sign if anti-particle and then the dictionary will know!
+					elif flag == 'symbol':
+						ret_string = ret_string + self.particles[(x+1)*self.particle_list[x]][1]
+					elif flag == 'number':
+						ret_string.append((x+1)*self.particle_list[x])
+					else:
+						print "flag of ",flag,"is not valid!"
 		return  ret_string
 
 
@@ -363,6 +373,79 @@ class tally:
 
 		this_file.close()
 
+	def write_sdef(self,filename,all=False,obj=0,cos=0,seg=0,mul=0):
+		import numpy as np
+		import pylab as pl
+		import matplotlib.pyplot as plt
+
+		### open file
+		this_file = open(filename,'w')
+
+		### deal with data to be plotted
+		if all:
+			plot_objects	= range(self.object_bins)
+			plot_segments	= range(self.segment_bins)
+			plot_cosines	= range(self.cosine_bins)
+			plot_multipliers= range(self.multiplier_bins)
+			plot_t_or_d		= [0]
+		else:
+			plot_objects	= obj
+			plot_segments	= seg
+			plot_cosines	= cos
+			plot_multipliers= mul
+			#plot_t_or_d		= t_or_d
+
+		### GET DATA
+		dex  		= self._hash(obj=obj,cos=cos,seg=seg,mul=mul)
+		tally 		= self.vals[dex]['data'][:-1]  # clip off totals from ends
+		err 		= self.vals[dex]['err'][:-1]
+		tally_total = self.vals[dex]['data'][-1]
+		err_total 	= self.vals[dex]['err'][-1]
+		t_or_d 		= self.vals[dex]['t_or_d']
+		cosine_bin	= self.vals[dex]['cosine_bin']
+		name		= self.vals[dex]['object']
+		if len(tally) < 2:
+			print "tally has length <=1, aborting."
+			if show:
+				pl.close(fig)
+			return
+		bins 		= self.energies[:-1]
+		widths 	 	= np.diff(bins)
+		avg 		= np.divide(np.array(bins[:-1])+np.array(bins[1:]),2.0)
+
+		#
+		# print mcnp cards, E dist only, for the moment!
+		#
+		if self.particle_type < 0:
+			ptype = self.what_particles('symbol')
+		else:
+			ptype = self.particle_type
+		dist_number = 1
+		this_file.write("sdef   par=%s\n"%ptype)
+		this_file.write("       axs=0 0 1\n")
+		this_file.write("       erg=d%d\n"%dist_number)
+		this_file.write("       x=0\n")
+		this_file.write("       y=0\n")
+		this_file.write("       z=0\n")
+		this_file.write("       vec=1 0 0\n")
+		this_file.write("       dir=1\n")
+		this_file.write("c\n")
+		this_file.write("c\n")
+		this_file.write("c  x coord\n")
+		string1 = "si%d H % 6.4E"%(dist_number,bins[0])
+		string2 = "sp%d   % 6.4E"%(dist_number,0.0)
+		for i in range(0,len(tally)):
+			string1 = string1 + (" % 6.4E"%(tally[i]))
+			string2 = string2 + (" % 6.4E"%(bins[i+1]))
+			l = len(string1.split('\n')[-1])
+			if l>68:
+				string1 = string1+"\n     "
+				string2 = string2+"\n     "
+		this_file.write(string1.rstrip()+"\n")
+		this_file.write(string2.rstrip()+"\n")
+		this_file.write("c\n")
+
+		this_file.close()
 
 
 	def plot(self,all=False,ax=None,obj=[0],cos=[0],seg=[0],mul=[0],t_or_d=[0],color=None,options=[],prepend_label=False,ylim=False,xlim=False):
