@@ -665,6 +665,7 @@ class histogram:
 		# check if in bounds
 		valid = True
 		if bin_val < self.bins[0] or bin_val > self.bins[-1]:
+			print bin_val,' out of bounds!!!'
 			valid = False
 
 		# add weight to bin if between bins
@@ -1284,23 +1285,17 @@ if typeflag:
 		surface_area=(x_bins[-1]-x_bins[0])*(y_bins[-1]-y_bins[0])
 	elif this_sc == 10113:
 		#  bin parameters
+		phi_bins = numpy.linspace(0,2*numpy.pi,2) 
 		#expon = numpy.linspace(-11,3,1025)
 		#E_bins   =   numpy.power(10.0,expon) 
 		#E_bins   = numpy.array([1e-12,1e-6,10,600])  # 5e-9 = 4 A, 9.09e-9 = 3A, 1e-6 = 0.3 A
-		E_bins   = numpy.array([1e-11,1e-6,1,600])
-		#x_bins   = numpy.linspace(-26,26,14)
-		x_bins   = numpy.linspace(-26,26,209)
-		#y_bins   = numpy.linspace(-10,10,6)
-		y_bins   = numpy.linspace(-10,10,81)
-		#diff     = y_bins[1]-y_bins[0]
-		#y_bins   = numpy.insert(y_bins,0,y_bins[0] -diff)
-		#y_bins   = numpy.append(y_bins,  y_bins[-1]+diff)
-		#theta_bins = numpy.array([0,20.0])*numpy.pi/180.0   # 90 included as sanity check, ss should only write tracks in normal dir
-		#theta_bins  = make_equi_str(5*numpy.pi/180.0,16)
-		theta_bins = numpy.linspace(0.0,10.0,21)*numpy.pi/180.0
-		#theta_bins = numpy.array([0.0,2.0,90])*numpy.pi/180.0
-		phi_bins = numpy.linspace(0,2*numpy.pi,2) 
-		dist     = numpy.zeros((  len(E_bins)-1 , len(theta_bins)-1 , len(phi_bins)-1 , len(y_bins)-1 , len(x_bins)-1 ),dtype=numpy.float64)
+		spec_res = 256.
+		E_bins   = numpy.power(10.0,numpy.linspace( -11, numpy.log10(600), spec_res+1))
+		x_bins   = numpy.linspace(-26,26,27)
+		y_bins   = numpy.linspace(-10,10,11)
+		theta_bins = numpy.hstack((numpy.linspace(0.0,10.0,21),numpy.array([90.0])))*numpy.pi/180.0
+		cosine_bins = numpy.cos(theta_bins)[::-1]
+		dist     = []
 		#  surface plane parameters
 		surface_plane   = numpy.array([  0.99863,  -0.052336,  0.0,  130.11 ])   # plane, GLOBAL coordinates
 		surface_center  = numpy.array([  128.007636,  -43.52137 ,    0. ])
@@ -1316,7 +1311,6 @@ if typeflag:
 		surface_vec1_rot    = rotate_xy(surface_vec1,  xy_rotation_degrees) 
 		surface_vec2_rot    = rotate_xy(surface_vec2,  xy_rotation_degrees) 
 		# spectrum plot
-		spec_res=256.
 		surface_area=(x_bins[-1]-x_bins[0])*(y_bins[-1]-y_bins[0])
 	elif this_sc == 10175:
 		#  bin parameters
@@ -1643,9 +1637,6 @@ if typeflag:
 		# for low stats
 		x_bins   = numpy.linspace(-70,70,281)
 		y_bins   = numpy.linspace(-20,20,81)
-		# for just AMOR/SANS
-		x_bins   = numpy.linspace( 60,70,21)
-		y_bins   = numpy.linspace(-20,20,81)
 		#theta_bins = numpy.array([0,1,2,3,4,5,10,20])*numpy.pi/180.0   # 90 included as sanity check, ss should only write tracks in normal dir
 		theta_bins = numpy.array([0,90])*numpy.pi/180.0
 		phi_bins = numpy.linspace(0,2*numpy.pi,2) 
@@ -1667,23 +1658,14 @@ if typeflag:
 		surface_area=(x_bins[-1]-x_bins[0])*(y_bins[-1]-y_bins[0])
 	elif this_sc == 19990:
 		#  bin parameters
-		#expon = numpy.linspace(-11,3,1025)
-		#E_bins   =   numpy.power(10.0,expon) 
-		#E_bins   = numpy.array([1e-12,1e-6,10,600])  # 5e-9 = 4 A, 9.09e-9 = 3A, 1e-6 = 0.3 A
-		E_bins   = numpy.array([1e-11,1e-6,1,600])
-		#x_bins   = numpy.linspace(-26,26,14)
-		x_bins   = numpy.linspace(-4,4,17)
-		#y_bins   = numpy.linspace(-10,10,6)
-		y_bins   = numpy.linspace(-7,7,29)
-		#diff     = y_bins[1]-y_bins[0]
-		#y_bins   = numpy.insert(y_bins,0,y_bins[0] -diff)
-		#y_bins   = numpy.append(y_bins,  y_bins[-1]+diff)
-		#theta_bins = numpy.array([0,20.0])*numpy.pi/180.0   # 90 included as sanity check, ss should only write tracks in normal dir
-		#theta_bins  = make_equi_str(5*numpy.pi/180.0,16)
-		theta_bins = numpy.linspace(0.0,10.0,21)*numpy.pi/180.0
-		#theta_bins = numpy.array([0.0,2.0,90])*numpy.pi/180.0
+		spec_res = 256.
+		E_bins   = numpy.power(10.0,numpy.linspace( -11, numpy.log10(600), spec_res+1))
+		x_bins   = numpy.linspace(-3.5,3.5,2)
+		y_bins   = numpy.linspace(-7,7,2)
 		phi_bins = numpy.linspace(0,2*numpy.pi,2) 
-		dist     = numpy.zeros((  len(E_bins)-1 , len(theta_bins)-1 , len(phi_bins)-1 , len(y_bins)-1 , len(x_bins)-1 ),dtype=numpy.float64)
+		theta_bins = numpy.hstack((numpy.linspace(0.0,10.0,21),numpy.array([90.0])))*numpy.pi/180.0
+		cosine_bins = numpy.cos(theta_bins)[::-1]
+		dist     = []
 		#  surface plane parameters
 		surface_plane   = numpy.array([  .99862953, 0.052335956, 0.0, 158.59979 ])   # plane, GLOBAL coordinates
 		surface_center  = numpy.array([  160.376838,  -29.755 ,    0. ])
@@ -1844,15 +1826,6 @@ plt.show()
 brightness = True#False
 wavelength = False
 
-# wavelength bins
-if wavelength:
-	finebins = to_energy(  numpy.linspace( to_wavelength(600) ,20, spec_res+1)  )
-	finebins = finebins[::-1]
-	avg=(finebins[:-1]+finebins[1:])/2.0
-else:
-	# log energy bins
-	finebins = numpy.power(10.0,numpy.linspace( -11, numpy.log10(600), spec_res+1))
-	avg=(finebins[:-1]+finebins[1:])/2.0
 
 ### make bins for weight histogram
 w_bins=[]
@@ -1886,10 +1859,11 @@ if typeflag:
 	histograms_wght=[]
 	wgt_avg = 0.5
 	count =1.0
-	for i in range(0,len(theta_bins)-1):
-		histograms_curr.append(histogram(finebins))
-		histograms_flux.append(histogram(finebins))
-		histograms_wght.append(histogram(w_bins))
+
+	for i in range(0,(len(E_bins)-1)):
+		dist.append([0.0,histogram(x_bins),
+			             histogram(y_bins),
+			             histogram(cosine_bins)])
 
 	if printflag:
 		print "\n============================\n"
@@ -1983,14 +1957,15 @@ if typeflag:
 				phi_dex=sys.maxint
 				
 			### increment array
-			if (E_dex < len(E_bins)-1) and (theta_dex < len(theta_bins)-1) and (phi_dex < len(phi_bins)-1) and (y_dex < len(y_bins)-1) and (x_dex < len(x_bins)-1 and this_wgt <= max_wgt) :
-				count = count+1
-				x_avg = x_avg + x_bins[x_dex]
-				x_dex_avg = x_dex_avg + x_dex
-				dist[E_dex][theta_dex][phi_dex][y_dex][x_dex] = dist[E_dex][theta_dex][phi_dex][y_dex][x_dex] + this_wgt
-				histograms_curr[theta_dex].add(this_E,this_wgt)
-				histograms_flux[theta_dex].add(this_E,this_wgt/this_vec[2]/surface_area)
-				histograms_wght[theta_dex].add(this_wgt,1)
+			if (E_dex < len(E_bins)-1) and (y_dex < len(y_bins)-1) and (x_dex < len(x_bins)-1 and this_wgt <= max_wgt) :
+				# total prob
+				dist[E_dex][0] = dist[E_dex][0] + this_wgt
+				# add to x histogram
+				dist[E_dex][1].add(this_pos[0],this_wgt)
+				# add to y histogram
+				dist[E_dex][2].add(this_pos[1],this_wgt)
+				# add to angle histogram
+				dist[E_dex][3].add(numpy.cos(this_theta),this_wgt)
 			else:
 				if (E_dex >= len(E_bins)-1 and printflag and errorflag): 
 					print "E = %6.4E index %i is outside bin boundaries" % (this_E,E_dex)
@@ -2008,28 +1983,30 @@ if typeflag:
 					print "wgt = %6.4E is greater than maximum specified weight %6.4E" % (this_wgt,max_wgt)
 	print "max weight",wgt_avg
 	# update the histograms to calculate error, must be done before nps division!
-	for i in range(0,len(theta_bins)-1):
-		histograms_curr[i].update()
-		histograms_flux[i].update()
-		histograms_wght[i].update()
+	for i in range(0,(len(E_bins)-1)):
+		dist[i][1].update()
+		dist[i][2].update()
+		dist[i][3].update()
 	### normalize dist to nps:
 	unit_area = (y_bins[1]-y_bins[0])*(x_bins[1]-x_bins[0])
 	surface_nps = abs(track.nps)
 	total_weight = 0.0
 	total_tracks = 0
 	# divide by nps
-	for i in range(0,len(theta_bins)-1):
-		total_tracks = total_tracks + numpy.sum(histograms_curr[i].counts)
-		total_weight = total_weight + numpy.sum(histograms_curr[i].values)
-		histograms_curr[i].values = histograms_curr[i].values / surface_nps
-		histograms_flux[i].values = histograms_flux[i].values / surface_nps
+	for i in range(0,(len(E_bins)-1)):
+		total_tracks = total_tracks + numpy.sum(dist[i][1].counts)
+		total_weight = total_weight + numpy.sum(dist[i][1].values)
+		dist[i][0]        = dist[i][0]        / surface_nps
+		dist[i][1].values = dist[i][1].values / surface_nps
+		dist[i][2].values = dist[i][2].values / surface_nps
+		dist[i][3].values = dist[i][3].values / surface_nps
 	npstrack_ratio = surface_nps/total_tracks
 	# divide dists array
-	if fluxflag:
-		dist = dist / surface_nps / unit_area
-	else:
-		dist = dist / surface_nps
-
+#	if fluxflag:
+#		dist = dist / surface_nps / unit_area
+#	else:
+#		dist = dist / surface_nps
+#
 
 	### dump array to file
 	if printflag:
@@ -2093,13 +2070,13 @@ Na     = 6.0221409e+23  # number/mol
 unit_area = (y_bins[1]-y_bins[0])*(x_bins[1]-x_bins[0])
 
 ### images
-zap_x1=[-6.6, -19.1, -19.1, -6.6, -6.6]
-zap_x2=[4.6,19.1 ,19.1 ,4.6, 4.6]
-zap_y=[7.05, 7.05 ,-7.05, -7.05, 7.05]
-x_AMOR=[2.5,2.5,-2.5,-2.5,2.5]
-y_AMOR=[-6,6,6,-6,-6]
-x_FOCUS=[-1.76,-1.76,-6.76,-6.76,-1.76]
-y_FOCUS=[-6,6,6,-6,-6]
+#zap_x1=[-6.6, -19.1, -19.1, -6.6, -6.6]
+#zap_x2=[4.6,19.1 ,19.1 ,4.6, 4.6]
+#zap_y=[7.05, 7.05 ,-7.05, -7.05, 7.05]
+#x_AMOR=[2.5,2.5,-2.5,-2.5,2.5]
+#y_AMOR=[-6,6,6,-6,-6]
+#x_FOCUS=[-1.76,-1.76,-6.76,-6.76,-1.76]
+#y_FOCUS=[-6,6,6,-6,-6]
 #for theta_bin in range(0,len(theta_bins)-1):
 #	for E_bin in range(0,len(E_bins)-1):
 #		f = plt.figure()
@@ -2170,341 +2147,341 @@ y_FOCUS=[-6,6,6,-6,-6]
 #		plt.show()
 #
 
-plt.rc('text', usetex=True)
-plt.rc('font', family='serif')
-plt.rc('font', size=16)
-
-
-# load experimental data
-if this_sc == 2232:
-	g=open('experimental.dat','r')
-	exp_wvl = []
-	exp_val = []
-	for line in g:
-	    sline = line.split()
-	    exp_wvl.append(float(sline[0]))
-	    exp_val.append(float(sline[1]))
-	exp_wvl = numpy.array(exp_wvl)
-	exp_val = numpy.array(exp_val)
-	g.close()
-
-
-### spectrum plots 
-fig  = plt.figure()
-ax1 = fig.add_subplot(211)
-ax2 = fig.add_subplot(212)
-cm  = plt.get_cmap('jet') 
-cNorm  = colors.Normalize(vmin=0, vmax=len(theta_bins)-1)
-scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cm)
-spec_total = numpy.zeros(histograms_curr[0].values.shape)
-err_total  = numpy.zeros(histograms_curr[0].err.shape)
-counts_total  = numpy.zeros(histograms_curr[0].values.shape)
-for i in range(0,len(theta_bins)-1):
-	#if fluxflag:
-	#	h = histograms_flux[i].values
-	#else:
-	h = histograms_curr[i].values
-	if wavelength:
-		avg    = (to_wavelength(histograms_curr[i].bins[:-1])+to_wavelength(histograms_curr[i].bins[1:]))/2.0
-		widths = -numpy.diff(to_wavelength(histograms_curr[i].bins))
-		spec = numpy.divide(h,widths)
-	else:
-		avg    = (histograms_curr[i].bins[:-1]+histograms_curr[i].bins[1:])/2.0
-		widths = numpy.diff(histograms_curr[i].bins)
-		spec = numpy.divide(h,widths)
-		spec = numpy.multiply(spec,avg)
-	spec = spec * charge_per_milliamp
-	if brightness:
-		sa = 2.0 * numpy.pi * ( numpy.cos(theta_bins[i]) - numpy.cos(theta_bins[i+1]) ) 
-		spec = spec / sa
-	else:
-		sa = 1.0
-	if fluxflag:
-		spec = spec / surface_area
-		if sphere:
-			spec = spec * 2.0
-	else:
-		area_total = 1.0
-	# accumulate
-	spec_total = numpy.add(spec_total,spec*sa)
-	counts_total = numpy.add(counts_total,histograms_curr[i].counts)
-	err_total  = numpy.add(err_total,numpy.multiply(spec*sa,1.0+histograms_curr[i].err))
-	# plot
-	colorVal = scalarMap.to_rgba(i)
-	if wavelength:
-		make_steps(ax1,to_wavelength(histograms_curr[i].bins),[0],spec,options=['lin'],color=colorVal,label=r'$\theta$ = %4.2f - %4.2f (%4.2E sr)'%(theta_bins[i]*180.0/numpy.pi,theta_bins[i+1]*180.0/numpy.pi,2.0 * numpy.pi * ( numpy.cos(theta_bins[i]) - numpy.cos(theta_bins[i+1]) )),linewidth=2)
-	else:
-		make_steps(ax1,histograms_curr[i].bins,               [0],spec,options=['log'],color=colorVal,label=r'$\theta$ = %4.2f - %4.2f (%4.2E sr)'%(theta_bins[i]*180.0/numpy.pi,theta_bins[i+1]*180.0/numpy.pi,2.0 * numpy.pi * ( numpy.cos(theta_bins[i]) - numpy.cos(theta_bins[i+1]) )),linewidth=2)
+#plt.rc('text', usetex=True)
+#plt.rc('font', family='serif')
+#plt.rc('font', size=16)
 #
-# total spec
 #
-# calc error
-for j in range(0,len(err_total)-1):
-	if spec_total[j] > 0:
-		err_total[j]  = (err_total[j]-spec_total[j]) / spec_total[j] 
-	else:
-		err_total[j] = 0.0
-# renomalize to total str
-if brightness:
-	sa = 2.0 * numpy.pi * ( numpy.cos(theta_bins[0]) - numpy.cos(theta_bins[-1]) )
-else:
-	sa = 1.0
-spec_total = spec_total / sa
-# plot
-if wavelength:
-	make_steps(ax2,to_wavelength(histograms_curr[0].bins),[0],spec_total,options=['lin'],color='b',label=r'$\theta$ = %4.2f - %4.2f (%4.2E sr)'%(theta_bins[0]*180.0/numpy.pi,theta_bins[-1]*180.0/numpy.pi,2.0 * numpy.pi * ( numpy.cos(theta_bins[i]) - numpy.cos(theta_bins[i+1]) )),linewidth=2)
-	if this_sc == 2232: 
-		ax2.plot(exp_wvl,exp_val*max(spec_total[:-2]),color='r',linewidth=2,drawstyle='steps-mid',label='Experimental')
-else:
-	#print histograms_curr[0].bins
-	make_steps(ax2,histograms_curr[0].bins,               [0],spec_total,options=['log'],color='b',label=r'$\theta$ = %4.2f - %4.2f (%4.2E sr)'%(theta_bins[0]*180.0/numpy.pi,theta_bins[-1]*180.0/numpy.pi,2.0 * numpy.pi * ( numpy.cos(theta_bins[i]) - numpy.cos(theta_bins[i+1]) )),linewidth=2)
-	avg = (histograms_curr[i].bins[:-1]+histograms_curr[i].bins[1:])/2.0
-	ax2.errorbar(avg,spec_total,yerr=numpy.multiply(err_total,spec_total),linestyle='None',alpha=1.0,color='r')
-	if this_sc == 2232: 
-		exp_ene = to_energy(exp_wvl)
-		diff = -numpy.diff(exp_ene)
-		diff = numpy.hstack((diff[0],diff))
-		exp_val = numpy.divide(exp_val*0.009398971,diff) # wavelength bin width, constant
-		exp_val = numpy.multiply(exp_val,exp_ene)
-		exp_val = exp_val / numpy.max(exp_val)
-		# integrate the experimental spectrum
-		calc_total = integrate_spec_bins(histograms_curr[0].bins,spec_total,[exp_ene[-1],exp_ene[0]])
-		# integrate the calculated spectrum over the same interval
-		exp_total = integrate_spec_points(exp_ene[::-1],exp_val[::-1],[exp_ene[-1],exp_ene[0]])
-		# renormalize
-		exp_val = exp_val * calc_total / exp_total
-		# plot
-		ax2.plot(exp_ene,exp_val,color='r',linewidth=2,drawstyle='steps-mid',label='Experimental')
-
+## load experimental data
+#if this_sc == 2232:
+#	g=open('experimental.dat','r')
+#	exp_wvl = []
+#	exp_val = []
+#	for line in g:
+#	    sline = line.split()
+#	    exp_wvl.append(float(sline[0]))
+#	    exp_val.append(float(sline[1]))
+#	exp_wvl = numpy.array(exp_wvl)
+#	exp_val = numpy.array(exp_val)
+#	g.close()
 #
-# print sums
 #
-# undo normalization
-spec_total = numpy.multiply(spec_total,widths)
-spec_total = numpy.divide(spec_total,avg)
-#
-print spec_total
-print err_total
-print counts_total
-range1=[0.0,600.0]
-this_sum=sum_spec_bins(histograms_curr[0].bins,spec_total,range1)
-err_sum=sum_spec_bins(histograms_curr[0].bins,numpy.multiply(spec_total,1.0+err_total),range1)
-print "Neutron Population %6.4E - %6.4E MeV = %6.4E [%6.4E]" %  (range1[0],range1[1],this_sum,(err_sum-this_sum)/this_sum)
-
-range1=[0.0,1e-6]
-this_sum=sum_spec_bins(histograms_curr[0].bins,spec_total,range1)
-err_sum=sum_spec_bins(histograms_curr[0].bins,numpy.multiply(spec_total,1.0+err_total),range1)
-print "Neutron Population %6.4E - %6.4E MeV = %6.4E [%6.4E]" %  (range1[0],range1[1],this_sum,(err_sum-this_sum)/this_sum)
-
-
-range1=[1e-6,600.0]
-this_sum=sum_spec_bins(histograms_curr[0].bins,spec_total,range1)
-err_sum=sum_spec_bins(histograms_curr[0].bins,numpy.multiply(spec_total,1.0+err_total),range1)
-print "Neutron Population %6.4E - %6.4E MeV = %6.4E [%6.4E]" %  (range1[0],range1[1],this_sum,(err_sum-this_sum)/this_sum)
-
-
-range1=[0.01,600.0]
-this_sum=sum_spec_bins(histograms_curr[0].bins,spec_total,range1)
-err_sum=sum_spec_bins(histograms_curr[0].bins,numpy.multiply(spec_total,1.0+err_total),range1)
-print "Neutron Population %6.4E - %6.4E MeV = %6.4E [%6.4E]" %  (range1[0],range1[1],this_sum,(err_sum-this_sum)/this_sum)
-
-
-range1=[0.1,600.0]
-this_sum=sum_spec_bins(histograms_curr[0].bins,spec_total,range1)
-err_sum=sum_spec_bins(histograms_curr[0].bins,numpy.multiply(spec_total,1.0+err_total),range1)
-print "Neutron Population %6.4E - %6.4E MeV = %6.4E [%6.4E]" %  (range1[0],range1[1],this_sum,(err_sum-this_sum)/this_sum)
-
-
-
-
-
-#
-#  spectrua plot labels
-#
-handles, labels = ax1.get_legend_handles_labels()
-ax1.legend(handles,labels,loc=1,prop={'size':12}, ncol=2, bbox_to_anchor=(1.0, 1.1))
-
-handles, labels = ax2.get_legend_handles_labels()
-ax2.legend(handles,labels,loc=1,prop={'size':12}, ncol=2, bbox_to_anchor=(1.0, 1.1))
-
-if fluxflag and brightness and wavelength:
-	label_string = r'Brightness (n mAs$^{-1}$ cm$^{-2}$ \AA$^{-1}$ Str$^{-1}$)'
-	ax1.set_ylabel(label_string)
-	ax2.set_ylabel(label_string)
-elif fluxflag and brightness:
-	label_string = r'Brightness (n mAs$^{-1}$ cm$^{-2}$ log(MeV)$^{-1}$ Str$^{-1}$)'
-	ax1.set_ylabel(label_string)
-	ax2.set_ylabel(label_string)
-elif fluxflag and wavelength:
-	label_string = r'Flux (n mAs$^{-1}$ cm$^{-2}$ \AA$^{-1}$)'
-	ax1.set_ylabel(label_string)
-	ax2.set_ylabel(label_string)
-elif brightness and wavelength:
-	label_string = r'Current (n mAs$^{-1}$ \AA$^{-1}$) Str$^{-1}$'
-	ax1.set_ylabel(label_string)
-	ax2.set_ylabel(label_string)
-elif fluxflag:
-	label_string = r'Flux (n mAs$^{-1}$ cm$^{-2}$ log(MeV)$^{-1}$)'
-	ax1.set_ylabel(label_string)
-	ax2.set_ylabel(label_string)
-elif brightness:
-	label_string = r'Current (n mAs$^{-1}$ log(MeV)$^{-1}$ Str$^{-1}$)'
-	ax1.set_ylabel(label_string)
-	ax2.set_ylabel(label_string)
-elif wavelength:
-	label_string = r'Current (n mAs$^{-1}$ cm$^{-2}$ \AA$^{-1}$)'
-	ax1.set_ylabel(label_string)
-	ax2.set_ylabel(label_string)
-else:
-	label_string = r'Current (n mAs$^{-1}$ log(MeV)$^{-1}$)'
-	ax1.set_ylabel(label_string)
-	ax2.set_ylabel(label_string)
-if wavelength:
-	xlabel_string = r'Wavelength (\AA)'
-	ax1.set_xlabel(xlabel_string)
-	ax2.set_xlabel(xlabel_string)
-else:
-	xlabel_string = r'Energy (MeV)'
-	ax1.set_xlabel(xlabel_string)
-	ax2.set_xlabel(xlabel_string)
-ax1.grid()
-ax2.grid()
-
-#if wavelength:
-#	ax1.set_xlim([0,20])
-#	ax2.set_xlim([0,20])
+#### spectrum plots 
+#fig  = plt.figure()
+#ax1 = fig.add_subplot(211)
+#ax2 = fig.add_subplot(212)
+#cm  = plt.get_cmap('jet') 
+#cNorm  = colors.Normalize(vmin=0, vmax=len(theta_bins)-1)
+#scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cm)
+#spec_total = numpy.zeros(histograms_curr[0].values.shape)
+#err_total  = numpy.zeros(histograms_curr[0].err.shape)
+#counts_total  = numpy.zeros(histograms_curr[0].values.shape)
+#for i in range(0,len(theta_bins)-1):
+#	#if fluxflag:
+#	#	h = histograms_flux[i].values
+#	#else:
+#	h = histograms_curr[i].values
+#	if wavelength:
+#		avg    = (to_wavelength(histograms_curr[i].bins[:-1])+to_wavelength(histograms_curr[i].bins[1:]))/2.0
+#		widths = -numpy.diff(to_wavelength(histograms_curr[i].bins))
+#		spec = numpy.divide(h,widths)
+#	else:
+#		avg    = (histograms_curr[i].bins[:-1]+histograms_curr[i].bins[1:])/2.0
+#		widths = numpy.diff(histograms_curr[i].bins)
+#		spec = numpy.divide(h,widths)
+#		spec = numpy.multiply(spec,avg)
+#	spec = spec * charge_per_milliamp
+#	if brightness:
+#		sa = 2.0 * numpy.pi * ( numpy.cos(theta_bins[i]) - numpy.cos(theta_bins[i+1]) ) 
+#		spec = spec / sa
+#	else:
+#		sa = 1.0
+#	if fluxflag:
+#		spec = spec / surface_area
+#		if sphere:
+#			spec = spec * 2.0
+#	else:
+#		area_total = 1.0
+#	# accumulate
+#	spec_total = numpy.add(spec_total,spec*sa)
+#	counts_total = numpy.add(counts_total,histograms_curr[i].counts)
+#	err_total  = numpy.add(err_total,numpy.multiply(spec*sa,1.0+histograms_curr[i].err))
+#	# plot
+#	colorVal = scalarMap.to_rgba(i)
+#	if wavelength:
+#		make_steps(ax1,to_wavelength(histograms_curr[i].bins),[0],spec,options=['lin'],color=colorVal,label=r'$\theta$ = %4.2f - %4.2f (%4.2E sr)'%(theta_bins[i]*180.0/numpy.pi,theta_bins[i+1]*180.0/numpy.pi,2.0 * numpy.pi * ( numpy.cos(theta_bins[i]) - numpy.cos(theta_bins[i+1]) )),linewidth=2)
+#	else:
+#		make_steps(ax1,histograms_curr[i].bins,               [0],spec,options=['log'],color=colorVal,label=r'$\theta$ = %4.2f - %4.2f (%4.2E sr)'%(theta_bins[i]*180.0/numpy.pi,theta_bins[i+1]*180.0/numpy.pi,2.0 * numpy.pi * ( numpy.cos(theta_bins[i]) - numpy.cos(theta_bins[i+1]) )),linewidth=2)
+##
+## total spec
+##
+## calc error
+#for j in range(0,len(err_total)-1):
+#	if spec_total[j] > 0:
+#		err_total[j]  = (err_total[j]-spec_total[j]) / spec_total[j] 
+#	else:
+#		err_total[j] = 0.0
+## renomalize to total str
+#if brightness:
+#	sa = 2.0 * numpy.pi * ( numpy.cos(theta_bins[0]) - numpy.cos(theta_bins[-1]) )
 #else:
-#	ax1.set_xlim([1e-10,1e-4])
-#	ax2.set_xlim([1e-10,1e-4])
+#	sa = 1.0
+#spec_total = spec_total / sa
+## plot
+#if wavelength:
+#	make_steps(ax2,to_wavelength(histograms_curr[0].bins),[0],spec_total,options=['lin'],color='b',label=r'$\theta$ = %4.2f - %4.2f (%4.2E sr)'%(theta_bins[0]*180.0/numpy.pi,theta_bins[-1]*180.0/numpy.pi,2.0 * numpy.pi * ( numpy.cos(theta_bins[i]) - numpy.cos(theta_bins[i+1]) )),linewidth=2)
+#	if this_sc == 2232: 
+#		ax2.plot(exp_wvl,exp_val*max(spec_total[:-2]),color='r',linewidth=2,drawstyle='steps-mid',label='Experimental')
+#else:
+#	#print histograms_curr[0].bins
+#	make_steps(ax2,histograms_curr[0].bins,               [0],spec_total,options=['log'],color='b',label=r'$\theta$ = %4.2f - %4.2f (%4.2E sr)'%(theta_bins[0]*180.0/numpy.pi,theta_bins[-1]*180.0/numpy.pi,2.0 * numpy.pi * ( numpy.cos(theta_bins[i]) - numpy.cos(theta_bins[i+1]) )),linewidth=2)
+#	avg = (histograms_curr[i].bins[:-1]+histograms_curr[i].bins[1:])/2.0
+#	ax2.errorbar(avg,spec_total,yerr=numpy.multiply(err_total,spec_total),linestyle='None',alpha=1.0,color='r')
+#	if this_sc == 2232: 
+#		exp_ene = to_energy(exp_wvl)
+#		diff = -numpy.diff(exp_ene)
+#		diff = numpy.hstack((diff[0],diff))
+#		exp_val = numpy.divide(exp_val*0.009398971,diff) # wavelength bin width, constant
+#		exp_val = numpy.multiply(exp_val,exp_ene)
+#		exp_val = exp_val / numpy.max(exp_val)
+#		# integrate the experimental spectrum
+#		calc_total = integrate_spec_bins(histograms_curr[0].bins,spec_total,[exp_ene[-1],exp_ene[0]])
+#		# integrate the calculated spectrum over the same interval
+#		exp_total = integrate_spec_points(exp_ene[::-1],exp_val[::-1],[exp_ene[-1],exp_ene[0]])
+#		# renormalize
+#		exp_val = exp_val * calc_total / exp_total
+#		# plot
+#		ax2.plot(exp_ene,exp_val,color='r',linewidth=2,drawstyle='steps-mid',label='Experimental')
 #
-#ax2.set_ylim(ax1.get_ylim())
-
-
-pylab.show()
-
+##
+## print sums
+##
+## undo normalization
+#spec_total = numpy.multiply(spec_total,widths)
+#spec_total = numpy.divide(spec_total,avg)
+##
+#print spec_total
+#print err_total
+#print counts_total
+#range1=[0.0,600.0]
+#this_sum=sum_spec_bins(histograms_curr[0].bins,spec_total,range1)
+#err_sum=sum_spec_bins(histograms_curr[0].bins,numpy.multiply(spec_total,1.0+err_total),range1)
+#print "Neutron Population %6.4E - %6.4E MeV = %6.4E [%6.4E]" %  (range1[0],range1[1],this_sum,(err_sum-this_sum)/this_sum)
 #
-#  make total spatial plot
+#range1=[0.0,1e-6]
+#this_sum=sum_spec_bins(histograms_curr[0].bins,spec_total,range1)
+#err_sum=sum_spec_bins(histograms_curr[0].bins,numpy.multiply(spec_total,1.0+err_total),range1)
+#print "Neutron Population %6.4E - %6.4E MeV = %6.4E [%6.4E]" %  (range1[0],range1[1],this_sum,(err_sum-this_sum)/this_sum)
 #
-phi_bin = 0
-dist_total = numpy.zeros(dist[0][0][0][:][:].shape)
-for e in range(0,len(E_bins)-1):
-	for t in range(0,len(theta_bins)-1):
-		dist_total = numpy.add(dist_total,dist[e][t][phi_bin][:][:])
-# make correlated distributions
-dist_z=numpy.sum(dist_total,axis=1)  # sum columns [row][column], makes totals for each row 
-assert(len(dist_z)==len(y_bins)-1)
-# plot
-f = plt.figure()
-ax = f.add_subplot(111)
-if fluxflag:
-	imgplot = ax.imshow(dist_total/surface_area,extent=[x_bins[0],x_bins[-1],y_bins[0],y_bins[-1]],origin='lower',cmap=plt.get_cmap('jet'))
-else:
-	imgplot = ax.imshow(dist_total           ,extent=[x_bins[0],x_bins[-1],y_bins[0],y_bins[-1]],origin='lower',cmap=plt.get_cmap('jet'))
-this_weight = numpy.sum(dist_total)#/surface_nps
-imgplot.set_interpolation('nearest')
-theta_deg = numpy.array([theta_bins[0],theta_bins[-1]])*180.0/numpy.pi
-phi_deg = phi_bins[phi_bin:phi_bin+2]*180.0/numpy.pi
-E_meV   = numpy.array([E_bins[0],E_bins[-1]])*1.0e9
-E_eV   =  numpy.array([E_bins[0],E_bins[-1]])*1.0e6
-if sphere:
-	ax.set_ylabel(r'Spherical Polar $\theta$ (rad.)')
-	ax.set_xlabel(r'Spherical Azimuthal $\phi$ (rad.)')
-else:
-	ax.set_ylabel(r'y (cm)')
-	ax.set_xlabel(r'x (cm)')
-ax.set_title(r'Energies %4.2E - %4.2E eV \\       $\theta$ %4.2f - %4.2f $^{\circ}$, $\phi$ %4.2f - %4.2f $^{\circ}$ \\ Total weight/nps %4.2E' % (E_eV[0],E_eV[1],theta_deg[0],theta_deg[1],phi_deg[0],phi_deg[1],this_weight))
-ax.grid()
-cbar=pylab.colorbar(imgplot)
-if fluxflag:
-	cbar.set_label(r"n p$^{-1}$ cm$^{-2}$")
-else:
-	cbar.set_label(r"n p$^{-1}$")
-#ax.plot(zap_x1,zap_y,color=[0.5,0.5,0.5],linewidth=3,linestyle='--')
-#ax.plot(zap_x2,zap_y,color=[0.5,0.5,0.5],linewidth=3,linestyle='--')
-ax.set_xlim([x_bins[0],x_bins[-1]])
-ax.set_ylim([y_bins[0],y_bins[-1]])
-cbar.formatter.set_powerlimits((0, 0))
-cbar.update_ticks()
-#f.savefig('dist_e%d_theta%d'%(E_bin,theta_bin))
-pylab.show()
-
-
 #
-#  Write CSV files
+#range1=[1e-6,600.0]
+#this_sum=sum_spec_bins(histograms_curr[0].bins,spec_total,range1)
+#err_sum=sum_spec_bins(histograms_curr[0].bins,numpy.multiply(spec_total,1.0+err_total),range1)
+#print "Neutron Population %6.4E - %6.4E MeV = %6.4E [%6.4E]" %  (range1[0],range1[1],this_sum,(err_sum-this_sum)/this_sum)
 #
-
-
-if wavelength:
-	name = 'dist_data_wvl.csv'
-	print "\nWriting '"+name+"'...\n"
-	f=open(name,'w')
-	# header
-	f.write('UNITS = '+label_string+'\n')
-	string = 'Wavelength (A), '
-	for k in range(0,len(theta_bins)-1):
-		string = string+'      %5.4E - %5.4E deg,'%(theta_bins[k]*180.0/numpy.pi,theta_bins[k+1]*180.0/numpy.pi)
-	f.write(string+'\n')
-	# data
-	for j in range(0,len(histograms_curr[0].bins)-1)[::-1]:
-		string = '  %5.4E - %5.4E, '%(to_wavelength(histograms_curr[0].bins[j+1]),to_wavelength(histograms_curr[0].bins[j]))
-		for k in range(0,len(theta_bins)-1):
-			h = histograms_curr[k]
-			avg    =  numpy.sum( to_wavelength(h.bins[j:j+2])) / 2.0
-			width  = -numpy.diff(to_wavelength(h.bins[j:j+2]))
-			if brightness:
-				sa = 2.0 * numpy.pi * ( numpy.cos(theta_bins[k]) - numpy.cos(theta_bins[k+1]) ) 
-			else:
-				sa = 1.0
-			if fluxflag:
-				area_total = surface_area
-			else:
-				area_total = 1.0
-			spec = h.values[j]* charge_per_milliamp
-			spec = spec / width
-			spec = spec / area_total
-			spec = spec / sa
-			string = string+'     %6.4E,'%(spec)
-		f.write(string+'\n')
-	f.close()
-else:
-	name = 'dist_data_ene.csv'
-	print "\nWriting '"+name+"'...\n"
-	f=open(name,'w')
-	# header
-	f.write('UNITS = '+label_string+'\n')
-	print "surface area ",surface_area
-	string = 'Energy (MeV), '
-	for k in range(0,len(theta_bins)-1):
-		string = string+'      %5.4E- %5.4E deg,'%(theta_bins[k]*180.0/numpy.pi,theta_bins[k+1]*180.0/numpy.pi)
-	f.write(string+'\n')
-	# data
-	for j in range(0,len(histograms_curr[0].bins)-1):
-		string = '  %5.4E - %5.4E, '%(histograms_curr[0].bins[j],histograms_curr[0].bins[j+1])
-		for k in range(0,len(theta_bins)-1):
-			h = histograms_curr[k]
-			avg    =  numpy.sum( h.bins[j:j+2]) / 2.0
-			width  =  numpy.diff(h.bins[j:j+2])
-			if brightness:
-				sa = 2.0 * numpy.pi * ( numpy.cos(theta_bins[k]) - numpy.cos(theta_bins[k+1]) ) 
-				spec = spec / sa
-			else:
-				sa = 1.0
-			if fluxflag:
-				area_total = surface_area 
-			else:
-				area_total = 1.0
-			spec = h.values[j]* charge_per_milliamp
-			spec = spec / width
-			spec = spec * avg
-			spec = spec / area_total
-			spec = spec / sa
-			if fluxflag and sphere:  # only valid for a *purely absorbing* sphere!
-				print "!!!! multiplying spectrum by two for purely absorbing sphere !!!!"
-				spec = spec * 2.0
-			string = string+'     %6.4E'%(spec)
-		f.write(string+'\n')
-	f.close()
-
+#
+#range1=[0.01,600.0]
+#this_sum=sum_spec_bins(histograms_curr[0].bins,spec_total,range1)
+#err_sum=sum_spec_bins(histograms_curr[0].bins,numpy.multiply(spec_total,1.0+err_total),range1)
+#print "Neutron Population %6.4E - %6.4E MeV = %6.4E [%6.4E]" %  (range1[0],range1[1],this_sum,(err_sum-this_sum)/this_sum)
+#
+#
+#range1=[0.1,600.0]
+#this_sum=sum_spec_bins(histograms_curr[0].bins,spec_total,range1)
+#err_sum=sum_spec_bins(histograms_curr[0].bins,numpy.multiply(spec_total,1.0+err_total),range1)
+#print "Neutron Population %6.4E - %6.4E MeV = %6.4E [%6.4E]" %  (range1[0],range1[1],this_sum,(err_sum-this_sum)/this_sum)
+#
+#
+#
+#
+#
+##
+##  spectrua plot labels
+##
+#handles, labels = ax1.get_legend_handles_labels()
+#ax1.legend(handles,labels,loc=1,prop={'size':12}, ncol=2, bbox_to_anchor=(1.0, 1.1))
+#
+#handles, labels = ax2.get_legend_handles_labels()
+#ax2.legend(handles,labels,loc=1,prop={'size':12}, ncol=2, bbox_to_anchor=(1.0, 1.1))
+#
+#if fluxflag and brightness and wavelength:
+#	label_string = r'Brightness (n mAs$^{-1}$ cm$^{-2}$ \AA$^{-1}$ Str$^{-1}$)'
+#	ax1.set_ylabel(label_string)
+#	ax2.set_ylabel(label_string)
+#elif fluxflag and brightness:
+#	label_string = r'Brightness (n mAs$^{-1}$ cm$^{-2}$ log(MeV)$^{-1}$ Str$^{-1}$)'
+#	ax1.set_ylabel(label_string)
+#	ax2.set_ylabel(label_string)
+#elif fluxflag and wavelength:
+#	label_string = r'Flux (n mAs$^{-1}$ cm$^{-2}$ \AA$^{-1}$)'
+#	ax1.set_ylabel(label_string)
+#	ax2.set_ylabel(label_string)
+#elif brightness and wavelength:
+#	label_string = r'Current (n mAs$^{-1}$ \AA$^{-1}$) Str$^{-1}$'
+#	ax1.set_ylabel(label_string)
+#	ax2.set_ylabel(label_string)
+#elif fluxflag:
+#	label_string = r'Flux (n mAs$^{-1}$ cm$^{-2}$ log(MeV)$^{-1}$)'
+#	ax1.set_ylabel(label_string)
+#	ax2.set_ylabel(label_string)
+#elif brightness:
+#	label_string = r'Current (n mAs$^{-1}$ log(MeV)$^{-1}$ Str$^{-1}$)'
+#	ax1.set_ylabel(label_string)
+#	ax2.set_ylabel(label_string)
+#elif wavelength:
+#	label_string = r'Current (n mAs$^{-1}$ cm$^{-2}$ \AA$^{-1}$)'
+#	ax1.set_ylabel(label_string)
+#	ax2.set_ylabel(label_string)
+#else:
+#	label_string = r'Current (n mAs$^{-1}$ log(MeV)$^{-1}$)'
+#	ax1.set_ylabel(label_string)
+#	ax2.set_ylabel(label_string)
+#if wavelength:
+#	xlabel_string = r'Wavelength (\AA)'
+#	ax1.set_xlabel(xlabel_string)
+#	ax2.set_xlabel(xlabel_string)
+#else:
+#	xlabel_string = r'Energy (MeV)'
+#	ax1.set_xlabel(xlabel_string)
+#	ax2.set_xlabel(xlabel_string)
+#ax1.grid()
+#ax2.grid()
+#
+##if wavelength:
+##	ax1.set_xlim([0,20])
+##	ax2.set_xlim([0,20])
+##else:
+##	ax1.set_xlim([1e-10,1e-4])
+##	ax2.set_xlim([1e-10,1e-4])
+##
+##ax2.set_ylim(ax1.get_ylim())
+#
+#
+#pylab.show()
+#
+##
+##  make total spatial plot
+##
+#phi_bin = 0
+#dist_total = numpy.zeros(dist[0][0][0][:][:].shape)
+#for e in range(0,len(E_bins)-1):
+#	for t in range(0,len(theta_bins)-1):
+#		dist_total = numpy.add(dist_total,dist[e][t][phi_bin][:][:])
+## make correlated distributions
+#dist_z=numpy.sum(dist_total,axis=1)  # sum columns [row][column], makes totals for each row 
+#assert(len(dist_z)==len(y_bins)-1)
+## plot
+#f = plt.figure()
+#ax = f.add_subplot(111)
+#if fluxflag:
+#	imgplot = ax.imshow(dist_total/surface_area,extent=[x_bins[0],x_bins[-1],y_bins[0],y_bins[-1]],origin='lower',cmap=plt.get_cmap('jet'))
+#else:
+#	imgplot = ax.imshow(dist_total           ,extent=[x_bins[0],x_bins[-1],y_bins[0],y_bins[-1]],origin='lower',cmap=plt.get_cmap('jet'))
+#this_weight = numpy.sum(dist_total)#/surface_nps
+#imgplot.set_interpolation('nearest')
+#theta_deg = numpy.array([theta_bins[0],theta_bins[-1]])*180.0/numpy.pi
+#phi_deg = phi_bins[phi_bin:phi_bin+2]*180.0/numpy.pi
+#E_meV   = numpy.array([E_bins[0],E_bins[-1]])*1.0e9
+#E_eV   =  numpy.array([E_bins[0],E_bins[-1]])*1.0e6
+#if sphere:
+#	ax.set_ylabel(r'Spherical Polar $\theta$ (rad.)')
+#	ax.set_xlabel(r'Spherical Azimuthal $\phi$ (rad.)')
+#else:
+#	ax.set_ylabel(r'y (cm)')
+#	ax.set_xlabel(r'x (cm)')
+#ax.set_title(r'Energies %4.2E - %4.2E eV \\       $\theta$ %4.2f - %4.2f $^{\circ}$, $\phi$ %4.2f - %4.2f $^{\circ}$ \\ Total weight/nps %4.2E' % (E_eV[0],E_eV[1],theta_deg[0],theta_deg[1],phi_deg[0],phi_deg[1],this_weight))
+#ax.grid()
+#cbar=pylab.colorbar(imgplot)
+#if fluxflag:
+#	cbar.set_label(r"n p$^{-1}$ cm$^{-2}$")
+#else:
+#	cbar.set_label(r"n p$^{-1}$")
+##ax.plot(zap_x1,zap_y,color=[0.5,0.5,0.5],linewidth=3,linestyle='--')
+##ax.plot(zap_x2,zap_y,color=[0.5,0.5,0.5],linewidth=3,linestyle='--')
+#ax.set_xlim([x_bins[0],x_bins[-1]])
+#ax.set_ylim([y_bins[0],y_bins[-1]])
+#cbar.formatter.set_powerlimits((0, 0))
+#cbar.update_ticks()
+##f.savefig('dist_e%d_theta%d'%(E_bin,theta_bin))
+#pylab.show()
+#
+#
+##
+##  Write CSV files
+##
+#
+#
+#if wavelength:
+#	name = 'dist_data_wvl.csv'
+#	print "\nWriting '"+name+"'...\n"
+#	f=open(name,'w')
+#	# header
+#	f.write('UNITS = '+label_string+'\n')
+#	string = 'Wavelength (A), '
+#	for k in range(0,len(theta_bins)-1):
+#		string = string+'      %5.4E - %5.4E deg,'%(theta_bins[k]*180.0/numpy.pi,theta_bins[k+1]*180.0/numpy.pi)
+#	f.write(string+'\n')
+#	# data
+#	for j in range(0,len(histograms_curr[0].bins)-1)[::-1]:
+#		string = '  %5.4E - %5.4E, '%(to_wavelength(histograms_curr[0].bins[j+1]),to_wavelength(histograms_curr[0].bins[j]))
+#		for k in range(0,len(theta_bins)-1):
+#			h = histograms_curr[k]
+#			avg    =  numpy.sum( to_wavelength(h.bins[j:j+2])) / 2.0
+#			width  = -numpy.diff(to_wavelength(h.bins[j:j+2]))
+#			if brightness:
+#				sa = 2.0 * numpy.pi * ( numpy.cos(theta_bins[k]) - numpy.cos(theta_bins[k+1]) ) 
+#			else:
+#				sa = 1.0
+#			if fluxflag:
+#				area_total = surface_area
+#			else:
+#				area_total = 1.0
+#			spec = h.values[j]* charge_per_milliamp
+#			spec = spec / width
+#			spec = spec / area_total
+#			spec = spec / sa
+#			string = string+'     %6.4E,'%(spec)
+#		f.write(string+'\n')
+#	f.close()
+#else:
+#	name = 'dist_data_ene.csv'
+#	print "\nWriting '"+name+"'...\n"
+#	f=open(name,'w')
+#	# header
+#	f.write('UNITS = '+label_string+'\n')
+#	print "surface area ",surface_area
+#	string = 'Energy (MeV), '
+#	for k in range(0,len(theta_bins)-1):
+#		string = string+'      %5.4E- %5.4E deg,'%(theta_bins[k]*180.0/numpy.pi,theta_bins[k+1]*180.0/numpy.pi)
+#	f.write(string+'\n')
+#	# data
+#	for j in range(0,len(histograms_curr[0].bins)-1):
+#		string = '  %5.4E - %5.4E, '%(histograms_curr[0].bins[j],histograms_curr[0].bins[j+1])
+#		for k in range(0,len(theta_bins)-1):
+#			h = histograms_curr[k]
+#			avg    =  numpy.sum( h.bins[j:j+2]) / 2.0
+#			width  =  numpy.diff(h.bins[j:j+2])
+#			if brightness:
+#				sa = 2.0 * numpy.pi * ( numpy.cos(theta_bins[k]) - numpy.cos(theta_bins[k+1]) ) 
+#				spec = spec / sa
+#			else:
+#				sa = 1.0
+#			if fluxflag:
+#				area_total = surface_area 
+#			else:
+#				area_total = 1.0
+#			spec = h.values[j]* charge_per_milliamp
+#			spec = spec / width
+#			spec = spec * avg
+#			spec = spec / area_total
+#			spec = spec / sa
+#			if fluxflag and sphere:  # only valid for a *purely absorbing* sphere!
+#				print "!!!! multiplying spectrum by two for purely absorbing sphere !!!!"
+#				spec = spec * 2.0
+#			string = string+'     %6.4E'%(spec)
+#		f.write(string+'\n')
+#	f.close()
+#
 
 
 #
@@ -2518,10 +2495,10 @@ offset_factor=-1e-6
 
 
 # figure out angular probabilities
-angular_weight_totals=[]
-for k in range(0,len(theta_bins)-1):
-    angular_weight_totals.append(numpy.sum(histograms_curr[k].values))
-probs = numpy.array(angular_weight_totals)/numpy.sum(angular_weight_totals)
+weight_totals=[]
+for k in range(0,len(E_bins)-1):
+    weight_totals.append(numpy.sum(dist[k][0]))
+probs = numpy.array(weight_totals)/numpy.sum(weight_totals)
 # files
 name='dist_data.sdef'
 print "\nWriting MCNP SDEF to '"+name+"'..."
@@ -2536,66 +2513,77 @@ f.write('c SDEF from ss2dist.py, '+time.strftime("%d.%m.%Y, %H:%M")+'\n')
 f.write('c wssa name = '+filename+'\nc surface = %5d\n'%this_sc)
 f.write('c\n')
 f.write('sdef    par=n\n')
-if sphere:
-	f.write('        sur=%5d\n'%this_sc)
-	f.write('        axs=0 0 1\n')
-	f.write('c        vec=1 0 0\n')
-	f.write('c        tr=999\n')
-	f.write('        rad=%10.8E\n'%sphere_radius)
-else:
-	f.write('c        sur=%5d\n'%this_sc)
-	f.write('        axs=0 0 1\n')
-	f.write('        vec=1 0 0\n')
-	f.write('        tr=999\n')
-	f.write('        x=0.0\n')
-	f.write('        y=fz=d998\n')
-	f.write('        z=d997\n')
-f.write('        dir=d996\n')
-f.write('        erg=fdir=d995\n')
-f.write('        wgt=%10.8E\n'%numpy.sum(angular_weight_totals))
+f.write('c        sur=%5d\n'%this_sc)
+f.write('        axs=0 0 1\n')
+f.write('        vec=1 0 0\n')
+f.write('        tr=999\n')
+f.write('        erg=d1\n')
+f.write('        x=0.0\n')
+f.write('        y=ferg=d2\n')
+f.write('        z=ferg=d3\n')
+f.write('        dir=ferg=d4\n')
+f.write('        wgt=%10.8E\n'%numpy.sum(weight_totals))
 f.write('c \n')
 f.write('c TRANSFORM\n')
 f.write('c \n')
-if sphere:
-	f.write('c *tr999  % 6.7E  % 6.7E  % 6.7E\n'%(surface_center[0],surface_center[1],surface_center[2]))
-	f.write('c         % 6.7E  % 6.7E  % 6.7E\n'%(0,90,90))
-	f.write('c         % 6.7E  % 6.7E  % 6.7E\n'%(90,0,90))
-	f.write('c         % 6.7E  % 6.7E  % 6.7E\n'%(90,90,0))
-else:
-	# make vectors for routines
-	bins=[]
-	values=[]
-	for i in range(0,len(y_bins)-1):
-		bins.append(  x_bins)
-		values.append(dist_total[i][:])  # these bins are linearly spaced, do not need to be divided by width
-	# write
-	f.write('*tr999  % 6.7E  % 6.7E  % 6.7E\n'%((1.0+offset_factor)*surface_center[0],(1.0+offset_factor)*surface_center[1],(1.0+offset_factor)*surface_center[2]))
-	f.write('        % 6.7E  % 6.7E  % 6.7E\n'%(surface_rotation_xy,90-surface_rotation_xy,90))
-	f.write('        % 6.7E  % 6.7E  % 6.7E\n'%(90+surface_rotation_xy,surface_rotation_xy,90))
-	f.write('        % 6.7E  % 6.7E  % 6.7E\n'%(90,90,0))
-	f.write('c \n')
-	f.write('c Z\n')
-	f.write('c \n')
-	make_independent_distribution(f,997,y_bins,dist_z)
-	f.write('c \n')
-	f.write('c Y, DEPENDENT ON Z\n')
-	f.write('c \n')
-	make_dependent_distribution(f,998,800,bins,values)
+f.write('*tr999  % 6.7E  % 6.7E  % 6.7E\n'%((1.0+offset_factor)*surface_center[0],(1.0+offset_factor)*surface_center[1],(1.0+offset_factor)*surface_center[2]))
+f.write('        % 6.7E  % 6.7E  % 6.7E\n'%(surface_rotation_xy,90-surface_rotation_xy,90))
+f.write('        % 6.7E  % 6.7E  % 6.7E\n'%(90+surface_rotation_xy,surface_rotation_xy,90))
+f.write('        % 6.7E  % 6.7E  % 6.7E\n'%(90,90,0))
+# write dist cards
+values=[]
+for i in range(0,(len(E_bins)-1)):
+	values.append(dist[i][0])
+f.write('c \n')
+f.write('c ENERGY DISTRIBUTION\n')
+f.write('c \n')
+make_independent_distribution(f,1,E_bins,values)
+indexing_start = 100
+additive = 0.0
+#
+bins=[]
+values=[]
+for i in range(0,(len(E_bins)-1)):
+	if dist[i][0] > 0.0:
+		additive = 0.0
+	else:
+		additive = 1e-30
+	bins.append(  dist[i][1].bins)
+	values.append(dist[i][1].values+additive)
+f.write('c \n')
+f.write('c Y\n')
+f.write('c \n')
+make_dependent_distribution(f,2,indexing_start+spec_res*0,bins,values)
+#
+bins=[]
+values=[]
+for i in range(0,(len(E_bins)-1)):
+	if dist[i][0] > 0.0:
+		additive = 0.0
+	else:
+		additive = 1e-30
+	bins.append(  dist[i][2].bins)
+	values.append(dist[i][2].values+additive)
+f.write('c \n')
+f.write('c Z\n')
+f.write('c \n')
+make_dependent_distribution(f,3,indexing_start+spec_res*1,bins,values)
+#
+# write angular cards
+bins=[]
+values=[]
+for i in range(0,(len(E_bins)-1)):
+	if dist[i][0] > 0.0:
+		additive = 0.0
+	else:
+		additive = 1e-30
+	bins.append(  dist[i][3].bins)
+	values.append(dist[i][3].values+additive)
 f.write('c \n')
 f.write('c ANGULAR DISTRIBUTION\n')
 f.write('c \n')
-# write angular cards
-make_independent_distribution(f,996,numpy.cos(theta_bins)[::-1],probs[::-1])
-# write energy cards
-f.write('c \n')
-f.write('c ENERGY DISTRIBUTIONS, DEPENDS ON DIR\n')
-f.write('c \n')
-bins=[]
-values=[]
-for i in range(0,len(histograms_curr))[::-1]:  # must be revered since the cosines are reversed!
-	bins.append(  histograms_curr[i].bins  )
-	values.append(histograms_curr[i].values)
-make_dependent_distribution(f,995,700,bins,values)
+make_dependent_distribution(f,4,indexing_start+spec_res*2,bins,values)
+#
 f.write('c \n')
 f.close()
 print "\nDONE.\n"
