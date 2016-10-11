@@ -1,8 +1,9 @@
-#! /usr/local/bin/python -W ignore
 #! /home/l_bergmann/anaconda/bin/python -W ignore
+#! /usr/local/bin/python -W ignore
 #
-# ss2dist, the MCNP surface source to histogram distribution maker
-# Ryan M. Bergmann, March 2015 
+# A MCNP surface source to histogram distribution maker
+# which combined the outputs from previously binned distributions
+# Ryan M. Bergmann, October 2015 
 # ryan.bergmann@psi.ch, ryanmbergmann@gmail.com
 
 import numpy, sys, cPickle, time
@@ -69,6 +70,36 @@ def make_independent_distribution(file_obj,dist_number,vector_vars,vector_probs)
 	file_obj.write(string0)
 	total_len = len(string0)
 	string1=' %6.4E'%0.0
+	total_len = total_len + len(string1)
+	file_obj.write(string1)
+	for k in range(0,len(vector_probs)):
+		#if vector_probs[k]>0.0:
+		string1=' %6.4E'%vector_probs[k]
+		total_len = total_len + len(string1)
+		if total_len > 80:
+			file_obj.write('\n'+' '*max(5,len(string0)))
+			total_len = len(string1)+max(5,len(string0))
+		file_obj.write(string1)
+	file_obj.write('\n')
+
+def make_independent_distribution_intlines(file_obj,dist_number,vector_vars,vector_probs):
+	assert(len(vector_vars)==len(vector_probs))
+	string0 = 'SI%d    L '%dist_number
+	file_obj.write(string0)
+	total_len = len(string0)
+	for k in range(0,len(vector_vars)):
+		#if vector_probs[k]>0.0:
+		string1=' %d'%vector_vars[k]
+		total_len = total_len + len(string1)
+		if total_len > 80:
+			file_obj.write('\n'+' '*max(5,len(string0)))
+			total_len = len(string1)+max(5,len(string0))
+		file_obj.write(string1)
+	file_obj.write('\n')
+	string0 = 'SP%d      '%dist_number
+	file_obj.write(string0)
+	total_len = len(string0)
+	string1=''
 	total_len = total_len + len(string1)
 	file_obj.write(string1)
 	for k in range(0,len(vector_probs)):
@@ -226,6 +257,7 @@ y_bins_total        = []
 y_values_total      = []
 xfrm_bins_total		= []
 xfrm_values_total	= []
+xfrm_bins_total		= []
 surface_rotation_xy	= []
 surface_centers		= []
  
@@ -245,9 +277,9 @@ for d in source_list:
     total_weight_total = total_weight_total + d['total_weight'] 
 
 # make the unrolled vector lists
-for i in range(0,len(source_list)):
+for j in range(0,len(source_list)):
 
-	d 					= source_list[i] 
+	d 					= source_list[j] 
 	dist            	= d['dist']           
 	E_bins          	= d['E_bins']         
 	x_bins          	= d['x_bins']         
@@ -276,11 +308,20 @@ for i in range(0,len(source_list)):
 	print "total weight on surface %5d = %6.5E"%(this_sc,total_weight)
 	print "fractional weight on surface %5d = %6.5E"%(this_sc,total_weight/total_weight_total)
 
-	# angular bin values (main index)
 	cosine_bins = numpy.cos(theta_bins)
+
+	# xfrm (main index)
 	for i in range(0,(len(cosine_bins)-1)):
-		cosine_bins_total.append(cosine_bins[i])
-		cosine_values_total.append(dist[i][0]/total_weight_total)
+		xfrm_bins_total.append(j+xfrm_starting_index)
+		xfrm_values_total.append(dist[i][0]/total_weight_total)
+
+	surface_rotation_xy.append(numpy.arctan(surface_normal[1]/surface_normal[0])*180.0/numpy.pi)
+	surface_centers.append(surface_center)
+
+	# angular bin values (flat)
+	for i in range(0,(len(cosine_bins)-1)):
+		cosine_bins_total.append([cosine_bins[i+1],cosine_bins[i]])
+		cosine_values_total.append([1.0])
 
 	# x bins
 	for i in range(0,(len(cosine_bins)-1)):
@@ -309,17 +350,11 @@ for i in range(0,len(source_list)):
 		erg_bins_total.append(  dist[i][3].bins)
 		erg_values_total.append(dist[i][3].values+additive)
 
-	# xfrm
-	for i in range(0,(len(cosine_bins)-1)):
-		xfrm_values_total.append(i+xfrm_starting_index)
-
-	surface_rotation_xy.append(numpy.arctan(surface_normal[1]/surface_normal[0])*180.0/numpy.pi)
-	surface_centers.append(surface_center)
-
 #
 # write mcnp sdef
 #
-name='dist_data_%5d.sdef'%this_sc
+dist_lengths = (len(cosine_bins)-1)*len(source_list)
+name='dist_data_combined_unrolled.sdef'
 print "\nWriting MCNP SDEF to '"+name+"'..."
 #if sphere:
 #	pass
@@ -333,15 +368,15 @@ f.write('c\n')
 f.write('sdef    par=n\n')
 f.write('        axs=0 0 1\n')
 f.write('        vec=1 0 0\n')
-f.write('        dir=d1\n')
-f.write('        erg=fdir=d2\n')
+f.write('        tr=d1\n')
+f.write('        dir=ftr=d2\n')
+f.write('        erg=ftr=d3\n')
 f.write('        x=0.0\n')
-f.write('        y=fdir=d3\n')
-f.write('        z=fdir=d4\n')
-f.write('        tr=fdir=d5\n')
-f.write('        wgt=%10.8E\n'%(total_weight_total))
+f.write('        y=ftr=d4\n')
+f.write('        z=ftr=d5\n')
+f.write('        wgt=%10.8E\n'%(total_weight_total/surface_nps))
 f.write('c \n')
-f.write('c TRANSFORM\n')
+f.write('c TRANSFORMS\n')
 f.write('c \n')
 for i in range(0,len(source_list)):
 	f.write('*tr%d   % 6.7E  % 6.7E  % 6.7E\n'%(i+xfrm_starting_index,(1.0+offset_factor)*surface_centers[i][0],(1.0+offset_factor)*surface_centers[i][1],(1.0+offset_factor)*surface_centers[i][2]))
@@ -350,29 +385,29 @@ for i in range(0,len(source_list)):
 	f.write('        % 6.7E  % 6.7E  % 6.7E\n'%(90,90,0))
 # write dist cards
 f.write('c \n')
-f.write('c ANGULAR DISTRIBUTION\n')
+f.write('c POSITION TRANSFORM PROBABILITIES\n')
 f.write('c \n')
-make_independent_distribution(f,1,cosine_bins_total[::-1],cosine_values_total[::-1])
+make_independent_distribution_intlines(f,1,xfrm_bins_total,xfrm_values_total)
 #
 f.write('c \n')
-f.write('c Y\n')
+f.write('c ANGULAR DISTRIBUTIONS\n')
 f.write('c \n')
-make_dependent_distribution(f,2,indexing_start+(len(cosine_bins)-1)*0,x_bins_total[::-1],x_values_total[::-1])
-#
-f.write('c \n')
-f.write('c Z\n')
-f.write('c \n')
-make_dependent_distribution(f,3,indexing_start+(len(cosine_bins)-1)*1,y_bins_total[::-1],y_values_total[::-1])
+make_dependent_distribution(f,2,indexing_start+dist_lengths*0,cosine_bins_total,cosine_values_total)
 #
 f.write('c \n')
 f.write('c ENERGY DISTRIBUTIONS\n')
 f.write('c \n')
-make_dependent_distribution(f,4,indexing_start+(len(cosine_bins)-1)*2,erg_bins_total[::-1],erg_values_total[::-1])
+make_dependent_distribution(f,3,indexing_start+dist_lengths*1,erg_bins_total,erg_values_total)
 #
 f.write('c \n')
-f.write('c POSITION TRANSFORMS\n')
+f.write('c Y\n')
 f.write('c \n')
-make_dependent_list(f,5,xfrm_values_total[::-1])
+make_dependent_distribution(f,4,indexing_start+dist_lengths*2,x_bins_total,x_values_total)
+#
+f.write('c \n')
+f.write('c Z\n')
+f.write('c \n')
+make_dependent_distribution(f,5,indexing_start+dist_lengths*3,y_bins_total,y_values_total)
 #
 f.write('c \n')
 f.close()
