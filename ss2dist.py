@@ -1,3 +1,4 @@
+#! /usr/local/bin/python -W ignore
 #! /home/l_bergmann/anaconda/bin/python -W ignore
 #
 # ss2dist, the MCNP surface source to histogram distribution maker
@@ -12,9 +13,9 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.colors as colors
 import matplotlib.cm as cmx
 from matplotlib import gridspec
-from MCNPtools.to_energy import to_energy
-from MCNPtools.to_temperature import to_temperature
-from MCNPtools.to_wavelength import to_wavelength
+from MCNPtools import to_energy
+from MCNPtools import to_temperature
+from MCNPtools import to_wavelength
 from scipy.integrate import quad
 
 class SourceSurf(object):
@@ -1665,24 +1666,50 @@ if typeflag:
 		# spectrum plot
 		spec_res=256.
 		surface_area=(x_bins[-1]-x_bins[0])*(y_bins[-1]-y_bins[0])
-	elif this_sc == 19990:
+	elif this_sc == 19990 or this_sc == 19992 or this_sc == 19994 or this_sc == 19996 or this_sc == 19998 or this_sc == 20000:
 		#  bin parameters
 		#expon = numpy.linspace(-11,3,1025)
 		#E_bins   =   numpy.power(10.0,expon) 
 		#E_bins   = numpy.array([1e-12,1e-6,10,600])  # 5e-9 = 4 A, 9.09e-9 = 3A, 1e-6 = 0.3 A
 		E_bins   = numpy.array([1e-11,1e-6,1,600])
-		#x_bins   = numpy.linspace(-26,26,14)
-		x_bins   = numpy.linspace(-4,4,17)
-		#y_bins   = numpy.linspace(-10,10,6)
-		y_bins   = numpy.linspace(-7,7,29)
-		#diff     = y_bins[1]-y_bins[0]
-		#y_bins   = numpy.insert(y_bins,0,y_bins[0] -diff)
-		#y_bins   = numpy.append(y_bins,  y_bins[-1]+diff)
-		#theta_bins = numpy.array([0,20.0])*numpy.pi/180.0   # 90 included as sanity check, ss should only write tracks in normal dir
-		#theta_bins  = make_equi_str(5*numpy.pi/180.0,16)
-		theta_bins = numpy.linspace(0.0,10.0,21)*numpy.pi/180.0
-		#theta_bins = numpy.array([0.0,2.0,90])*numpy.pi/180.0
+		#  bin parameters
+		spec_res = 256.
+		space_res = 0.25
+		E_bins = numpy.array([1e-11,1e-6,1,600])
 		phi_bins = numpy.linspace(0,2*numpy.pi,2) 
+		theta_bins = numpy.hstack((numpy.linspace(0.0,10.0,21),numpy.array([90.0])))*numpy.pi/180.0
+		#  surface plane parameters
+		if this_sc == 19990:
+			x_bins   = numpy.linspace(-3.5,3.5,7.0/space_res+1)
+			y_bins   = numpy.linspace(-7,7,14.0/space_res+1)
+			surface_plane   = numpy.array([  0.998629534755, 0.0523359562429, 0.0, 158.5997874 ])   # plane, GLOBAL coordinates
+			surface_center  = numpy.array([  160.376838,  -29.755 ,    0. ])
+		elif this_sc == 19992:
+			x_bins   = numpy.linspace(-1.75,1.75,3.5/space_res+1)
+			y_bins   = numpy.linspace(-7,7,14.0/space_res+1)
+			surface_plane   = numpy.array([  0.999848 ,0.0174524, 0.0 ,159.9553026 ])   # plane, GLOBAL coordinates
+			surface_center  = numpy.array([  160.59019726198382,  -34.98 ,    0. ])
+		elif this_sc == 19994:
+			x_bins   = numpy.linspace(-2.4,2.4,4.8/space_res+1)
+			y_bins   = numpy.linspace(-7,7,14.0/space_res+1)
+			surface_plane   = numpy.array([  0.999994, 0.00349065, 0.0, 160.4743853 ])   # plane, GLOBAL coordinates
+			surface_center  = numpy.array([  160.61169375916255,  -39.06 ,    0. ])
+		elif this_sc == 19996:
+			x_bins   = numpy.linspace(-2.1,2.1,4.2/space_res+1)
+			y_bins   = numpy.linspace(-7,7,14.0/space_res+1)
+			surface_plane   = numpy.array([  0.992546, -0.121869, 0.0, 165.1411407 ])   # plane, GLOBAL coordinates
+			surface_center  = numpy.array([  159.71600513729338,  -54.285 ,    0. ])
+		elif this_sc == 19998:
+			x_bins   = numpy.linspace(-1.2,1.2,2.4/space_res+1)
+			y_bins   = numpy.linspace(-7,7,14.0/space_res+1)
+			surface_plane   = numpy.array([  0.990748, -0.135716, 0.0, 165.634987 ])   # plane, GLOBAL coordinates
+			surface_center  = numpy.array([  159.30383895803978,  -57.51,    0. ])
+		elif this_sc == 20000:
+			x_bins   = numpy.linspace(-3.1,3.1,6.1/space_res+1)
+			y_bins   = numpy.linspace(-7,7,14.0/space_res+1)
+			surface_plane   = numpy.array([  0.987688, -0.156434, 0.0, 166.3649131 ])   # plane, GLOBAL coordinates
+			surface_center  = numpy.array([  158.66485262552547,  -61.71,    0. ])
+		#
 		dist     = numpy.zeros((  len(E_bins)-1 , len(theta_bins)-1 , len(phi_bins)-1 , len(y_bins)-1 , len(x_bins)-1 ),dtype=numpy.float64)
 		#  surface plane parameters
 		surface_plane   = numpy.array([  .99862953, 0.052335956, 0.0, 158.59979 ])   # plane, GLOBAL coordinates
@@ -2380,7 +2407,7 @@ ax2.grid()
 #ax2.set_ylim(ax1.get_ylim())
 
 
-pylab.show()
+plt.show()
 
 #
 #  make total spatial plot

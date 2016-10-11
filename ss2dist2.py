@@ -1,3 +1,4 @@
+#! /usr/local/bin/python -W ignore
 #! /home/l_bergmann/anaconda/bin/python -W ignore
 #
 # ss2dist, the MCNP surface source to histogram distribution maker
@@ -12,9 +13,9 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.colors as colors
 import matplotlib.cm as cmx
 from matplotlib import gridspec
-from MCNPtools.to_energy import to_energy
-from MCNPtools.to_temperature import to_temperature
-from MCNPtools.to_wavelength import to_wavelength
+from MCNPtools import to_energy
+from MCNPtools import to_temperature
+from MCNPtools import to_wavelength
 from scipy.integrate import quad
 
 class SourceSurf(object):
@@ -1656,21 +1657,49 @@ if typeflag:
 		# spectrum plot
 		spec_res=256.
 		surface_area=(x_bins[-1]-x_bins[0])*(y_bins[-1]-y_bins[0])
-	elif this_sc == 19990:
+	elif this_sc == 19990 or this_sc == 19992 or this_sc == 19994 or this_sc == 19996 or this_sc == 19998 or this_sc == 20000:
 		#  bin parameters
 		spec_res = 256.
+		space_res = 0.25
 		E_bins   = numpy.power(10.0,numpy.linspace( -11, numpy.log10(600), spec_res+1))
-		x_bins   = numpy.linspace(-3.5,3.5,2)
-		y_bins   = numpy.linspace(-7,7,2)
 		phi_bins = numpy.linspace(0,2*numpy.pi,2) 
 		theta_bins = numpy.hstack((numpy.linspace(0.0,10.0,21),numpy.array([90.0])))*numpy.pi/180.0
-		cosine_bins = numpy.cos(theta_bins)[::-1]
+		cosine_bins = numpy.cos(theta_bins)
 		dist     = []
 		#  surface plane parameters
-		surface_plane   = numpy.array([  .99862953, 0.052335956, 0.0, 158.59979 ])   # plane, GLOBAL coordinates
-		surface_center  = numpy.array([  160.376838,  -29.755 ,    0. ])
-		#surface_center  = numpy.array([  128.059972,  -42.52274 ,    0.      ])
-		#surface_center  = numpy.array([  127.9553,  -44.52,  0  ])   # global again
+		if this_sc == 19990:
+			x_bins   = numpy.linspace(-3.5,3.5,7.0/space_res+1)
+			y_bins   = numpy.linspace(-7,7,14.0/space_res+1)
+			surface_plane   = numpy.array([  0.998629534755, 0.0523359562429, 0.0, 158.5997874 ])   # plane, GLOBAL coordinates
+			surface_center  = numpy.array([  160.376838,  -29.755 ,    0. ])
+		elif this_sc == 19992:
+			x_bins   = numpy.linspace(-1.75,1.75,3.5/space_res+1)
+			y_bins   = numpy.linspace(-7,7,14.0/space_res+1)
+			surface_plane   = numpy.array([  0.999848 ,0.0174524, 0.0 ,159.9553026 ])   # plane, GLOBAL coordinates
+			surface_center  = numpy.array([  160.59019726198382,  -34.98 ,    0. ])
+		elif this_sc == 19994:
+			x_bins   = numpy.linspace(-2.4,2.4,4.8/space_res+1)
+			y_bins   = numpy.linspace(-7,7,14.0/space_res+1)
+			surface_plane   = numpy.array([  0.999994, 0.00349065, 0.0, 160.4743853 ])   # plane, GLOBAL coordinates
+			surface_center  = numpy.array([  160.61169375916255,  -39.06 ,    0. ])
+		elif this_sc == 19996:
+			x_bins   = numpy.linspace(-2.1,2.1,4.2/space_res+1)
+			y_bins   = numpy.linspace(-7,7,14.0/space_res+1)
+			surface_plane   = numpy.array([  0.992546, -0.121869, 0.0, 165.1411407 ])   # plane, GLOBAL coordinates
+			surface_center  = numpy.array([  159.71600513729338,  -54.285 ,    0. ])
+		elif this_sc == 19998:
+			x_bins   = numpy.linspace(-1.2,1.2,2.4/space_res+1)
+			y_bins   = numpy.linspace(-7,7,14.0/space_res+1)
+			surface_plane   = numpy.array([  0.990748, -0.135716, 0.0, 165.634987 ])   # plane, GLOBAL coordinates
+			surface_center  = numpy.array([  159.30383895803978,  -57.51,    0. ])
+		elif this_sc == 20000:
+			x_bins   = numpy.linspace(-3.1,3.1,6.1/space_res+1)
+			y_bins   = numpy.linspace(-7,7,14.0/space_res+1)
+			surface_plane   = numpy.array([  0.987688, -0.156434, 0.0, 166.3649131 ])   # plane, GLOBAL coordinates
+			surface_center  = numpy.array([  158.66485262552547,  -61.71,    0. ])
+		#
+		#
+		#
 		surface_normal  = numpy.array([surface_plane[0],surface_plane[1],surface_plane[2]]) 
 		surface_normal_rot = surface_normal 
 		surface_vec1    = numpy.array([-surface_plane[1],surface_plane[0] ,  0.0])
@@ -1681,7 +1710,6 @@ if typeflag:
 		surface_vec1_rot    = rotate_xy(surface_vec1,  xy_rotation_degrees) 
 		surface_vec2_rot    = rotate_xy(surface_vec2,  xy_rotation_degrees) 
 		# spectrum plot
-		spec_res=256.
 		surface_area=(x_bins[-1]-x_bins[0])*(y_bins[-1]-y_bins[0])
 else:
 	dist            	= d['dist']           
@@ -1860,10 +1888,15 @@ if typeflag:
 	wgt_avg = 0.5
 	count =1.0
 
-	for i in range(0,(len(E_bins)-1)):
+	#for i in range(0,(len(E_bins)-1)):
+	#	dist.append([0.0,histogram(x_bins),
+	#		             histogram(y_bins),
+	#		             histogram(cosine_bins)])
+
+	for i in range(0,(len(cosine_bins)-1)):
 		dist.append([0.0,histogram(x_bins),
-			             histogram(y_bins),
-			             histogram(cosine_bins)])
+		                 histogram(y_bins),
+		                 histogram(E_bins)])
 
 	if printflag:
 		print "\n============================\n"
@@ -1957,15 +1990,17 @@ if typeflag:
 				phi_dex=sys.maxint
 				
 			### increment array
-			if (E_dex < len(E_bins)-1) and (y_dex < len(y_bins)-1) and (x_dex < len(x_bins)-1 and this_wgt <= max_wgt) :
+			if (E_dex < len(E_bins)-1) and (y_dex < len(y_bins)-1) and (x_dex < len(x_bins)-1) and (theta_dex < len(theta_bins)-1) and (this_wgt <= max_wgt) :
 				# total prob
-				dist[E_dex][0] = dist[E_dex][0] + this_wgt
+				dist[theta_dex][0] = dist[theta_dex][0] + this_wgt
 				# add to x histogram
-				dist[E_dex][1].add(this_pos[0],this_wgt)
+				dist[theta_dex][1].add(this_pos[0],this_wgt)
 				# add to y histogram
-				dist[E_dex][2].add(this_pos[1],this_wgt)
+				dist[theta_dex][2].add(this_pos[1],this_wgt)
 				# add to angle histogram
-				dist[E_dex][3].add(numpy.cos(this_theta),this_wgt)
+				#dist[E_dex][3].add(numpy.cos(this_theta),this_wgt)
+				# add to energy histogram
+				dist[theta_dex][3].add(this_E,this_wgt)
 			else:
 				if (E_dex >= len(E_bins)-1 and printflag and errorflag): 
 					print "E = %6.4E index %i is outside bin boundaries" % (this_E,E_dex)
@@ -1983,7 +2018,7 @@ if typeflag:
 					print "wgt = %6.4E is greater than maximum specified weight %6.4E" % (this_wgt,max_wgt)
 	print "max weight",wgt_avg
 	# update the histograms to calculate error, must be done before nps division!
-	for i in range(0,(len(E_bins)-1)):
+	for i in range(0,(len(cosine_bins)-1)):
 		dist[i][1].update()
 		dist[i][2].update()
 		dist[i][3].update()
@@ -1993,7 +2028,7 @@ if typeflag:
 	total_weight = 0.0
 	total_tracks = 0
 	# divide by nps
-	for i in range(0,(len(E_bins)-1)):
+	for i in range(0,(len(cosine_bins)-1)):
 		total_tracks = total_tracks + numpy.sum(dist[i][1].counts)
 		total_weight = total_weight + numpy.sum(dist[i][1].values)
 		dist[i][0]        = dist[i][0]        / surface_nps
@@ -2012,7 +2047,7 @@ if typeflag:
 	if printflag:
 		print "\n============================\n"
 		print "writing binned array to file 'dist'... "
-	f = open('dist','wf')
+	f = open('%5d.dist'%this_sc,'wf')
 	d = {}
 	d['dist']=dist
 	d['E_bins']=E_bins
@@ -2496,11 +2531,11 @@ offset_factor=-1e-6
 
 # figure out angular probabilities
 weight_totals=[]
-for k in range(0,len(E_bins)-1):
+for k in range(0,len(cosine_bins)-1):
     weight_totals.append(numpy.sum(dist[k][0]))
 probs = numpy.array(weight_totals)/numpy.sum(weight_totals)
 # files
-name='dist_data.sdef'
+name='dist_data_%5d.sdef'%this_sc
 print "\nWriting MCNP SDEF to '"+name+"'..."
 if sphere:
 	pass
@@ -2517,11 +2552,11 @@ f.write('c        sur=%5d\n'%this_sc)
 f.write('        axs=0 0 1\n')
 f.write('        vec=1 0 0\n')
 f.write('        tr=999\n')
-f.write('        erg=d1\n')
+f.write('        dir=d1\n')
+f.write('        erg=fdir=d2\n')
 f.write('        x=0.0\n')
-f.write('        y=ferg=d2\n')
-f.write('        z=ferg=d3\n')
-f.write('        dir=ferg=d4\n')
+f.write('        y=fdir=d3\n')
+f.write('        z=fdir=d4\n')
 f.write('        wgt=%10.8E\n'%numpy.sum(weight_totals))
 f.write('c \n')
 f.write('c TRANSFORM\n')
@@ -2531,19 +2566,22 @@ f.write('        % 6.7E  % 6.7E  % 6.7E\n'%(surface_rotation_xy,90-surface_rotat
 f.write('        % 6.7E  % 6.7E  % 6.7E\n'%(90+surface_rotation_xy,surface_rotation_xy,90))
 f.write('        % 6.7E  % 6.7E  % 6.7E\n'%(90,90,0))
 # write dist cards
+#values=[]
+#for i in range(0,(len(E_bins)-1)):
+#    values.append(dist[i][0])
 values=[]
-for i in range(0,(len(E_bins)-1)):
-	values.append(dist[i][0])
+for i in range(0,(len(cosine_bins)-1)):
+    values.append(dist[i][0])
 f.write('c \n')
-f.write('c ENERGY DISTRIBUTION\n')
+f.write('c ANGULAR DISTRIBUTION\n')
 f.write('c \n')
-make_independent_distribution(f,1,E_bins,values)
+make_independent_distribution(f,1,cosine_bins[::-1],values[::-1])
 indexing_start = 100
 additive = 0.0
 #
 bins=[]
 values=[]
-for i in range(0,(len(E_bins)-1)):
+for i in range(0,(len(cosine_bins)-1)):
 	if dist[i][0] > 0.0:
 		additive = 0.0
 	else:
@@ -2553,11 +2591,11 @@ for i in range(0,(len(E_bins)-1)):
 f.write('c \n')
 f.write('c Y\n')
 f.write('c \n')
-make_dependent_distribution(f,2,indexing_start+spec_res*0,bins,values)
+make_dependent_distribution(f,2,indexing_start+(len(cosine_bins)-1)*0,bins[::-1],values[::-1])
 #
 bins=[]
 values=[]
-for i in range(0,(len(E_bins)-1)):
+for i in range(0,(len(cosine_bins)-1)):
 	if dist[i][0] > 0.0:
 		additive = 0.0
 	else:
@@ -2567,12 +2605,12 @@ for i in range(0,(len(E_bins)-1)):
 f.write('c \n')
 f.write('c Z\n')
 f.write('c \n')
-make_dependent_distribution(f,3,indexing_start+spec_res*1,bins,values)
+make_dependent_distribution(f,3,indexing_start+(len(cosine_bins)-1)*1,bins[::-1],values[::-1])
 #
 # write angular cards
 bins=[]
 values=[]
-for i in range(0,(len(E_bins)-1)):
+for i in range(0,(len(cosine_bins)-1)):
 	if dist[i][0] > 0.0:
 		additive = 0.0
 	else:
@@ -2580,9 +2618,9 @@ for i in range(0,(len(E_bins)-1)):
 	bins.append(  dist[i][3].bins)
 	values.append(dist[i][3].values+additive)
 f.write('c \n')
-f.write('c ANGULAR DISTRIBUTION\n')
+f.write('c ENERGY DISTRIBUTIONS\n')
 f.write('c \n')
-make_dependent_distribution(f,4,indexing_start+spec_res*2,bins,values)
+make_dependent_distribution(f,4,indexing_start+(len(cosine_bins)-1)*2,bins[::-1],values[::-1])
 #
 f.write('c \n')
 f.close()
