@@ -607,10 +607,21 @@ ws20.finalize()
 
 
 
-
-
-
-
+#
+#  E24 Steel, 0.05% Co, >99% Fe+C
+#
+E24 = calculate_materials.material('E24-insert',7.85   )
+E24.add_element_mass('Fe'  ,  0.990          )
+E24.add_element_mass('C '  ,  0.0044         )
+E24.add_element_mass('Co'  ,  0.0005         )
+E24.add_element_mass('Si'  ,  1.63200000e-04 )
+E24.add_element_mass('Mn'  ,  7.34400000e-04 )
+E24.add_element_mass('S '  ,  6.52800000e-05 )
+E24.add_element_mass('P '  ,  5.71200000e-05 )
+E24.add_element_mass('Cr'  ,  1.63200000e-03 )
+E24.add_element_mass('Mo'  ,  3.26400000e-04 )
+E24.add_element_mass('Ni'  ,  2.12160000e-03 )
+E24.finalize()
 
 
 
