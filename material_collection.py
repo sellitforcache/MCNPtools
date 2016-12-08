@@ -69,37 +69,37 @@ lead.finalize()
 #
 #  pure copper
 #
-lead = calculate_materials.material('Cu',8.96)
-lead.add_element_atom( 'Cu'  , 1.00)
-lead.finalize()
+copper = calculate_materials.material('Cu',8.96)
+copper.add_element_atom( 'Cu'  , 1.00)
+copper.finalize()
 
 #
 #  pure iron
 #
-lead = calculate_materials.material('Fe', 7.874)
-lead.add_element_atom( 'Fe'  , 1.00)
-lead.finalize()
+iron = calculate_materials.material('Fe', 7.874)
+iron.add_element_atom( 'Fe'  , 1.00)
+iron.finalize()
 
 #
 #  Neodymium permanent magnets
 #
-lead = calculate_materials.material('NeoMag', 7.4)
-lead.add_element_atom( 'Nd'  ,  2.00)
-lead.add_element_atom( 'Fe'  , 14.00)
-lead.add_element_atom( 'B'   ,  1.00)
-lead.finalize()
+neomag = calculate_materials.material('NeoMag', 7.4)
+neomag.add_element_atom( 'Nd'  ,  2.00)
+neomag.add_element_atom( 'Fe'  , 14.00)
+neomag.add_element_atom( 'B'   ,  1.00)
+neomag.finalize()
 
 #
 #  zircaloy-2
 #
-lead = calculate_materials.material('Zircaloy-II',11.32)
-lead.add_element_mass( 'Zr',980700.0)
-lead.add_element_mass( 'Sn', 14600.0)
-lead.add_element_mass( 'Fe',  1500.0)
-lead.add_element_mass( 'Cr',  2500.0)
-lead.add_element_mass( 'Ni',   500.0)
-lead.add_element_mass( 'Hf',   200.0)
-lead.finalize()
+zircII = calculate_materials.material('Zircaloy-II',11.32)
+zircII.add_element_mass( 'Zr',980700.0)
+zircII.add_element_mass( 'Sn', 14600.0)
+zircII.add_element_mass( 'Fe',  1500.0)
+zircII.add_element_mass( 'Cr',  2500.0)
+zircII.add_element_mass( 'Ni',   500.0)
+zircII.add_element_mass( 'Hf',   200.0)
+zircII.finalize()
 
 #
 # T91 steel
@@ -629,22 +629,70 @@ E24.finalize()
 
 
 
+#
+#  GRANITE, from PNNL
+#
+granite = calculate_materials.material('granite', 2.69  )
+granite.add_element_mass( 'O ', 0.484170)
+granite.add_element_mass( 'Na', 0.027328)
+granite.add_element_mass( 'Mg', 0.004274)
+granite.add_element_mass( 'Al', 0.076188)
+granite.add_element_mass( 'Si', 0.336169)
+granite.add_element_mass( 'K ', 0.034144)
+granite.add_element_mass( 'Ca', 0.012985)
+granite.add_element_mass( 'Ti', 0.001795)
+granite.add_element_mass( 'Mn', 0.000387)
+granite.add_element_mass( 'Fe', 0.021555)
+granite.add_element_mass( 'Pb', 0.001004)
+granite.finalize()
 
 
 
+#
+#  boric acid 
+#
+boric_acid = calculate_materials.material('boric_acid', 1.435 )
+boric_acid.add_element_atom( 'O', 3.0)
+boric_acid.add_element_atom( 'H', 3.0)
+boric_acid.add_element_atom( 'B', 1.0)
+boric_acid.finalize()
 
 
 
+#
+#  borax
+#
+borax = calculate_materials.material('borax', 1.73 )
+borax.add_element_atom( 'O ', 17.)
+borax.add_element_atom( 'H ', 20.)
+borax.add_element_atom( 'B ', 4.)
+borax.add_element_atom( 'Na', 2.)
+borax.finalize()
 
 
 
+#
+#  light water 
+#
+light_water = calculate_materials.material('light_water', 1.0  )
+light_water.add_element_atom( 'O', 1.0)
+light_water.add_element_atom( 'H', 2.0)
+light_water.finalize()
 
+#
+#  5% boron polyethylene 
+#
+bpe5 = calculate_materials.material('borated polyethylene 5%', 1.07  )
+bpe5.add_element_mass( 'H', 13.57143)
+bpe5.add_element_mass( 'C', 81.42857)
+bpe5.add_element_mass( 'B',  5.00000)
+bpe5.finalize()
 
-
-
-
-
-
-
-
-
+#
+#  30% boron polyethylene 
+#
+bpe30 = calculate_materials.material('borated polyethylene 30%', 1.19  )
+bpe30.add_element_mass( 'H', 10.0)
+bpe30.add_element_mass( 'C', 60.0)
+bpe30.add_element_mass( 'B', 30.0)
+bpe30.finalize()

@@ -209,6 +209,12 @@ r16.finalize()
 r16.print_material_card()
 
 
+borated_water=calculate_materials.rod('borated_water')
+borated_water.add_material_vol('light_water', 3000.00)
+borated_water.add_material_vol('borax',        173.41)
+borated_water.add_material_vol('boric_acid',   139.38)
+borated_water.finalize()
+borated_water.print_material_card()
 
 
 
