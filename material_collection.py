@@ -696,3 +696,15 @@ bpe30.add_element_mass( 'H', 10.0)
 bpe30.add_element_mass( 'C', 60.0)
 bpe30.add_element_mass( 'B', 30.0)
 bpe30.finalize()
+
+
+#
+#  SIEMENS composition concrete
+#
+concrete_seimens = calculate_materials.material('concrete, SIEMENS', 2.3  )
+concrete_seimens.add_element_mass( 'H'  ,  3.3E-3   )
+concrete_seimens.add_element_mass( 'O'  ,  5.597E-1 )
+concrete_seimens.add_element_mass( 'Al' ,  4.86E-2  )
+concrete_seimens.add_element_mass( 'Si' ,  1.942E-1 )
+concrete_seimens.add_element_mass( 'Ca' ,  1.942E-1 )
+concrete_seimens.finalize()

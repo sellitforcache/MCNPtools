@@ -216,7 +216,11 @@ borated_water.add_material_vol('boric_acid',   139.38)
 borated_water.finalize()
 borated_water.print_material_card()
 
-
+borated_concrete_SIEMENS=calculate_materials.rod('borated concrete, SIEMENS, 1wt% B4C')
+borated_concrete_SIEMENS.add_material_vol('concrete, SIEMENS', 100.0)
+borated_concrete_SIEMENS.add_material_vol('B4C',                1.0)
+borated_concrete_SIEMENS.finalize()
+borated_concrete_SIEMENS.print_material_card()
 
 #rt=calculate_materials.rod('Test Rod 1')
 #rt.add_material_vol('SS316',      1.0)
