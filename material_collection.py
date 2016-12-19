@@ -708,3 +708,27 @@ concrete_seimens.add_element_mass( 'Al' ,  4.86E-2  )
 concrete_seimens.add_element_mass( 'Si' ,  1.942E-1 )
 concrete_seimens.add_element_mass( 'Ca' ,  1.942E-1 )
 concrete_seimens.finalize()
+
+
+
+#
+#
+# gravel, rock average of 5 types, PNNL
+#
+#
+gravel = calculate_materials.material('gravel', 2.662  )
+gravel.add_element_mass ('H '  , 0.001657)
+gravel.add_element_mass ('C '  , 0.026906)
+gravel.add_element_mass ('O '  , 0.488149)
+gravel.add_element_mass ('Na'  , 0.012403)
+gravel.add_element_mass ('Mg'  , 0.023146)
+gravel.add_element_mass ('Al'  , 0.054264)
+gravel.add_element_mass ('Si'  , 0.246249)
+gravel.add_element_mass ('S '  , 0.000577)
+gravel.add_element_mass ('K '  , 0.018147)
+gravel.add_element_mass ('Ca'  , 0.089863)
+gravel.add_element_mass ('Ti'  , 0.003621)
+gravel.add_element_mass ('Mn'  , 0.000386)
+gravel.add_element_mass ('Fe'  , 0.033377)
+gravel.add_element_mass ('Pb'  , 0.001255)
+gravel.finalize()

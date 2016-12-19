@@ -25,9 +25,12 @@ class mctal:
 		import MCNPtools.tally
 		import re, numpy
 
-		def read_array(lines,obj,n,mode='float'):
+		meshtal_flag = False
+
+		def read_array(lines,obj,n,mode='float',limit=1e99):
 			small=re.compile('([0-9].[0-9]+)([+-]+[0-9]+)')
-			while len(lines[n])>0 and lines[n][0]==' ':
+			n_start=n
+			while len(lines[n])>0 and lines[n][0]==' ' and (n-n_start)<limit:
 				for m in lines[n].split():
 					if mode == 'int':
 						obj.append(int(m))
@@ -92,31 +95,45 @@ class mctal:
 					n = n+1
 				else:
 					break
-			# read the object numbers (surfaces, cells)
-			self.tallies[k].object_bins 			= int(lines[n].split()[1])
+			# read the object numbers (surfaces, cells), keep all values so can decide what to do with them
+			t1 = lines[n].split()
+			self.tallies[k].object_bins 			= int(t1[1])
 			n = n+1
 			if (self.tallies[k].name % 10) == 5:   # point detector objects are not listed, so skip
 				n = n
 				self.tallies[k].objects = range(0,self.tallies[k].object_bins)
 			elif len(lines[n-1].split())>2:
-				if self.verbose:
-					print "...... rejected.  Multiple entries on object line assumed to indicate mesh tally."
-				else:
-					print "Tally %d rejected.  Multiple entries on object line assumed to indicate mesh tally."%k
-				self.tallies[k].totalvsdirect_bins	= 0
-				self.tallies[k].user_bins			= 0
-				self.tallies[k].segment_bins		= 0
-				self.tallies[k].multiplier_bins		= 0
-				self.tallies[k].cosine_bins			= 0
-				self.tallies[k].energy_bins			= 0
-				self.tallies[k].time_bins			= 0
-				## find the start of the next tally (if any)
-				while len(lines[n])>0:
-					if lines[n].split()[0]=='tally':
-						break
+				if len(lines[n-1].split())!=6:
+					if self.verbose:
+						print "...... rejected.  number of object entries not consistent with a mesh tally."
 					else:
-						n=n+1
-				continue
+						print "Tally %d rejected.  Number of object entries not consistent with a mesh tally."%k
+					## find the start of the next tally (if any)
+					while len(lines[n])>0:
+						if lines[n].split()[0]=='tally':
+							break
+						else:
+							n=n+1
+					continue
+				else:
+					meshtal_flag = True
+					self.tallies[k].objects = [[],[],[],[]]
+					# read in binning parameters
+					self.tallies[k].object_bins = int(t1[1])
+					nbins_et	= int(t1[2])
+					nbins_x		= int(t1[3])
+					nbins_y		= int(t1[4])
+					nbins_z		= int(t1[5])
+					# read in binning data
+					if nbins_et>0:
+						n = read_array(lines,self.tallies[k].objects[0],n,mode='float',limit=(nbins_et/6+1))
+						self.tallies[k].energies = self.tallies[k].objects[0]
+					if nbins_x>0:
+						n = read_array(lines,self.tallies[k].objects[1],n,mode='float',limit=(nbins_x/6+1))
+					if nbins_y>0:
+						n = read_array(lines,self.tallies[k].objects[2],n,mode='float',limit=(nbins_y/6+1))
+					if nbins_z>0:
+						n = read_array(lines,self.tallies[k].objects[3],n,mode='float',limit=(nbins_z/6+1))
 			else:
 				n = read_array(lines,self.tallies[k].objects,n,mode='int')
 			# read single numbers bins
@@ -159,10 +176,13 @@ class mctal:
 			n = read_array(lines,self.tallies[k].vals,n)
 			self.tallies[k]._process_vals()  # parse tally data
 			#  read tfc data
-			for d in lines[n].split()[1:] :
-				self.tallies[k].tfc.append(int(d))
-			n = n+1
-			n = read_array(lines,self.tallies[k].tfc_data,n)
+			if meshtal_flag:
+				continue
+			else:
+				for d in lines[n].split()[1:] :
+					self.tallies[k].tfc.append(int(d))
+				n = n+1
+				n = read_array(lines,self.tallies[k].tfc_data,n)
 
 		if self.verbose:
 			print "... done."
