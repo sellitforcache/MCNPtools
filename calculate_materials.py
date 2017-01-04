@@ -464,7 +464,12 @@ class mixture(object):
 			if verbose: print "element object is in %s mode.  delete and start over."%self.mode
 		#
 		self.mode = mode
-		self.mixtures_list.append([mixture._mixtures[name],frac])
+		if mode == 'atom':
+			self.mixtures_list.append([mixture._mixtures[name],frac,0.,0.])
+		elif mode == 'mass':
+			self.mixtures_list.append([mixture._mixtures[name],0.,frac,0.])
+		elif mode == 'volume':
+			self.mixtures_list.append([mixture._mixtures[name],0.,0.,frac])
 		if verbose: print "added mixture %6d with amu %12.8f and %s fraction %15.8f into mixture %6d"%(name,_mixtures[name].avg_amu,self.mode,frac,self.name)
 
 	def delete(self):
@@ -484,13 +489,29 @@ class mixture(object):
 			if len(self.mixtures_list)==0:
 				print "no mixtures in list while in %s mode, aborting."%self.mode
 				return
+			#
+			# MIXTURES
+			#
 			# sum the fractions, renormalize
 			frac_total = 0.0
 			for i in range(0,len(self.mixtures_list)):
 				frac_total = frac_total + self.mixtures_list[i][1]
 			for i in range(0,len(self.mixtures_list)):
-				self.mixtures_list[i] = [self.mixtures_list[i][0] , self.mixtures_list[i][1] / frac_total]
-			# calculate the individual atom fractions from the mixtures
+				self.mixtures_list[i][1] = self.mixtures_list[i][1] / frac_total
+			# calculate the mass and volume fractions of the individual mixtures
+			mix_avg_amu = 0.0 
+			for i in range(0,len(self.mixtures_list)):
+				mix_avg_amu = mix_avg_amu + self.mixtures_list[i][0].avg_amu * self.mixtures_list[i][1]
+			# calculate the mixture mass factions
+			for i in range(0,len(self.mixtures_list)):
+				self.mixtures_list[i][2] = self.mixtures_list[i][0].avg_amu * self.mixtures_list[i][1] / mix_avg_amu
+			# calculate the mixture volume factions
+			for i in range(0,len(self.mixtures_list)):
+				self.mixtures_list[i][3] = 0.0
+			#
+			# SUMMED ISOTOPE LIST
+			#
+			# calculate the list of isotope atom fractions from the sum of the mixtures
 			for i in range(0,len(self.mixtures_list)):
 				for isotope in self.mixtures_list[i][0].atom_fractions.keys():
 					if isotope in self.atom_fractions.keys():
@@ -581,27 +602,29 @@ class mixture(object):
 		isotope_list_total = self.atom_fractions.keys()
 		isotope_list_total.sort()
 
-		if comment==False:
-			print "c"
-			print "c         %s"%self.name
-			print "c"
-			print "c         average amu     = %12.8f"%self.avg_amu
-			print "c         density         =  %11.8f"%self.mass_density
-			print "c"
+		print "c"
+		print "c         %s"%self.name
+		print "c"
+		print "c         average amu     = %12.8f"%self.avg_amu
+		print "c         density         =  %11.8f"%self.mass_density
 		if len(self.mixtures_list)>0:
 			print "c"
 			print "c         mixture     avg. amu     atom fraction    mass fraction    volume fraction"
 			print "c         --------    --------     -------------    -------------    ---------------"
 			for m in self.mixtures_list:
-				print "c  %15s    %8.4f     %10.8f       %10.8f         %10.8f"%(m[0].name,m[0].avg_amu,m[1],m[2],[3])
+				print "c  %15s    %8.4f     %10.8f       %10.8f       %10.8f"%(m[0].name,m[0].avg_amu,m[1],m[2],m[3])
 			print "c"
 			for m in self.mixtures_list:
-				m.print_material_card(comment=True)
+				m[0].print_material_card(comment=True)
 		print "c"
 		if comment:
 			for isotope in isotope_list_total:
 				print "c    %6d   %8.10E"%(isotope,self.atom_fractions[isotope])
 		else:
+			print "c"
+			print "c ISOTOPES FOR %s"%self.name
+			print "c"
+			print "mXXX"
 			for isotope in isotope_list_total:
 				print "     %6d   %8.10E"%(isotope,self.atom_fractions[isotope])
 		print "c"
