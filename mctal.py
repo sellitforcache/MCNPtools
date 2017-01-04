@@ -274,7 +274,7 @@ class mctal:
 
 
 
-	def plot(self,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,t_or_d=False,options=False,ylim=False):
+	def plot(self,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,t_or_d=False,options=False,ylim=False,renorm_to_sum=False):
 		### general plotting
 		import numpy, pylab
 		import matplotlib.pyplot as plt
@@ -333,7 +333,7 @@ class mctal:
 			if not mul:
 				mul = [0]
 			for t in tal:
-				self.tallies[t].plot(ax=ax,obj=obj,seg=seg,mul=mul,cos=cos,options=plot_options,prepend_label='{com:s}\n Tally {a:4d} :'.format(com=self.tallies[t].comment,a=t),ylim=ylim)
+				self.tallies[t].plot(ax=ax,obj=obj,seg=seg,mul=mul,cos=cos,options=plot_options,prepend_label='{com:s}\n Tally {a:4d} :'.format(com=self.tallies[t].comment,a=t),ylim=ylim,renorm_to_sum=renorm_to_sum)
 
 		### show
 		ax.set_title(self.title.strip())

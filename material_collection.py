@@ -674,9 +674,10 @@ borax.finalize()
 #
 #  light water 
 #
-light_water = calculate_materials.material('light_water', 1.0  )
-light_water.add_element_atom( 'O', 1.0)
-light_water.add_element_atom( 'H', 2.0)
+light_water = calculate_materials.mixture('light_water')
+light_water.add_mixture( 'O', 1.0, mode='atom')
+light_water.add_mixture( 'H', 2.0, mode='atom')
+light_water.mass_density=1.0
 light_water.finalize()
 
 #

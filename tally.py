@@ -447,7 +447,7 @@ class tally:
 		this_file.close()
 
 
-	def plot(self,all=False,ax=None,obj=[0],cos=[0],seg=[0],mul=[0],t_or_d=[0],color=None,options=[],prepend_label=False,ylim=False,xlim=False):
+	def plot(self,all=False,ax=None,obj=[0],cos=[0],seg=[0],mul=[0],t_or_d=[0],color=None,options=[],prepend_label=False,ylim=False,xlim=False,renorm_to_sum=False):
 		import numpy as np
 		import pylab as pl
 		import matplotlib.pyplot as plt
@@ -545,6 +545,8 @@ class tally:
 									print "renormalizing to mA invalid for ratios, ignoring"
 								else:
 									tally_norm = np.multiply(tally_norm,6.241e15)  # convert protons to milliAmpere*seconds
+							if renorm_to_sum:
+								tally_norm = tally_norm/np.sum(np.multiply(tally_norm,np.divide(widths,avg)))
 
 
 							if prepend_label:
