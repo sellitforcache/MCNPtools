@@ -447,6 +447,24 @@ class mixture(object):
 		self.mass_fractions		= {}
 		self.volume_fractions	= {}
 
+	def make_isotope_lists(self):
+		# SUMMED ISOTOPE LIST
+		#
+		# calculate the list of isotope atom fractions from the sum of the mixtures
+		for i in range(0,len(self.mixtures_list)):
+			for isotope in self.mixtures_list[i][0].atom_fractions.keys():
+				if isotope in self.atom_fractions.keys():
+					self.atom_fractions[isotope] = self.atom_fractions[isotope] + self.mixtures_list[i][0].atom_fractions[isotope] * self.mixtures_list[i][1]
+				else:
+					self.atom_fractions[isotope] =                                self.mixtures_list[i][0].atom_fractions[isotope] * self.mixtures_list[i][1]
+		# calculate averge amu from the atom fractions
+		self.avg_amu = 0.0 
+		for isotope in self.atom_fractions.keys():
+			self.avg_amu = self.avg_amu + amu[isotope] * self.atom_fractions[isotope]
+		# calculate the mass factions
+		for isotope in self.atom_fractions.keys():
+			self.mass_fractions[isotope] = amu[isotope] * self.atom_fractions[isotope] / self.avg_amu
+
 	def add_mixture(self,name,frac,mode='mass'):
 		if not isinstance(name,str):
 			print "first input (name) is not a string.  rejected."
@@ -498,63 +516,95 @@ class mixture(object):
 				frac_total = frac_total + self.mixtures_list[i][1]
 			for i in range(0,len(self.mixtures_list)):
 				self.mixtures_list[i][1] = self.mixtures_list[i][1] / frac_total
-			# calculate the mass and volume fractions of the individual mixtures
+			# calculate average amu from atom fractions
 			mix_avg_amu = 0.0 
 			for i in range(0,len(self.mixtures_list)):
 				mix_avg_amu = mix_avg_amu + self.mixtures_list[i][0].avg_amu * self.mixtures_list[i][1]
 			# calculate the mixture mass factions
 			for i in range(0,len(self.mixtures_list)):
 				self.mixtures_list[i][2] = self.mixtures_list[i][0].avg_amu * self.mixtures_list[i][1] / mix_avg_amu
+			# calculate the mixture volume, if the densities are conserved
+			mix_vol = 0.0
+			for i in range(0,len(self.mixtures_list)):
+				mix_vol = mix_vol + self.mixtures_list[i][2]/self.mixtures_list[i][0].mass_density
 			# calculate the mixture volume factions
 			for i in range(0,len(self.mixtures_list)):
-				self.mixtures_list[i][3] = 0.0
+				self.mixtures_list[i][3] = self.mixtures_list[i][2]/self.mixtures_list[i][0].mass_density / mix_vol
 			#
-			# SUMMED ISOTOPE LIST
-			#
-			# calculate the list of isotope atom fractions from the sum of the mixtures
-			for i in range(0,len(self.mixtures_list)):
-				for isotope in self.mixtures_list[i][0].atom_fractions.keys():
-					if isotope in self.atom_fractions.keys():
-						self.atom_fractions[isotope] = self.atom_fractions[isotope] + self.mixtures_list[i][0].atom_fractions[isotope] * self.mixtures_list[i][1]
-					else:
-						self.atom_fractions[isotope] =                                self.mixtures_list[i][0].atom_fractions[isotope] * self.mixtures_list[i][1]
-			# calculate averge amu from the atom fractions
-			self.avg_amu = 0.0 
-			for isotope in self.atom_fractions.keys():
-				self.avg_amu = self.avg_amu + amu[isotope] * self.atom_fractions[isotope]
-			# calculate the mass factions
-			for isotope in self.atom_fractions.keys():
-				self.mass_fractions[isotope] = amu[isotope] * self.atom_fractions[isotope] / self.avg_amu
+			self.make_isotope_lists()
 
-#		elif self.mode == 'mass':
-#			# check that there is a nonzero list of mixtures
-#			if len(self.mixtures_list)==0:
-#				if verbose: print "no mixtures in list while in %s mode, aborting."%self.mode
-#				return
-#			# sum the fractions, renormalize
-#			frac_total = 0.0
-#			for isotope in self.mass_fractions.keys():
-#				frac_total = frac_total + self.mass_fractions[isotope][1]
-#			for isotope in self.mass_fractions.keys():
-#				self.mass_fractions[isotope] = [self.mass_fractions[isotope][0] , self.mass_fractions[isotope][1] / frac_total]
-#			# calculate averge amu from mass fractions
-#			self.avg_amu = 0.0 
-#			for isotope in self.atom_fractions.keys():
-#				self.avg_amu = self.avg_amu + self.mass_fractions[isotope][1]/self.mass_fractions[isotope][0]
-#			self.avg_amu = 1.0 / self.avg_amu
-#			# calculate the atom factions
-#			for isotope in self.mass_fractions.keys():
-#				atom_frac = self.avg_amu * self.mass_fractions[isotope][1] / self.mass_fractions[isotope][0]
-#				self.atom_fractions[isotope] = [self.mass_fractions[isotope][0] , atom_frac]
-#
-#		elif self.mode == 'volume':
-#			# a density must NOT be set, since it will be overwritten, reject to avoid silent errors or unepected behavior
-#			# must check that every input mixture has densities set
-#			# check that there is a nonzero list of mixtures
-#			if len(self.mixtures_list)==0:
-#				if verbose: print "no mixtures in list while in %s mode, aborting."%self.mode
-#				return
-			
+		elif self.mode == 'mass':
+			# check that there is a mass density present (mass densities of input mixtures is not used)
+			if self.mass_density==0.0:
+				print "mass density needs to be input to finalize, aborting."
+				return
+			# check that there is a nonzero list of mixtures
+			if len(self.mixtures_list)==0:
+				if verbose: print "no mixtures in list while in %s mode, aborting."%self.mode
+				return
+			#
+			# MIXTURES
+			#
+			# sum the mass fractions, renormalize
+			frac_total = 0.0
+			for i in range(0,len(self.mixtures_list)):
+				frac_total = frac_total + self.mixtures_list[i][2]
+			for i in range(0,len(self.mixtures_list)):
+				self.mixtures_list[i][2] = self.mixtures_list[i][2] / frac_total
+			# calculate average amu from mass fractions
+			mix_avg_amu = 0.0 
+			for i in range(0,len(self.mixtures_list)):
+				mix_avg_amu = mix_avg_amu + self.mixtures_list[i][2] / self.mixtures_list[i][0].avg_amu
+			mix_avg_amu = 1.0 / mix_avg_amu
+			# calculate the mixture atom factions
+			for i in range(0,len(self.mixtures_list)):
+				self.mixtures_list[i][1] = mix_avg_amu * self.mixtures_list[i][2] / self.mixtures_list[i][0].avg_amu
+			# calculate the mixture volume, if the densities are conserved
+			mix_vol = 0.0
+			for i in range(0,len(self.mixtures_list)):
+				mix_vol = mix_vol + self.mixtures_list[i][2]/self.mixtures_list[i][0].mass_density
+			# calculate the mixture volume factions
+			for i in range(0,len(self.mixtures_list)):
+				self.mixtures_list[i][3] = self.mixtures_list[i][2]/self.mixtures_list[i][0].mass_density / mix_vol
+			#
+			self.make_isotope_lists()
+
+		elif self.mode == 'volume':
+			# a density must NOT be set, since it will be overwritten, reject to avoid silent errors or unepected behavior
+			# must check that every input mixture has densities set
+			# check that there is a nonzero list of mixtures
+			if len(self.mixtures_list)==0:
+				if verbose: print "no mixtures in list while in %s mode, aborting."%self.mode
+				return
+			# check that there is a nonzero list of mixtures
+			if len(self.mixtures_list)==0:
+				print "no mixtures in list while in %s mode, aborting."%self.mode
+				return
+			#
+			# MIXTURES
+			#
+			# sum the fractions, renormalize
+			frac_total = 0.0
+			for i in range(0,len(self.mixtures_list)):
+				frac_total = frac_total + self.mixtures_list[i][3]
+			for i in range(0,len(self.mixtures_list)):
+				self.mixtures_list[i][3] = self.mixtures_list[i][3] / frac_total
+			# calculate average density
+			self.mass_density = 0.0
+			for i in range(0,len(self.mixtures_list)):
+				self.mass_density = self.mass_density + self.mixtures_list[i][3] * self.mixtures_list[i][0].mass_density
+			# calculate the mixture mass factions
+			for i in range(0,len(self.mixtures_list)):
+				self.mixtures_list[i][2] = self.mixtures_list[i][3] * self.mixtures_list[i][0].mass_density / self.mass_density
+			# calculate average amu from mass fractions
+			mix_avg_amu = 0.0 
+			for i in range(0,len(self.mixtures_list)):
+				mix_avg_amu = mix_avg_amu + self.mixtures_list[i][2] / self.mixtures_list[i][0].avg_amu
+			mix_avg_amu = 1.0 / mix_avg_amu
+			# calculate the mixture atom factions
+			for i in range(0,len(self.mixtures_list)):
+				self.mixtures_list[i][1] = mix_avg_amu * self.mixtures_list[i][2] / self.mixtures_list[i][0].avg_amu
+			self.make_isotope_lists()
 
 		elif self.mode == 'none':
 			# check that there is a mass density present
@@ -578,13 +628,8 @@ class mixture(object):
 				frac_total = frac_total + self.atom_fractions[isotope]
 			for isotope in self.atom_fractions.keys():
 				self.atom_fractions[isotope] = self.atom_fractions[isotope] / frac_total
-			# calculate averge amu from the atom fractions
-			self.avg_amu = 0.0 
-			for isotope in self.atom_fractions.keys():
-				self.avg_amu = self.avg_amu + amu[isotope] * self.atom_fractions[isotope]
-			# calculate the mass factions
-			for isotope in self.atom_fractions.keys():
-				self.mass_fractions[isotope] = amu[isotope] * self.atom_fractions[isotope] / self.avg_amu
+			#
+			self.make_isotope_lists()
 
 		elif self.mode == 'finalized':
 			print "already finalized."
@@ -628,294 +673,3 @@ class mixture(object):
 			for isotope in isotope_list_total:
 				print "     %6d   %8.10E"%(isotope,self.atom_fractions[isotope])
 		print "c"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-##
-##  material class for a mixture
-##
-#class material(object):
-#
-#	_materials = {}
-#
-#	def __new__(cls,name,den):
-#		if not isinstance(name,str):
-#			print "first input is not a string.  rejected."
-#			return None
-#		if not isinstance(den,float):
-#			print "second input is not a float.  rejected."
-#			return None
-#		name = name.strip()
-#		if name in material._materials.keys():
-#			print "material %s already exists in the class list.  rejected."%name
-#			return None
-#		# else return a new instance
-#		return super(material,cls).__new__(cls)
-#
-#	def __init__(self,name,den):
-#		import copy
-#		self.name 			= copy.deepcopy(name.strip())
-#		self.n_elements		= 0
-#		self.density 		= copy.deepcopy(den)
-#		self.avg_amu 		= 0.0
-#		self.mode 			= 'none'
-#		self.atom_fractions	= {}
-#		self.mass_fractions	= {}
-#
-#	def add_element_atom(self,name,frac):
-#		if not isinstance(name,int):
-#			if isinstance(name,str):
-#				name = name.strip()
-#			if name in z_number:
-#				name = z_number[name]
-#			else:
-#				print "first input is not an int or in the element symbol dictionary.  rejected."
-#				return
-#		if not isinstance(frac,float):
-#			print "second input is not a float.  rejected."
-#			return
-#		if not name in element._elements.keys():
-#			print "element %d is not in the element class dictionary.  rejected."%name
-#			return
-#		if self.mode not in ['atom','none']:
-#			print "material object is in %s mode.   delete and start over in atom mode."%self.mode
-#			return
-#		self.mode = 'atom'
-#		self.atom_fractions[name]	= frac
-#		self.n_elements				= self.n_elements + 1
-#		if verbose: print "added element %6d with atom fraction %15.8f into material %s"%(name,frac,self.name)
-#
-#	def add_element_mass(self,name,frac):
-#		if not isinstance(name,int):
-#			if isinstance(name,str):
-#				name = name.strip()
-#			if name in z_number:
-#				name = z_number[name]
-#			else:
-#				print "first input is not an int or in the element symbol dictionary.  rejected."
-#				return
-#		if not isinstance(frac,float):
-#			print "second input is not a float.  rejected."
-#			return
-#		if not name in element._elements.keys():
-#			print "element %d is not in the element class dictionary.  rejected."%name
-#			return
-#		if self.mode not in ['mass','none']:
-#			print "material object is in %s mode.   delete and start over in mass mode."%self.mode
-#			return
-#		self.mode = 'mass'
-#		self.mass_fractions[name]	= frac
-#		self.n_elements				= self.n_elements + 1
-#		if verbose: print "added element %6d with mass fraction %15.8f into material %s"%(name,frac,self.name)
-#
-#	def delete(self):
-#		material._materials.pop(self.name, None)
-#		self.__init__(self.name)
-#		if verbose: print "removed material %s from the class dictionary and re-initialized all data.  the instance has not necessarily been deleted from the python namespace yet!"%self.name
-#
-#	def finalize(self):
-#		import numpy
-#		if self.mode == 'atom':
-#			# sum the fractions, renormalize
-#			frac_total = 0.0
-#			for e in self.atom_fractions.keys():
-#				frac_total = frac_total + self.atom_fractions[e]
-#			for e in self.atom_fractions.keys():
-#				self.atom_fractions[e] = self.atom_fractions[e] / frac_total
-#			# calculate averge amu from atom fractions
-#			self.avg_amu = 0.0 
-#			for e in self.atom_fractions.keys():
-#				self.avg_amu = self.avg_amu + self.atom_fractions[e]*element._elements[e].avg_amu
-#			# calculate the mass factions
-#			for e in self.atom_fractions.keys():
-#				self.mass_fractions[e] = self.atom_fractions[e]*element._elements[e].avg_amu / self.avg_amu
-#		elif self.mode == 'mass':
-#			# sum the fractions, renormalize
-#			frac_total = 0.0
-#			for e in self.mass_fractions.keys():
-#				frac_total = frac_total + self.mass_fractions[e]
-#			for e in self.mass_fractions.keys():
-#				self.mass_fractions[e] = self.mass_fractions[e] / frac_total
-#			# calculate averge amu from mass fractions
-#			self.avg_amu = 0.0 
-#			for e in self.mass_fractions.keys():
-#				self.avg_amu = self.avg_amu + self.mass_fractions[e]/element._elements[e].avg_amu
-#			self.avg_amu = 1.0 / self.avg_amu
-#			# calculate the atom factions
-#			for e in self.mass_fractions.keys():
-#				self.atom_fractions[e] = self.avg_amu * self.mass_fractions[e] / element._elements[e].avg_amu
-#		elif self.mode == 'finalized':
-#			print "already finalized."
-#			return
-#		else:
-#			print "uninitialized!  cannot finalize."
-#			return
-#
-#		if verbose: print "added material %s to the class dictionary."%self.name
-#		self.mode = 'finalized'
-#		material._materials[self.name] = self
-#
-#	def print_material_card(self):
-#
-#		atom_fractions_total = {}
-#
-#		# init
-#		for e in self.atom_fractions.keys():
-#				for i in element._elements[e].atom_fractions.keys():
-#					atom_fractions_total[i] = 0.0
-#		# set
-#		for e in self.atom_fractions.keys():
-#				for i in element._elements[e].atom_fractions.keys():
-#					atom_fractions_total[i] = atom_fractions_total[i] + self.atom_fractions[e]*element._elements[e].atom_fractions[i][1]
-#
-#		isotope_list_total = atom_fractions_total.keys()
-#		isotope_list_total.sort()
-#
-#		print "c"
-#		print "c         %s"%self.name
-#		print "c"
-#		print "c         element     avg. amu     atom fraction    mass fraction"
-#		print "c         --------    --------     -------------    -------------"
-#		for e in self.atom_fractions.keys():
-#			print "c  %15s    %8.4f     %10.8f       %10.8f"%(e,element._elements[e].avg_amu,self.atom_fractions[e],self.mass_fractions[e])
-#		print "c"
-#		print "c         average amu     = %12.8f"%self.avg_amu
-#		print "c         density         =  %11.8f"%self.density
-#		print "c"
-#		for i in isotope_list_total:
-#			print "     %6d   %8.10E"%(i,atom_fractions_total[i])
-#		print "c"
-#
-#
-#class mixture(object):
-#
-#	_mixture = {}
-#
-#	def __new__(cls,name):
-#		if not isinstance(name,str):
-#			print "first input is not a string.  rejected."
-#			return None
-#		name = name.strip()
-#		if name in mixture._mixtures.keys():
-#			print "mixture %s already exists in the class list.  rejected."%name
-#			return None
-#		# else return a new instance
-#		return super(mixture,cls).__new__(cls)
-#
-#	def __init__(self,name):
-#		import copy
-#		self.name 			= copy.deepcopy(name.strip())
-#		self.n_materials	= 0
-#		self.avg_den 		= 0.0
-#		self.avg_amu 		= 0.0
-#		self.mass_total		= 0.0
-#		self.mode 			= 'none'
-#		self.vol_fractions	= {}
-#		self.atom_fractions	= {}
-#		self.mass_fractions	= {}
-#
-#	def add_material_vol(self,name,frac):
-#		if not isinstance(name,str):
-#			print "first input is not an str.  rejected."
-#			return
-#		name = name.strip()
-#		if not isinstance(frac,float):
-#			print "second input is not a float.  rejected."
-#			return
-#		if not name in material._materials.keys():
-#			print "material %s is not in the material class dictionary.  rejected."%name
-#			return
-#		if self.mode not in ['volume','none']:
-#			print "material object is in %s mode.   delete and start over in atom mode."%self.mode
-#			return
-#		self.mode = 'volume'
-#		self.vol_fractions[name]	= frac
-#		self.n_materials			= self.n_materials + 1
-#		if verbose: print "added material %s with volume fraction %15.8f into mixture %s"%(name,frac,self.name)
-#
-#	def delete(self):
-#		mixture._mixtures.pop(self.name, None)
-#		self.__init__(self.name)
-#		if verbose: print "removed mixture %s from the class dictionary and re-initialized all data.  the instance has not necessarily been deleted from the python namespace yet!"%self.name
-#
-#	def finalize(self):
-#		import numpy
-#		if self.mode == 'volume':
-#			# sum the fractions, renormalize
-#			frac_total = 0.0
-#			for m in self.vol_fractions.keys():
-#				frac_total = frac_total + self.vol_fractions[m]
-#			for m in self.vol_fractions.keys():
-#				self.vol_fractions[m] = self.vol_fractions[m] / frac_total
-#			# calculate averge density from volume fractions
-#			self.avg_den = 0.0 
-#			for m in self.vol_fractions.keys():
-#				self.avg_den = self.avg_den + self.vol_fractions[m]*material._materials[m].density
-#			# calculate the mass factions
-#			for m in self.vol_fractions.keys():
-#				self.mass_fractions[m] = self.vol_fractions[m]*material._materials[m].density / self.avg_den
-#			# calculate averge amu from mass fractions
-#			self.avg_amu = 0.0 
-#			for m in self.mass_fractions.keys():
-#				self.avg_amu = self.avg_amu + self.mass_fractions[m]/material._materials[m].avg_amu
-#			self.avg_amu = 1.0 / self.avg_amu
-#			# calculate the atom factions
-#			for m in self.mass_fractions.keys():
-#				self.atom_fractions[m] = self.mass_fractions[m] * self.avg_amu / material._materials[m].avg_amu
-#		elif self.mode == 'finalized':
-#			print "already finalized."
-#			return
-#		else:
-#			print "uninitialized!  cannot finalize."
-#			return
-#
-#		if verbose: print "added mixture %s to the class dictionary."%self.name
-#		self.mode = 'finalized'
-#		mixture._mixtures[self.name] = self
-#
-#	def print_material_card(self):
-#
-#		atom_fractions_total = {}
-#
-#		# init
-#		for m in self.atom_fractions.keys():
-#			for e in material._materials[m].atom_fractions.keys():
-#				for i in element._elements[e].atom_fractions.keys():
-#					atom_fractions_total[i] = 0.0
-#		# set
-#		for m in self.atom_fractions.keys():
-#			for e in material._materials[m].atom_fractions.keys():
-#				for i in element._elements[e].atom_fractions.keys():
-#					atom_fractions_total[i] = atom_fractions_total[i] + self.atom_fractions[m]*material._materials[m].atom_fractions[e]*element._elements[e].atom_fractions[i][1]
-#
-#		isotope_list_total = atom_fractions_total.keys()
-#		isotope_list_total.sort()
-#
-#		print "c"
-#		print "c         %s"%self.name
-#		print "c"
-#		print "c         material    density    avg. amu     volume fraction    atom fraction    mass fraction"
-#		print "c         --------    -------    --------     ---------------    -------------    -------------"
-#		for m in self.atom_fractions.keys():
-#			print "c  %15s    %7.4f   %8.4f      %10.8f         %10.8f       %10.8f"%(m,material._materials[m].density,material._materials[m].avg_amu,self.vol_fractions[m],self.atom_fractions[m],self.mass_fractions[m])
-#		print "c"
-#		print "c         average amu     = %12.8f"%self.avg_amu
-#		print "c         average density =  %11.8f"%self.avg_den
-#		print "c"
-#		for i in isotope_list_total:
-#			print "     %6d   %8.10E"%(i,atom_fractions_total[i])
-#		print "c"
-#
