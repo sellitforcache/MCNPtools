@@ -1,6 +1,315 @@
+class mixture(object):
+
+	_mixtures = {}
+
+	def __new__(cls,name):
+		if not isinstance(name,int):
+			if isinstance(name,str):
+				name = name.strip()
+		else:
+			print "name must be a string.  rejected."
+			return None
+		# else return a new instance
+		return super(mixture,cls).__new__(cls)
+
+	def __init__(self,name):
+		import copy
+		if isinstance(name,str):
+			name = name.strip()
+			self.name		= copy.deepcopy(name)
+		else:
+			print "name must be a string.  rejected."
+			return None
+		self.mode				= 'none'
+		self.avg_amu			= 0.0
+		self.mass_density		= 0.0
+		self.mixtures_list		= []
+		self.atom_fractions		= {}
+		self.mass_fractions		= {}
+		self.volume_fractions	= {}
+
+	def make_isotope_lists_from_mixture_list(self):
+		# SUMMED ISOTOPE LIST
+		#
+		# calculate the list of isotope atom fractions from the sum of the mixtures
+		for i in range(0,len(self.mixtures_list)):
+			for isotope in self.mixtures_list[i][0].atom_fractions.keys():
+				if isotope in self.atom_fractions.keys():
+					self.atom_fractions[isotope] = self.atom_fractions[isotope] + self.mixtures_list[i][0].atom_fractions[isotope] * self.mixtures_list[i][1]
+				else:
+					self.atom_fractions[isotope] =                                self.mixtures_list[i][0].atom_fractions[isotope] * self.mixtures_list[i][1]
+		# calculate averge amu from the atom fractions
+		self.avg_amu = 0.0 
+		for isotope in self.atom_fractions.keys():
+			self.avg_amu = self.avg_amu + amu[isotope] * self.atom_fractions[isotope]
+		# calculate the mass factions
+		for isotope in self.atom_fractions.keys():
+			self.mass_fractions[isotope] = amu[isotope] * self.atom_fractions[isotope] / self.avg_amu
+
+	def add_mixture(self,name_in,frac,mode='mass'):
+		# strip off whitespace from name
+		name=name_in.strip()
+		#
+		if not isinstance(name,str):
+			print "first input (name) is not a string.  rejected."
+			return
+		if not name in mixture._mixtures.keys():
+			print "'"+name+"' not found in mixtures dictionary.  rejected."
+			return
+		if not isinstance(frac,float):
+			print "second input is not a float atomic fraction.  rejected."
+			return
+		if not isinstance(mode,str):
+			print "mode keyword input is not a string.  rejected."
+			return
+		if self.mode not in [mode,'none']:
+			if verbose: print "element object is in %s mode.  delete and start over."%self.mode
+		#
+		self.mode = mode
+		if mode == 'atom':
+			self.mixtures_list.append([mixture._mixtures[name],frac,0.,0.])
+		elif mode == 'mass':
+			self.mixtures_list.append([mixture._mixtures[name],0.,frac,0.])
+		elif mode == 'volume':
+			self.mixtures_list.append([mixture._mixtures[name],0.,0.,frac])
+		if verbose: print "added mixture '%s' with amu %12.8f and %s fraction %15.8f into mixture '%s'"%(name,mixture._mixtures[name].avg_amu,self.mode,frac,self.name)
+
+	def delete(self):
+		element._elements.pop(self.name, None)
+		self.__init__(self.name)
+		if verbose: print "removed element %s from the class dictionary and re-initialized all data.  the instance has not necessarily been deleted from the python namespace yet!"%self.name
+
+	def finalize(self):
+		import numpy
+
+		if self.mode == 'atom':
+			# check that there is a mass density present (mass densities of input mixtures is not used)
+			if self.mass_density==0.0:
+				print "mass density needs to be input to finalize, aborting."
+				return
+			# check that there is a nonzero list of mixtures
+			if len(self.mixtures_list)==0:
+				print "no mixtures in list while in %s mode, aborting."%self.mode
+				return
+			#
+			# MIXTURES
+			#
+			# sum the fractions, renormalize
+			frac_total = 0.0
+			for i in range(0,len(self.mixtures_list)):
+				frac_total = frac_total + self.mixtures_list[i][1]
+			for i in range(0,len(self.mixtures_list)):
+				self.mixtures_list[i][1] = self.mixtures_list[i][1] / frac_total
+			# calculate average amu from atom fractions
+			mix_avg_amu = 0.0 
+			for i in range(0,len(self.mixtures_list)):
+				mix_avg_amu = mix_avg_amu + self.mixtures_list[i][0].avg_amu * self.mixtures_list[i][1]
+			# calculate the mixture mass factions
+			for i in range(0,len(self.mixtures_list)):
+				self.mixtures_list[i][2] = self.mixtures_list[i][0].avg_amu * self.mixtures_list[i][1] / mix_avg_amu
+			# calculate the mixture volume, if the densities are conserved
+			mix_vol = 0.0
+			for i in range(0,len(self.mixtures_list)):
+				mix_vol = mix_vol + self.mixtures_list[i][2]/self.mixtures_list[i][0].mass_density
+			# calculate the mixture volume factions
+			for i in range(0,len(self.mixtures_list)):
+				self.mixtures_list[i][3] = self.mixtures_list[i][2]/self.mixtures_list[i][0].mass_density / mix_vol
+			# make full isotope list
+			self.make_isotope_lists_from_mixture_list()
+
+		elif self.mode == 'mass':
+			# check that there is a mass density present (mass densities of input mixtures is not used)
+			if self.mass_density==0.0:
+				print "mass density needs to be input to finalize, aborting."
+				return
+			# check that there is a nonzero list of mixtures
+			if len(self.mixtures_list)==0:
+				if verbose: print "no mixtures in list while in %s mode, aborting."%self.mode
+				return
+			#
+			# MIXTURES
+			#
+			# sum the mass fractions, renormalize
+			frac_total = 0.0
+			for i in range(0,len(self.mixtures_list)):
+				frac_total = frac_total + self.mixtures_list[i][2]
+			for i in range(0,len(self.mixtures_list)):
+				self.mixtures_list[i][2] = self.mixtures_list[i][2] / frac_total
+			# calculate average amu from mass fractions
+			mix_avg_amu = 0.0 
+			for i in range(0,len(self.mixtures_list)):
+				mix_avg_amu = mix_avg_amu + self.mixtures_list[i][2] / self.mixtures_list[i][0].avg_amu
+			mix_avg_amu = 1.0 / mix_avg_amu
+			# calculate the mixture atom factions
+			for i in range(0,len(self.mixtures_list)):
+				self.mixtures_list[i][1] = mix_avg_amu * self.mixtures_list[i][2] / self.mixtures_list[i][0].avg_amu
+			# calculate the mixture volume, if the densities are conserved
+			mix_vol = 0.0
+			for i in range(0,len(self.mixtures_list)):
+				mix_vol = mix_vol + self.mixtures_list[i][2]/self.mixtures_list[i][0].mass_density
+			# calculate the mixture volume factions
+			for i in range(0,len(self.mixtures_list)):
+				self.mixtures_list[i][3] = self.mixtures_list[i][2]/self.mixtures_list[i][0].mass_density / mix_vol
+			# make full isotope list
+			self.make_isotope_lists_from_mixture_list()
+
+		elif self.mode == 'volume':
+			# a density must NOT be set, since it will be overwritten, reject to avoid silent errors or unepected behavior
+			# must check that every input mixture has densities set
+			# check that there is a nonzero list of mixtures
+			if len(self.mixtures_list)==0:
+				if verbose: print "no mixtures in list while in %s mode, aborting."%self.mode
+				return
+			# check that there is a nonzero list of mixtures
+			if len(self.mixtures_list)==0:
+				print "no mixtures in list while in %s mode, aborting."%self.mode
+				return
+			#
+			# MIXTURES
+			#
+			# sum the fractions, renormalize
+			frac_total = 0.0
+			for i in range(0,len(self.mixtures_list)):
+				frac_total = frac_total + self.mixtures_list[i][3]
+			for i in range(0,len(self.mixtures_list)):
+				self.mixtures_list[i][3] = self.mixtures_list[i][3] / frac_total
+			# calculate average density
+			self.mass_density = 0.0
+			for i in range(0,len(self.mixtures_list)):
+				self.mass_density = self.mass_density + self.mixtures_list[i][3] * self.mixtures_list[i][0].mass_density
+			# calculate the mixture mass factions
+			for i in range(0,len(self.mixtures_list)):
+				self.mixtures_list[i][2] = self.mixtures_list[i][3] * self.mixtures_list[i][0].mass_density / self.mass_density
+			# calculate average amu from mass fractions
+			mix_avg_amu = 0.0 
+			for i in range(0,len(self.mixtures_list)):
+				mix_avg_amu = mix_avg_amu + self.mixtures_list[i][2] / self.mixtures_list[i][0].avg_amu
+			mix_avg_amu = 1.0 / mix_avg_amu
+			# calculate the mixture atom factions
+			for i in range(0,len(self.mixtures_list)):
+				self.mixtures_list[i][1] = mix_avg_amu * self.mixtures_list[i][2] / self.mixtures_list[i][0].avg_amu
+			# make full isotope list
+			self.make_isotope_lists_from_mixture_list()
+
+		elif self.mode == 'none':
+			# check that there is a mass density present
+			if self.mass_density==0.0:
+				print "mass density needs to be input to finalize, aborting."
+				return
+			# check that there is a zero list of mixtures
+			if len(self.mixtures_list)!=0:
+				print "mixtures present in list while in %s mode, aborting."%self.mode
+				return
+			# check that only atom fractions exist (mass not supported as of yet...)
+			if len(self.mass_fractions)>0 and len(self.atom_fractions)>0:
+				print "mass AND volume fractions present while in %s mode, aborting."%self.mode
+				return
+			if len(self.mass_fractions)<=0 and len(self.atom_fractions)<=0:
+				print "no atom OR mass fractions present while in %s mode, aborting."%self.mode
+				return
+			if len(self.atom_fractions)>0:
+				# sum the fractions, renormalize
+				frac_total = 0.0
+				for isotope in self.atom_fractions.keys():
+					frac_total = frac_total + self.atom_fractions[isotope]
+				for isotope in self.atom_fractions.keys():
+					self.atom_fractions[isotope] = self.atom_fractions[isotope] / frac_total
+				# calculate averge amu from the atom fractions
+				self.avg_amu = 0.0 
+				for isotope in self.atom_fractions.keys():
+					self.avg_amu = self.avg_amu + amu[isotope] * self.atom_fractions[isotope]
+				# calculate the mass factions
+				for isotope in self.atom_fractions.keys():
+					self.mass_fractions[isotope] = amu[isotope] * self.atom_fractions[isotope] / self.avg_amu
+
+			else:
+				# sum the mass fractions, renormalize
+				frac_total = 0.0
+				for isotope in self.mass_fractions.keys():
+					frac_total = frac_total + self.mass_fractions[isotope]
+				for isotope in self.mass_fractions.keys():
+					self.mass_fractions[isotope] = self.mass_fractions[isotope] / frac_total
+				# calculate average amu from mass fractions
+				self.avg_amu = 0.0 
+				for i in range(0,len(self.mixtures_list)):
+					self.avg_amu = self.avg_amu + self.mass_fractions[isotope] / amu[isotope]
+				self.avg_amu = 1.0 / self.avg_amu
+				# calculate atom fractions
+				for i in range(0,len(self.mixtures_list)):
+					self.atom_fractions[isotope] = self.avg_amu * self.mass_fractions[isotope] / amu[isotope]
+
+		elif self.mode == 'finalized':
+			print "already finalized."
+			return
+		else:
+			print "uninitialized!  cannot finalize."
+			return
+
+		if verbose: print "added mixture '%s' to the class dictionary."%self.name
+		self.mode = 'finalized'
+		mixture._mixtures[self.name] = self
+
+	def print_material_card(self,comment=False):
+
+		# set types
+		if print_type == 'atom':
+			isotope_list_total   = self.atom_fractions.keys()
+			isotope_values_total = self.atom_fractions
+			multiplier = 1.0
+		elif print_type == 'mass':
+			isotope_list_total   = self.mass_fractions.keys()
+			isotope_values_total = self.mass_fractions
+			multiplier = -1.0
+		else:
+			print 'print_type %s is not recognized!'%print_type
+			return
+
+		# sort for neatness
+		isotope_list_total.sort()
+
+		print "c"
+		print "c         '%s'"%self.name
+		print "c"
+		print "c         average amu     = %12.8f"%self.avg_amu
+		print "c         density         =  %11.8f"%self.mass_density
+		if len(self.mixtures_list)>0:
+			print "c"
+			print "c         mixture     avg. amu     atom fraction    mass fraction    volume fraction"
+			print "c         --------    --------     -------------    -------------    ---------------"
+			for m in self.mixtures_list:
+				print "c  %15s    %8.4f     %10.8f       %10.8f       %10.8f"%(m[0].name,m[0].avg_amu,m[1],m[2],m[3])
+			print "c"
+			if verbose:
+				for m in self.mixtures_list:
+					m[0].print_material_card(comment=True)
+		elif comment==False:
+			print "c"
+			print "c         mixture     amu          atom fraction    mass fraction"
+			print "c         --------    --------     -------------    -------------"
+			for isotope in isotope_list_total:
+				print "c  %15s    %8.4f     %10.8f       %10.8f"%(isotope,amu[isotope],self.atom_fractions[isotope],self.mass_fractions[isotope])
+			print "c"
+		print "c"
+		if comment:
+			for isotope in isotope_list_total:
+				print "c    %6d   %8.10E"%(isotope,multiplier*isotope_values_total[isotope])
+		else:
+			print "c"
+			print "c ISOTOPES FOR '%s'"%self.name
+			print "c"
+			print "mXXX"
+			for isotope in isotope_list_total:
+				print "     %6d   %8.10E"%(isotope,multiplier*isotope_values_total[isotope])
+		print "c"
+
+#
+# global settings variables
+#
 verbose = 0
 print_type = 'atom'
 
+#
+# proton numbers, indexed by element symbol string
 #
 z_number = {}
 z_number['H']	=   1000
@@ -122,8 +431,10 @@ z_number['Uuh']	= 116000
 z_number['Uus']	= 117000
 z_number['Uuo']	= 118000
 
-# From
+# 
+# isotopic mass values, indexed by ZAID
 # https://www.ncsu.edu/chemistry/msf/pdf/IsotopicMass_NaturalAbundance.pdf
+#
 amu = {}
 amu[ 1001]= 1.007825032239
 amu[ 1002]= 2.014101778121
@@ -416,304 +727,727 @@ amu[92234]=234.040946
 amu[92235]=235.043923
 amu[92238]=238.050783
 
+#
+# natural compositions of a few elements, indexed by ZAID
+# ratios: https://www.ncsu.edu/chemistry/msf/pdf/IsotopicMass_NaturalAbundance.pdf
+# densities: http://www.angstromsciences.com/density-elements-chart
+#
+# hydrogen
+H=mixture('H')
+H.atom_fractions[1001]=99.9885
+H.atom_fractions[1002]= 0.0115
+H.mass_density=0.00008988
+H.finalize()
 
+# helium
+He=mixture('He')
+He.atom_fractions[2003]=0.00000137
+He.atom_fractions[2004]=0.99999863
+He.mass_density=0.00018
+He.finalize()
 
-class mixture(object):
+# lithium
+Li=mixture('Li')
+Li.atom_fractions[3006]=7.59
+Li.atom_fractions[3007]=92.41
+Li.mass_density=0.53
+Li.finalize()
 
-	_mixtures = {}
+# beryllium
+Be=mixture('Be')
+Be.atom_fractions[4009]=1.0
+Be.mass_density=1.85
+Be.finalize()
 
-	def __new__(cls,name):
-		if not isinstance(name,int):
-			if isinstance(name,str):
-				name = name.strip()
-		else:
-			print "name must be a string.  rejected."
-			return None
-		# else return a new instance
-		return super(mixture,cls).__new__(cls)
+# boron
+B=mixture('B')
+B.atom_fractions[5010]=19.9
+B.atom_fractions[5011]=80.1
+B.mass_density=2.34
+B.finalize()
 
-	def __init__(self,name):
-		import copy
-		if isinstance(name,str):
-			name = name.strip()
-			self.name		= copy.deepcopy(name)
-		else:
-			print "name must be a string.  rejected."
-			return None
-		self.mode				= 'none'
-		self.avg_amu			= 0.0
-		self.mass_density		= 0.0
-		self.mixtures_list		= []
-		self.atom_fractions		= {}
-		self.mass_fractions		= {}
-		self.volume_fractions	= {}
+# carbon
+C=mixture('C')
+C.atom_fractions[6012]=98.93
+C.atom_fractions[6013]=1.07
+C.mass_density=2.26
+C.finalize()
 
-	def make_isotope_lists_from_mixture_list(self):
-		# SUMMED ISOTOPE LIST
-		#
-		# calculate the list of isotope atom fractions from the sum of the mixtures
-		for i in range(0,len(self.mixtures_list)):
-			for isotope in self.mixtures_list[i][0].atom_fractions.keys():
-				if isotope in self.atom_fractions.keys():
-					self.atom_fractions[isotope] = self.atom_fractions[isotope] + self.mixtures_list[i][0].atom_fractions[isotope] * self.mixtures_list[i][1]
-				else:
-					self.atom_fractions[isotope] =                                self.mixtures_list[i][0].atom_fractions[isotope] * self.mixtures_list[i][1]
-		# calculate averge amu from the atom fractions
-		self.avg_amu = 0.0 
-		for isotope in self.atom_fractions.keys():
-			self.avg_amu = self.avg_amu + amu[isotope] * self.atom_fractions[isotope]
-		# calculate the mass factions
-		for isotope in self.atom_fractions.keys():
-			self.mass_fractions[isotope] = amu[isotope] * self.atom_fractions[isotope] / self.avg_amu
+# nitrogen
+N=mixture('N')
+N.atom_fractions[7014]=99.632
+N.atom_fractions[7015]=0.368
+N.mass_density=0.00125
+N.finalize()
 
-	def add_mixture(self,name,frac,mode='mass'):
-		if not isinstance(name,str):
-			print "first input (name) is not a string.  rejected."
-			return
-		if not name in mixture._mixtures.keys():
-			print "'"+name+"' not found in mixtures dictionary.  rejected."
-			return
-		if not isinstance(frac,float):
-			print "second input is not a float atomic fraction.  rejected."
-			return
-		if not isinstance(mode,str):
-			print "mode keyword input is not a string.  rejected."
-			return
-		if self.mode not in [mode,'none']:
-			if verbose: print "element object is in %s mode.  delete and start over."%self.mode
-		#
-		self.mode = mode
-		if mode == 'atom':
-			self.mixtures_list.append([mixture._mixtures[name],frac,0.,0.])
-		elif mode == 'mass':
-			self.mixtures_list.append([mixture._mixtures[name],0.,frac,0.])
-		elif mode == 'volume':
-			self.mixtures_list.append([mixture._mixtures[name],0.,0.,frac])
-		if verbose: print "added mixture %6d with amu %12.8f and %s fraction %15.8f into mixture %6d"%(name,_mixtures[name].avg_amu,self.mode,frac,self.name)
+# oxygen
+O=mixture('O')
+O.atom_fractions[8016]=99.757
+O.atom_fractions[8017]=0.038
+O.atom_fractions[8018]=0.205
+O.mass_density=0.00143
+O.finalize()
 
-	def delete(self):
-		element._elements.pop(self.name, None)
-		self.__init__(self.name)
-		if verbose: print "removed element %s from the class dictionary and re-initialized all data.  the instance has not necessarily been deleted from the python namespace yet!"%self.name
+# fluorine
+F=mixture('F')
+F.atom_fractions[9019]=1.0
+F.mass_density=0.00170
+F.finalize()
 
-	def finalize(self):
-		import numpy
+# neon
+Ne=mixture('Ne')
+Ne.atom_fractions[10020]=90.48
+Ne.atom_fractions[10021]=0.27
+Ne.atom_fractions[10022]=9.25
+Ne.mass_density=0.0009
+Ne.finalize()
 
-		if self.mode == 'atom':
-			# check that there is a mass density present (mass densities of input mixtures is not used)
-			if self.mass_density==0.0:
-				print "mass density needs to be input to finalize, aborting."
-				return
-			# check that there is a nonzero list of mixtures
-			if len(self.mixtures_list)==0:
-				print "no mixtures in list while in %s mode, aborting."%self.mode
-				return
-			#
-			# MIXTURES
-			#
-			# sum the fractions, renormalize
-			frac_total = 0.0
-			for i in range(0,len(self.mixtures_list)):
-				frac_total = frac_total + self.mixtures_list[i][1]
-			for i in range(0,len(self.mixtures_list)):
-				self.mixtures_list[i][1] = self.mixtures_list[i][1] / frac_total
-			# calculate average amu from atom fractions
-			mix_avg_amu = 0.0 
-			for i in range(0,len(self.mixtures_list)):
-				mix_avg_amu = mix_avg_amu + self.mixtures_list[i][0].avg_amu * self.mixtures_list[i][1]
-			# calculate the mixture mass factions
-			for i in range(0,len(self.mixtures_list)):
-				self.mixtures_list[i][2] = self.mixtures_list[i][0].avg_amu * self.mixtures_list[i][1] / mix_avg_amu
-			# calculate the mixture volume, if the densities are conserved
-			mix_vol = 0.0
-			for i in range(0,len(self.mixtures_list)):
-				mix_vol = mix_vol + self.mixtures_list[i][2]/self.mixtures_list[i][0].mass_density
-			# calculate the mixture volume factions
-			for i in range(0,len(self.mixtures_list)):
-				self.mixtures_list[i][3] = self.mixtures_list[i][2]/self.mixtures_list[i][0].mass_density / mix_vol
-			# make full isotope list
-			self.make_isotope_lists_from_mixture_list()
+# sodium
+Na=mixture('Na')
+Na.atom_fractions[11023]=1.0
+Na.mass_density=0.971
+Na.finalize()
 
-		elif self.mode == 'mass':
-			# check that there is a mass density present (mass densities of input mixtures is not used)
-			if self.mass_density==0.0:
-				print "mass density needs to be input to finalize, aborting."
-				return
-			# check that there is a nonzero list of mixtures
-			if len(self.mixtures_list)==0:
-				if verbose: print "no mixtures in list while in %s mode, aborting."%self.mode
-				return
-			#
-			# MIXTURES
-			#
-			# sum the mass fractions, renormalize
-			frac_total = 0.0
-			for i in range(0,len(self.mixtures_list)):
-				frac_total = frac_total + self.mixtures_list[i][2]
-			for i in range(0,len(self.mixtures_list)):
-				self.mixtures_list[i][2] = self.mixtures_list[i][2] / frac_total
-			# calculate average amu from mass fractions
-			mix_avg_amu = 0.0 
-			for i in range(0,len(self.mixtures_list)):
-				mix_avg_amu = mix_avg_amu + self.mixtures_list[i][2] / self.mixtures_list[i][0].avg_amu
-			mix_avg_amu = 1.0 / mix_avg_amu
-			# calculate the mixture atom factions
-			for i in range(0,len(self.mixtures_list)):
-				self.mixtures_list[i][1] = mix_avg_amu * self.mixtures_list[i][2] / self.mixtures_list[i][0].avg_amu
-			# calculate the mixture volume, if the densities are conserved
-			mix_vol = 0.0
-			for i in range(0,len(self.mixtures_list)):
-				mix_vol = mix_vol + self.mixtures_list[i][2]/self.mixtures_list[i][0].mass_density
-			# calculate the mixture volume factions
-			for i in range(0,len(self.mixtures_list)):
-				self.mixtures_list[i][3] = self.mixtures_list[i][2]/self.mixtures_list[i][0].mass_density / mix_vol
-			# make full isotope list
-			self.make_isotope_lists_from_mixture_list()
+# magnesium
+Mg=mixture('Mg')
+Mg.atom_fractions[12024]=78.99
+Mg.atom_fractions[12025]=10.00
+Mg.atom_fractions[12026]=11.01
+Mg.mass_density=1.738
+Mg.finalize()
 
-		elif self.mode == 'volume':
-			# a density must NOT be set, since it will be overwritten, reject to avoid silent errors or unepected behavior
-			# must check that every input mixture has densities set
-			# check that there is a nonzero list of mixtures
-			if len(self.mixtures_list)==0:
-				if verbose: print "no mixtures in list while in %s mode, aborting."%self.mode
-				return
-			# check that there is a nonzero list of mixtures
-			if len(self.mixtures_list)==0:
-				print "no mixtures in list while in %s mode, aborting."%self.mode
-				return
-			#
-			# MIXTURES
-			#
-			# sum the fractions, renormalize
-			frac_total = 0.0
-			for i in range(0,len(self.mixtures_list)):
-				frac_total = frac_total + self.mixtures_list[i][3]
-			for i in range(0,len(self.mixtures_list)):
-				self.mixtures_list[i][3] = self.mixtures_list[i][3] / frac_total
-			# calculate average density
-			self.mass_density = 0.0
-			for i in range(0,len(self.mixtures_list)):
-				self.mass_density = self.mass_density + self.mixtures_list[i][3] * self.mixtures_list[i][0].mass_density
-			# calculate the mixture mass factions
-			for i in range(0,len(self.mixtures_list)):
-				self.mixtures_list[i][2] = self.mixtures_list[i][3] * self.mixtures_list[i][0].mass_density / self.mass_density
-			# calculate average amu from mass fractions
-			mix_avg_amu = 0.0 
-			for i in range(0,len(self.mixtures_list)):
-				mix_avg_amu = mix_avg_amu + self.mixtures_list[i][2] / self.mixtures_list[i][0].avg_amu
-			mix_avg_amu = 1.0 / mix_avg_amu
-			# calculate the mixture atom factions
-			for i in range(0,len(self.mixtures_list)):
-				self.mixtures_list[i][1] = mix_avg_amu * self.mixtures_list[i][2] / self.mixtures_list[i][0].avg_amu
-			# make full isotope list
-			self.make_isotope_lists_from_mixture_list()
+# aluminum
+Al=mixture('Al')
+Al.atom_fractions[13027]=1.0
+Al.mass_density=2.702
+Al.finalize()
 
-		elif self.mode == 'none':
-			# check that there is a mass density present
-			if self.mass_density==0.0:
-				print "mass density needs to be input to finalize, aborting."
-				return
-			# check that there is a zero list of mixtures
-			if len(self.mixtures_list)!=0:
-				print "mixtures present in list while in %s mode, aborting."%self.mode
-				return
-			# check that only atom fractions exist (mass not supported as of yet...)
-			if len(self.mass_fractions)>0 and len(self.atom_fractions)>0:
-				print "mass AND volume fractions present while in %s mode, aborting."%self.mode
-				return
-			if len(self.mass_fractions)<=0 and len(self.atom_fractions)<=0:
-				print "no atom OR mass fractions present while in %s mode, aborting."%self.mode
-				return
-			if len(self.atom_fractions)>0:
-				# sum the fractions, renormalize
-				frac_total = 0.0
-				for isotope in self.atom_fractions.keys():
-					frac_total = frac_total + self.atom_fractions[isotope]
-				for isotope in self.atom_fractions.keys():
-					self.atom_fractions[isotope] = self.atom_fractions[isotope] / frac_total
-				# calculate averge amu from the atom fractions
-				self.avg_amu = 0.0 
-				for isotope in self.atom_fractions.keys():
-					self.avg_amu = self.avg_amu + amu[isotope] * self.atom_fractions[isotope]
-				# calculate the mass factions
-				for isotope in self.atom_fractions.keys():
-					self.mass_fractions[isotope] = amu[isotope] * self.atom_fractions[isotope] / self.avg_amu
+# silicon
+Si=mixture('Si')
+Si.atom_fractions[14028]=92.2297
+Si.atom_fractions[14029]=4.6832 
+Si.atom_fractions[14030]=3.0872 
+Si.mass_density=2.33
+Si.finalize()
 
-			else:
-				# sum the mass fractions, renormalize
-				frac_total = 0.0
-				for isotope in self.mass_fractions.keys():
-					frac_total = frac_total + self.mass_fractions[isotope]
-				for isotope in self.mass_fractions.keys():
-					self.mass_fractions[isotope] = self.mass_fractions[isotope] / frac_total
-				# calculate average amu from mass fractions
-				self.avg_amu = 0.0 
-				for i in range(0,len(self.mixtures_list)):
-					self.avg_amu = self.avg_amu + self.mass_fractions[isotope] / amu[isotope]
-				self.avg_amu = 1.0 / self.avg_amu
-				# calculate atom fractions
-				for i in range(0,len(self.mixtures_list)):
-					self.atom_fractions[isotope] = self.avg_amu * self.mass_fractions[isotope] / amu[isotope]
+# phosphorous
+P=mixture('P')
+P.atom_fractions[15031]=1.0
+P.mass_density=1.82
+P.finalize()
 
-		elif self.mode == 'finalized':
-			print "already finalized."
-			return
-		else:
-			print "uninitialized!  cannot finalize."
-			return
+# sulphur
+S=mixture('S')
+S.atom_fractions[16032]=94.93
+S.atom_fractions[16033]=0.76
+S.atom_fractions[16034]=4.29
+S.atom_fractions[16036]=0.02
+S.mass_density=2.07
+S.finalize()
 
-		if verbose: print "added mixture %6d to the class dictionary."%self.name
-		self.mode = 'finalized'
-		mixture._mixtures[self.name] = self
+# chlorine
+Cl=mixture('Cl')
+Cl.atom_fractions[17035]=75.78
+Cl.atom_fractions[17037]=24.22
+Cl.mass_density=0.003214
+Cl.finalize()
 
-	def print_material_card(self,comment=False):
+# argon
+Ar=mixture('Ar')
+Ar.atom_fractions[18036]=0.3365 
+Ar.atom_fractions[18038]=0.0632 
+Ar.atom_fractions[18040]=99.6003 
+Ar.mass_density=0.0017824
+Ar.finalize()
 
-		# set types
-		if print_type == 'atom':
-			isotope_list_total   = self.atom_fractions.keys()
-			isotope_values_total = self.atom_fractions
-			multiplier = 1.0
-		elif print_type == 'mass':
-			isotope_list_total   = self.mass_fractions.keys()
-			isotope_values_total = self.mass_fractions
-			multiplier = -1.0
-		else:
-			print 'print_type %s is not recognized!'%print_type
-			return
+# potassium
+K=mixture('K')
+K.atom_fractions[19039]=93.2581 
+K.atom_fractions[19040]=0.0117  
+K.atom_fractions[19041]=6.7302  
+K.mass_density=0.862
+K.finalize()
 
-		# sort for neatness
-		isotope_list_total.sort()
+# calcium
+Ca=mixture('Ca')
+Ca.atom_fractions[20040]=96.941
+Ca.atom_fractions[20042]=0.647 
+Ca.atom_fractions[20043]=0.135 
+Ca.atom_fractions[20044]=2.086 
+Ca.atom_fractions[20046]=0.004 
+Ca.atom_fractions[20048]=0.187 
+Ca.mass_density=1.55
+Ca.finalize()
 
-		print "c"
-		print "c         %s"%self.name
-		print "c"
-		print "c         average amu     = %12.8f"%self.avg_amu
-		print "c         density         =  %11.8f"%self.mass_density
-		if len(self.mixtures_list)>0:
-			print "c"
-			print "c         mixture     avg. amu     atom fraction    mass fraction    volume fraction"
-			print "c         --------    --------     -------------    -------------    ---------------"
-			for m in self.mixtures_list:
-				print "c  %15s    %8.4f     %10.8f       %10.8f       %10.8f"%(m[0].name,m[0].avg_amu,m[1],m[2],m[3])
-			print "c"
-			for m in self.mixtures_list:
-				m[0].print_material_card(comment=True)
-		elif comment==False:
-			print "c"
-			print "c         mixture     amu          atom fraction    mass fraction"
-			print "c         --------    --------     -------------    -------------"
-			for isotope in isotope_list_total:
-				print "c  %15s    %8.4f     %10.8f       %10.8f"%(isotope,amu[isotope],self.atom_fractions[isotope],self.mass_fractions[isotope])
-			print "c"
-		print "c"
-		if comment:
-			for isotope in isotope_list_total:
-				print "c    %6d   %8.10E"%(isotope,multiplier*isotope_values_total[isotope])
-		else:
-			print "c"
-			print "c ISOTOPES FOR %s"%self.name
-			print "c"
-			print "mXXX"
-			for isotope in isotope_list_total:
-				print "     %6d   %8.10E"%(isotope,multiplier*isotope_values_total[isotope])
-		print "c"
+# scandium
+Sc=mixture('Sc')
+Sc.atom_fractions[21045]=1.0
+Sc.mass_density=2.99
+Sc.finalize()
+
+# titanium
+Ti=mixture('Ti')
+Ti.atom_fractions[22046]=8.25 
+Ti.atom_fractions[22047]=7.44 
+Ti.atom_fractions[22048]=73.72
+Ti.atom_fractions[22049]=5.41 
+Ti.atom_fractions[22050]=5.18 
+Ti.mass_density=4.54
+Ti.finalize()
+
+# vanadium
+V=mixture('V')
+V.atom_fractions[23050]=0.250 
+V.atom_fractions[23051]=99.750
+V.mass_density=6.11
+V.finalize()
+
+# chromium
+Cr=mixture('Cr')
+Cr.atom_fractions[24050]=4.345 
+Cr.atom_fractions[24052]=83.789
+Cr.atom_fractions[24053]=9.501 
+Cr.atom_fractions[24054]=2.365 
+Cr.mass_density=7.19
+Cr.finalize()
+
+# manganese
+Mn=mixture('Mn')
+Mn.atom_fractions[25055]=1.0
+Mn.mass_density=7.43
+Mn.finalize()
+
+# iron
+Fe=mixture('Fe')
+Fe.atom_fractions[26054]=5.845 
+Fe.atom_fractions[26056]=91.754
+Fe.atom_fractions[26057]=2.119 
+Fe.atom_fractions[26058]=0.282 
+Fe.mass_density=7.874
+Fe.finalize()
+
+# cobalt
+Co=mixture('Co')
+Co.atom_fractions[27059]=1.0
+Co.mass_density=8.9
+Co.finalize()
+
+# nickel
+Ni=mixture('Ni')
+Ni.atom_fractions[28058]=68.0769
+Ni.atom_fractions[28060]=26.2231
+Ni.atom_fractions[28061]=1.1399 
+Ni.atom_fractions[28062]=3.6345 
+Ni.atom_fractions[28064]=0.9256 
+Ni.mass_density=8.9
+Ni.finalize()
+
+# copper
+Cu=mixture('Cu')
+Cu.atom_fractions[29063]=69.17
+Cu.atom_fractions[29065]=30.83
+Cu.mass_density=8.96
+Cu.finalize()
+
+# zinc
+Zn=mixture('Zn')
+Zn.atom_fractions[30064]=48.63
+Zn.atom_fractions[30066]=27.90
+Zn.atom_fractions[30067]=4.10 
+Zn.atom_fractions[30068]=18.75
+Zn.atom_fractions[30070]=0.62 
+Zn.mass_density=7.13
+Zn.finalize()
+
+# gallium
+Ga=mixture('Ga')
+Ga.atom_fractions[31069]=60.108
+Ga.atom_fractions[31071]=39.892
+Ga.mass_density=5.907
+Ga.finalize()
+
+# germanium
+Ge=mixture('Ge')
+Ge.atom_fractions[32070]=20.84
+Ge.atom_fractions[32072]=27.54
+Ge.atom_fractions[32073]=7.73 
+Ge.atom_fractions[32074]=36.28
+Ge.atom_fractions[32076]=7.61 
+Ge.mass_density=5.323
+Ge.finalize()
+
+# arsenic
+As=mixture('As')
+As.atom_fractions[33075]=1.0
+As.mass_density=5.72
+As.finalize()
+
+# selenium
+Se=mixture('Se')
+Se.atom_fractions[34074]=0.89 
+Se.atom_fractions[34076]=9.37 
+Se.atom_fractions[34077]=7.63 
+Se.atom_fractions[34078]=23.77
+Se.atom_fractions[34080]=49.61
+Se.atom_fractions[34082]=8.73 
+Se.mass_density=4.79
+Se.finalize()
+
+# bromine
+Br=mixture('Br')
+Br.atom_fractions[35079]=50.69
+Br.atom_fractions[35081]=49.31
+Br.mass_density=3.119
+Br.finalize()
+
+# krypton
+Kr=mixture('Kr')
+Kr.atom_fractions[36078]=0.35
+Kr.atom_fractions[36080]=2.28
+Kr.atom_fractions[36082]=11.58
+Kr.atom_fractions[36083]=11.49
+Kr.atom_fractions[36084]=57.00
+Kr.atom_fractions[36086]=17.30
+Kr.mass_density=0.00375
+Kr.finalize()
+
+# rubidium
+Rb=mixture('Rb')
+Rb.atom_fractions[37085]=72.17
+Rb.atom_fractions[37087]=27.83
+Rb.mass_density=1.63
+Rb.finalize()
+
+# strontium
+Sr=mixture('Sr')
+Sr.atom_fractions[38084]=0.56
+Sr.atom_fractions[38086]=9.86
+Sr.atom_fractions[38087]=7.00
+Sr.atom_fractions[38088]=82.58
+Sr.mass_density=2.54
+Sr.finalize()
+
+# yttrium
+Y=mixture('Y')
+Y.atom_fractions[39089]=1.0
+Y.mass_density=4.47
+Y.finalize()
+
+# zirconium
+Zr=mixture('Zr')
+Zr.atom_fractions[40090]=51.45
+Zr.atom_fractions[40091]=11.22
+Zr.atom_fractions[40092]=17.15
+Zr.atom_fractions[40094]=17.38
+Zr.atom_fractions[40096]=2.80
+Zr.mass_density=6.51
+Zr.finalize()
+
+# niobium
+Nb=mixture('Nb')
+Nb.atom_fractions[41093]=1.0
+Nb.mass_density=8.57
+Nb.finalize()
+
+# molybdenum
+Mo=mixture('Mo')
+Mo.atom_fractions[42092]=14.84
+Mo.atom_fractions[42094]=9.25
+Mo.atom_fractions[42095]=15.92
+Mo.atom_fractions[42096]=16.68
+Mo.atom_fractions[42097]=9.55
+Mo.atom_fractions[42098]=24.13
+Mo.atom_fractions[42100]=9.63
+Mo.mass_density=10.22
+Mo.finalize()
+
+# technetium
+Tc=mixture('Tc')
+Tc.atom_fractions[43098]=1.0
+Tc.mass_density=11.5
+Tc.finalize()
+
+# Ruthenium
+Ru=mixture('Ru')
+Ru.atom_fractions[44096]=5.54
+Ru.atom_fractions[44098]=1.87
+Ru.atom_fractions[44099]=12.76
+Ru.atom_fractions[44100]=12.60
+Ru.atom_fractions[44101]=17.06
+Ru.atom_fractions[44102]=31.55
+Ru.atom_fractions[44104]=18.62
+Ru.mass_density=12.37
+Ru.finalize()
+
+# Rhodium
+Rh=mixture('Rh')
+Rh.atom_fractions[45103]=1.0
+Rh.mass_density=12.41
+Rh.finalize()
+
+# Palladium
+Pd=mixture('Pd')
+Pd.atom_fractions[46102]=1.02
+Pd.atom_fractions[46104]=11.14
+Pd.atom_fractions[46105]=22.33
+Pd.atom_fractions[46106]=27.33
+Pd.atom_fractions[46108]=26.46
+Pd.atom_fractions[46110]=11.72
+Pd.mass_density=12.02
+Pd.finalize()
+
+# Silver
+Ag=mixture('Ag')
+Ag.atom_fractions[47107]=51.839
+Ag.atom_fractions[47109]=48.161
+Ag.mass_density=10.5
+Ag.finalize()
+
+# Cadmium
+Cd=mixture('Cd')
+Cd.atom_fractions[48106]=1.25
+Cd.atom_fractions[48108]=0.89
+Cd.atom_fractions[48110]=12.49
+Cd.atom_fractions[48111]=12.80
+Cd.atom_fractions[48112]=24.13
+Cd.atom_fractions[48113]=12.22
+Cd.atom_fractions[48114]=28.73
+Cd.atom_fractions[48116]=7.49
+Cd.mass_density=8.65
+Cd.finalize()
+
+# Indium
+In=mixture('In')
+In.atom_fractions[49113]=4.29
+In.atom_fractions[49115]=95.71
+In.mass_density=7.31
+In.finalize()
+
+# Tin
+Sn=mixture('Sn')
+Sn.atom_fractions[50112]=0.97
+Sn.atom_fractions[50114]=0.66
+Sn.atom_fractions[50115]=0.34
+Sn.atom_fractions[50116]=14.54
+Sn.atom_fractions[50117]=7.68
+Sn.atom_fractions[50118]=24.22
+Sn.atom_fractions[50119]=8.59
+Sn.atom_fractions[50120]=32.58
+Sn.atom_fractions[50122]=4.63
+Sn.atom_fractions[50124]=5.79
+Sn.mass_density=7.31
+Sn.finalize()
+
+# Antimony
+Sb=mixture('Sb')
+Sb.atom_fractions[51121]=57.21
+Sb.atom_fractions[51123]=42.79
+Sb.mass_density=6.684
+Sb.finalize()
+
+# Tellurium
+Te=mixture('Te')
+Te.atom_fractions[52120]=0.09
+Te.atom_fractions[52122]=2.55
+Te.atom_fractions[52123]=0.89
+Te.atom_fractions[52124]=4.74
+Te.atom_fractions[52125]=7.07
+Te.atom_fractions[52126]=18.84
+Te.atom_fractions[52128]=31.74
+Te.atom_fractions[52130]=34.08
+Te.mass_density=6.25
+Te.finalize()
+
+# Iodine
+I=mixture('I')
+I.atom_fractions[53127]=1.0
+I.mass_density=4.93
+I.finalize()
+
+# Xenon
+Xe=mixture('Xe')
+Xe.atom_fractions[54124]=0.09
+Xe.atom_fractions[54126]=0.09
+Xe.atom_fractions[54128]=1.92
+Xe.atom_fractions[54129]=26.44
+Xe.atom_fractions[54130]=4.08
+Xe.atom_fractions[54131]=21.18
+Xe.atom_fractions[54132]=26.89
+Xe.atom_fractions[54134]=10.44
+Xe.atom_fractions[54136]=8.87
+Xe.mass_density=0.0059
+Xe.finalize()
+
+# Cesium
+Cs=mixture('Cs')
+Cs.atom_fractions[55133]=1.0
+Cs.mass_density=1.873
+Cs.finalize()
+
+# Barium
+Ba=mixture('Ba')
+Ba.atom_fractions[56130]=0.106
+Ba.atom_fractions[56132]=0.101
+Ba.atom_fractions[56134]=2.417
+Ba.atom_fractions[56135]=6.592
+Ba.atom_fractions[56136]=7.854
+Ba.atom_fractions[56137]=11.232
+Ba.atom_fractions[56138]=71.698
+Ba.mass_density=3.59
+Ba.finalize()
+
+# Lanthanum
+La=mixture('La')
+La.atom_fractions[57138]=0.090
+La.atom_fractions[57139]=99.910
+La.mass_density=6.15
+La.finalize()
+
+# Cerium
+Ce=mixture('Ce')
+Ce.atom_fractions[58136]=0.185
+Ce.atom_fractions[58138]=0.251
+Ce.atom_fractions[58140]=88.450
+Ce.atom_fractions[58142]=11.114
+Ce.mass_density=6.77
+Ce.finalize()
+
+# Praseodymium
+Pr=mixture('Pr')
+Pr.atom_fractions[59141]=1.0
+Pr.mass_density=6.77
+Pr.finalize()
+
+# Neodymium
+Nd=mixture('Nd')
+Nd.atom_fractions[60142]=27.2
+Nd.atom_fractions[60143]=12.2
+Nd.atom_fractions[60144]=23.8
+Nd.atom_fractions[60145]=8.3
+Nd.atom_fractions[60146]=17.2
+Nd.atom_fractions[60148]=5.7
+Nd.atom_fractions[60150]=5.6
+Nd.mass_density=7.01
+Nd.finalize()
+
+# Promethium
+Pm=mixture('Pm')
+Pm.atom_fractions[61145]=1.0
+Pm.mass_density=7.3
+Pm.finalize()
+
+# Samarium
+Sm=mixture('Sm')
+Sm.atom_fractions[62144]=3.07
+Sm.atom_fractions[62147]=14.99
+Sm.atom_fractions[62148]=11.24
+Sm.atom_fractions[62149]=13.82
+Sm.atom_fractions[62150]=7.38
+Sm.atom_fractions[62152]=26.75
+Sm.atom_fractions[62154]=22.75
+Sm.mass_density=7.52
+Sm.finalize()
+
+# Europium
+Eu=mixture('Eu')
+Eu.atom_fractions[63151]=47.81
+Eu.atom_fractions[63153]=52.19
+Eu.mass_density=5.24
+Eu.finalize()
+
+# Gadolinium
+Gd=mixture('Gd')
+Gd.atom_fractions[64152]=0.20
+Gd.atom_fractions[64154]=2.18
+Gd.atom_fractions[64155]=14.80
+Gd.atom_fractions[64156]=20.47
+Gd.atom_fractions[64157]=15.65
+Gd.atom_fractions[64158]=24.84
+Gd.atom_fractions[64160]=21.86
+Gd.mass_density=7.895
+Gd.finalize()
+
+# Terbium
+Tb=mixture('Tb')
+Tb.atom_fractions[65159]=1.0
+Tb.mass_density=8.23
+Tb.finalize()
+
+# Dysprosium
+Dy=mixture('Dy')
+Dy.atom_fractions[66156]=0.06
+Dy.atom_fractions[66158]=0.10
+Dy.atom_fractions[66160]=2.34
+Dy.atom_fractions[66161]=18.91
+Dy.atom_fractions[66162]=25.51
+Dy.atom_fractions[66163]=24.90
+Dy.atom_fractions[66164]=28.18
+Dy.mass_density=8.55
+Dy.finalize()
+
+# Holmium
+Ho=mixture('Ho')
+Ho.atom_fractions[67165]=1.0
+Ho.mass_density=8.8
+Ho.finalize()
+
+# Erbium
+Er=mixture('Er')
+Er.atom_fractions[68162]=0.14
+Er.atom_fractions[68164]=1.61
+Er.atom_fractions[68166]=33.61
+Er.atom_fractions[68167]=22.93
+Er.atom_fractions[68168]=26.78
+Er.atom_fractions[68170]=14.93
+Er.mass_density=9.07
+Er.finalize()
+
+# Thulium
+Tm=mixture('Tm')
+Tm.atom_fractions[69169]=1.0
+Tm.mass_density=9.32
+Tm.finalize()
+
+# Ytterbium
+Yb=mixture('Yb')
+Yb.atom_fractions[70168]=0.13
+Yb.atom_fractions[70170]=3.04
+Yb.atom_fractions[70171]=14.28
+Yb.atom_fractions[70172]=21.83
+Yb.atom_fractions[70173]=16.13
+Yb.atom_fractions[70174]=31.83
+Yb.atom_fractions[70176]=12.76
+Yb.mass_density=6.9
+Yb.finalize()
+
+# Lutetium
+Lu=mixture('Lu')
+Lu.atom_fractions[71175]=97.41
+Lu.atom_fractions[71176]=2.59
+Lu.mass_density=9.84
+Lu.finalize()
+
+# Hafnium
+Hf=mixture('Hf')
+Hf.atom_fractions[72174]=0.16
+Hf.atom_fractions[72176]=5.26
+Hf.atom_fractions[72177]=18.60
+Hf.atom_fractions[72178]=27.28
+Hf.atom_fractions[72179]=13.62
+Hf.atom_fractions[72180]=35.08
+Hf.mass_density=13.31
+Hf.finalize()
+
+# Tantalum
+Ta=mixture('Ta')
+Ta.atom_fractions[73180]=0.012
+Ta.atom_fractions[73181]=99.988
+Ta.mass_density=16.65
+Ta.finalize()
+
+# Tungsten
+W=mixture('W')
+W.atom_fractions[74180]=0.12
+W.atom_fractions[74182]=26.50
+W.atom_fractions[74183]=14.31
+W.atom_fractions[74184]=30.64
+W.atom_fractions[74186]=28.43
+W.mass_density=19.35
+W.finalize()
+
+# Rhenium
+Re=mixture('Re')
+Re.atom_fractions[75185]=37.40
+Re.atom_fractions[75187]=62.60
+Re.mass_density=21.04
+Re.finalize()
+
+# Osmium
+Os=mixture('Os')
+Os.atom_fractions[76184]=0.02
+Os.atom_fractions[76186]=1.59
+Os.atom_fractions[76187]=1.96
+Os.atom_fractions[76188]=13.24
+Os.atom_fractions[76189]=16.15
+Os.atom_fractions[76190]=26.26
+Os.atom_fractions[76192]=40.78
+Os.mass_density=22.6
+Os.finalize()
+
+# Iridium
+Ir=mixture('Ir')
+Ir.atom_fractions[77191]=37.3
+Ir.atom_fractions[77193]=62.7
+Ir.mass_density=22.4
+Ir.finalize()
+
+# Platinum
+Pt=mixture('Pt')
+Pt.atom_fractions[78190]=0.014
+Pt.atom_fractions[78192]=0.782
+Pt.atom_fractions[78194]=32.967
+Pt.atom_fractions[78195]=33.832
+Pt.atom_fractions[78196]=25.242
+Pt.atom_fractions[78198]=7.163
+Pt.mass_density=21.45
+Pt.finalize()
+
+# Gold
+Au=mixture('Au')
+Au.atom_fractions[79197]=1.0
+Au.mass_density=19.32
+Au.finalize()
+
+# Mercury
+Hg=mixture('Hg')
+Hg.atom_fractions[80196]=0.15
+Hg.atom_fractions[80198]=9.97
+Hg.atom_fractions[80199]=16.87
+Hg.atom_fractions[80200]=23.10
+Hg.atom_fractions[80201]=13.18
+Hg.atom_fractions[80202]=29.86
+Hg.atom_fractions[80204]=6.87
+Hg.mass_density=13.546
+Hg.finalize()
+
+# Thallium
+Tl=mixture('Tl')
+Tl.atom_fractions[81203]=29.524
+Tl.atom_fractions[81205]=70.476
+Tl.mass_density=11.85
+Tl.finalize()
+
+# Lead
+Pb=mixture('Pb')
+Pb.atom_fractions[82204]=1.4
+Pb.atom_fractions[82206]=24.1
+Pb.atom_fractions[82207]=22.1
+Pb.atom_fractions[82208]=52.4
+Pb.mass_density=11.35
+Pb.finalize()
+
+# Bismuth
+Bi=mixture('Bi')
+Bi.atom_fractions[83209]=1.0
+Bi.mass_density=9.75
+Bi.finalize()
+
+# Thorium
+Th=mixture('Th')
+Th.atom_fractions[90232]=1.0
+Th.mass_density=11.724
+Th.finalize()
+
+# Protactinium
+Pa=mixture('Pa')
+Pa.atom_fractions[91232]=1.0
+Pa.mass_density=15.4
+Pa.finalize()
+
+# Uranium
+U=mixture('U')
+U.atom_fractions[92234]=0.0055
+U.atom_fractions[92235]=0.7200
+U.atom_fractions[92238]=99.2745
+U.mass_density=18.95
+U.finalize()
