@@ -343,3 +343,60 @@ class mctal:
 
 		if show:
 			fig.show()
+
+
+
+	def write_weight_windows_from_meshtal(self,tal=False):
+		import numpy
+		try:
+			null = iter(tal)
+		except TypeError, te:
+			print "Input '",tal,"'is not iterable.  A list of tally ID numbers is required."
+		#
+		#  Make list of data
+		#
+		# check to make sure is meshtally and meshes are the same
+		check_num = tal[0]
+		if not self.tallies[check_num].is_meshtal:
+			"Tally %d is not a mesh tally.  Aborting."
+			return
+		for i in range(1,len(tal)):
+			tal_num = tal[i]
+			if not self.tallies[tal_num].is_meshtal:
+				"Tally %d is not a mesh tally.  Aborting."
+				return 
+			if self.tallies[check_num].objects[1]!=self.tallies[tal_num].objects[1] or self.tallies[check_num].objects[2]!=self.tallies[tal_num].objects[2] or self.tallies[check_num].objects[3]!=self.tallies[tal_num].objects[3]:
+				print "Mesh structure of specified tallies do not mactch!  Aborting."
+				return
+		x_bins   =     self.tallies[check_num].objects[1]
+		y_bins   =     self.tallies[check_num].objects[2]
+		z_bins   =     self.tallies[check_num].objects[3]
+		n_x_bins = len(self.tallies[check_num].objects[1])
+		n_y_bins = len(self.tallies[check_num].objects[2])
+		n_z_bins = len(self.tallies[check_num].objects[3])
+		# make energy vector 
+		e_bins = []
+		for i in range(0,len(tal)):
+			tal_num = tal[i]
+			for val in self.tallies[tal_num].objects[0]:
+				e_bins.append(val)
+		e_bins=numpy.unique(e_bins)
+		print "Energy bin structure:", e_bins
+		return
+		# read im all energies, zeros for gaps?
+		combined_values = numpy.zeros((n_e_bins,n_x_bins,n_y_bins,n_z_bins))
+		for i in range(0,len(tal)):
+			tal_num = tal[i]
+			for e in range(1,len(self.tallies[tal_num].objects[0])):
+				e0 = self.tallies[tal_num].objects[0][0]
+				e1 = self.tallies[tal_num].objects[0][1]
+				dex0 = numpy.where(e0==e_bins)[0][0]
+				dex1 = numpy.where(e1==e_bins)[0][0]
+				for j in range(dex0,dex1-dex0)
+					for z in range(0,n_z_bins):
+						combined_values[j,:,:,z] = combined_values[j,:,:,z] + self.tallies[tal_num].vals[j][z]]['data']
+		## sum energies if asked to combine
+		#sum_values=numpy.zeros((n_x_bins,n_y_bins,n_z_bins))
+		#for j in range(0,n_e_bins):
+		#	sum_values[:,:,:]=avg_values[:,:,:]+combined_values[j,:,:,:]
+		##avg_values = avg_values / n_e_bins

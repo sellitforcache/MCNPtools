@@ -84,6 +84,7 @@ class tally:
 		self.tfc_data 			= []
 		self.verbose 			= verbose
 		self.tex				= tex
+		self.is_meshtal			= False
 
 	def what_particles(self,flag):
 		### decode particle data to human-readable
@@ -666,14 +667,11 @@ class tally:
 			ax.grid(True)
 			pl.show()
 
-
-
-
 	def _process_vals(self):
 		import numpy as np
 		# calculate based on binning
 		if type(self.objects[0])==type([]):
-			meshtal_flag=True
+			self.is_meshtal=True
 			total_bins = self.object_bins
 			# de-interlace the errors
 			vals = self.vals[0::2]
