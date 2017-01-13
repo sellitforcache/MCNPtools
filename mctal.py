@@ -346,15 +346,23 @@ class mctal:
 
 
 
-	def write_weight_windows_from_meshtal(self,tal=False):
-		import numpy
+	def write_weight_windows_from_meshtal(self,tal=False,erg=False,output='wwout'):
+		import numpy, datetime
 		try:
 			null = iter(tal)
 		except TypeError, te:
 			print "Input '",tal,"'is not iterable.  A list of tally ID numbers is required."
+		try:
+			null = iter(erg)
+		except TypeError, te:
+			print "Input '",erg,"'is not iterable.  A list of energy boundaries is required."
 		#
 		#  Make list of data
 		#
+		# check energy vector
+		erg = numpy.unique(erg)
+		assert(len(erg)-1==len(tal))
+		n_e_bins = len(erg)-1
 		# check to make sure is meshtally and meshes are the same
 		check_num = tal[0]
 		if not self.tallies[check_num].is_meshtal:
@@ -371,32 +379,53 @@ class mctal:
 		x_bins   =     self.tallies[check_num].objects[1]
 		y_bins   =     self.tallies[check_num].objects[2]
 		z_bins   =     self.tallies[check_num].objects[3]
-		n_x_bins = len(self.tallies[check_num].objects[1])
-		n_y_bins = len(self.tallies[check_num].objects[2])
-		n_z_bins = len(self.tallies[check_num].objects[3])
-		# make energy vector 
-		e_bins = []
-		for i in range(0,len(tal)):
-			tal_num = tal[i]
-			for val in self.tallies[tal_num].objects[0]:
-				e_bins.append(val)
-		e_bins=numpy.unique(e_bins)
-		print "Energy bin structure:", e_bins
-		return
+		n_x_bins = len(self.tallies[check_num].objects[1])-1
+		n_y_bins = len(self.tallies[check_num].objects[2])-1
+		n_z_bins = len(self.tallies[check_num].objects[3])-1
+		#
+		print "Energy bin assignments:"
+		for i in range(0,n_e_bins):
+			print "tally %5d:  %6.4E < E < %6.4E "%(tal[i] , erg[i], erg[i+1])
 		# read im all energies, zeros for gaps?
-		combined_values = numpy.zeros((n_e_bins,n_x_bins,n_y_bins,n_z_bins))
+		combined_values = numpy.zeros((n_e_bins,n_z_bins,n_y_bins,n_x_bins))
 		for i in range(0,len(tal)):
 			tal_num = tal[i]
-			for e in range(1,len(self.tallies[tal_num].objects[0])):
-				e0 = self.tallies[tal_num].objects[0][0]
-				e1 = self.tallies[tal_num].objects[0][1]
-				dex0 = numpy.where(e0==e_bins)[0][0]
-				dex1 = numpy.where(e1==e_bins)[0][0]
-				for j in range(dex0,dex1-dex0)
-					for z in range(0,n_z_bins):
-						combined_values[j,:,:,z] = combined_values[j,:,:,z] + self.tallies[tal_num].vals[j][z]]['data']
-		## sum energies if asked to combine
-		#sum_values=numpy.zeros((n_x_bins,n_y_bins,n_z_bins))
-		#for j in range(0,n_e_bins):
-		#	sum_values[:,:,:]=avg_values[:,:,:]+combined_values[j,:,:,:]
-		##avg_values = avg_values / n_e_bins
+			e_dex = erg[i]
+			for z_dex in range(0,n_z_bins):
+				combined_values[e_dex,z_dex,:,:] = combined_values[e_dex,z_dex,:,:,] + self.tallies[tal_num].vals[0][z_dex]['data']
+		# sum energies if asked to combine
+		sum_values=numpy.zeros((n_z_bins,n_y_bins,n_x_bins))
+		for e_dex in range(0,n_e_bins):
+			sum_values[:,:,:]=sum_values[:,:,:]+combined_values[e_dex,:,:,:]
+		# invert the values? no! want to flatten population! 
+		#combined_values_ww = numpy.zeros((n_e_bins,n_z_bins,n_y_bins,n_x_bins))
+		#for i in range(0,len(tal)):
+		#	tal_num = tal[i]
+		#	e_dex = erg[i]
+		#	for z_dex in range(0,n_z_bins):
+		#		combined_values_ww[e_dex,z_dex,:,:] = numpy.divide(1.0,combined_values[e_dex,z_dex,:,:,])
+		#sum_values_ww=numpy.zeros((n_z_bins,n_y_bins,n_x_bins))
+		#for e_dex in range(0,n_e_bins):
+		#	sum_values[:,:,:] = numpy.divide(1.0,sum_values[:,:,:])
+		#  replace Inf with zeros
+		#combined_values_ww[combined_values_ww == numpy.inf] = 0.0
+		#sum_values_ww[          sum_values_ww == numpy.inf] = 0.0
+		# plot
+		#import matplotlib.pyplot as plt
+		#from matplotlib.colors import LogNorm
+		#plt.imshow(sum_values[n_z_bins/2,:,:],interpolation='nearest',norm=LogNorm(vmin=1e-4,vmax=1),cmap=plt.get_cmap('spectral'))
+		#plt.show()
+		#
+		#  write the array into wwout format
+ 		#
+		#f = open(output,'w')
+		#now=datetime.datetime.now()
+		#string = "   %10d %10d %10d %10d        "%(1,1,1,10)+now.strftime("%d/%m/%y %H:%M:%S")
+		#f.write(string)
+		#string = "   %10d"%(n_e_bins)
+		#f.write(string)
+		#string = "   %6.4E  %6.4E  %6.4E  %6.4E  %6.4E  %6.4E"%(,,,,,)
+		#f.write(string)
+		#string = "   %6.4E  %6.4E  %6.4E  %6.4E"%(,,,)
+		#f.write(string)
+
