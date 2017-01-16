@@ -274,7 +274,7 @@ class mctal:
 
 
 
-	def plot(self,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,t_or_d=False,options=False,ylim=False,renorm_to_sum=Falsei,color=False):
+	def plot(self,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,t_or_d=False,options=False,ylim=False,renorm_to_sum=False,color=None):
 		### general plotting
 		import numpy, pylab
 		import matplotlib.pyplot as plt
