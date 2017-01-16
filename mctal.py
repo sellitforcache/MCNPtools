@@ -274,7 +274,7 @@ class mctal:
 
 
 
-	def plot(self,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,t_or_d=False,options=False,ylim=False,color=False):
+	def plot(self,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,t_or_d=False,options=False,ylim=False,renorm_to_sum=Falsei,color=False):
 		### general plotting
 		import numpy, pylab
 		import matplotlib.pyplot as plt
@@ -333,7 +333,7 @@ class mctal:
 			if not mul:
 				mul = [0]
 			for t in tal:
-				self.tallies[t].plot(ax=ax,obj=obj,seg=seg,mul=mul,cos=cos,color=color,options=plot_options,prepend_label='{com:s}\n Tally {a:4d} :'.format(com=self.tallies[t].comment,a=t),ylim=ylim)
+				self.tallies[t].plot(ax=ax,obj=obj,seg=seg,mul=mul,cos=cos,options=plot_options,prepend_label='{com:s}\n Tally {a:4d} :'.format(com=self.tallies[t].comment,a=t),ylim=ylim,renorm_to_sum=renorm_to_sum,color=color)
 
 		### show
 		ax.set_title(self.title.strip())
@@ -343,3 +343,89 @@ class mctal:
 
 		if show:
 			fig.show()
+
+
+
+	def write_weight_windows_from_meshtal(self,tal=False,erg=False,output='wwout'):
+		import numpy, datetime
+		try:
+			null = iter(tal)
+		except TypeError, te:
+			print "Input '",tal,"'is not iterable.  A list of tally ID numbers is required."
+		try:
+			null = iter(erg)
+		except TypeError, te:
+			print "Input '",erg,"'is not iterable.  A list of energy boundaries is required."
+		#
+		#  Make list of data
+		#
+		# check energy vector
+		erg = numpy.unique(erg)
+		assert(len(erg)-1==len(tal))
+		n_e_bins = len(erg)-1
+		# check to make sure is meshtally and meshes are the same
+		check_num = tal[0]
+		if not self.tallies[check_num].is_meshtal:
+			"Tally %d is not a mesh tally.  Aborting."
+			return
+		for i in range(1,len(tal)):
+			tal_num = tal[i]
+			if not self.tallies[tal_num].is_meshtal:
+				"Tally %d is not a mesh tally.  Aborting."
+				return 
+			if self.tallies[check_num].objects[1]!=self.tallies[tal_num].objects[1] or self.tallies[check_num].objects[2]!=self.tallies[tal_num].objects[2] or self.tallies[check_num].objects[3]!=self.tallies[tal_num].objects[3]:
+				print "Mesh structure of specified tallies do not mactch!  Aborting."
+				return
+		x_bins   =     self.tallies[check_num].objects[1]
+		y_bins   =     self.tallies[check_num].objects[2]
+		z_bins   =     self.tallies[check_num].objects[3]
+		n_x_bins = len(self.tallies[check_num].objects[1])-1
+		n_y_bins = len(self.tallies[check_num].objects[2])-1
+		n_z_bins = len(self.tallies[check_num].objects[3])-1
+		#
+		print "Energy bin assignments:"
+		for i in range(0,n_e_bins):
+			print "tally %5d:  %6.4E < E < %6.4E "%(tal[i] , erg[i], erg[i+1])
+		# read im all energies, zeros for gaps?
+		combined_values = numpy.zeros((n_e_bins,n_z_bins,n_y_bins,n_x_bins))
+		for i in range(0,len(tal)):
+			tal_num = tal[i]
+			e_dex = erg[i]
+			for z_dex in range(0,n_z_bins):
+				combined_values[e_dex,z_dex,:,:] = combined_values[e_dex,z_dex,:,:,] + self.tallies[tal_num].vals[0][z_dex]['data']
+		# sum energies if asked to combine
+		sum_values=numpy.zeros((n_z_bins,n_y_bins,n_x_bins))
+		for e_dex in range(0,n_e_bins):
+			sum_values[:,:,:]=sum_values[:,:,:]+combined_values[e_dex,:,:,:]
+		# invert the values? no! want to flatten population! 
+		#combined_values_ww = numpy.zeros((n_e_bins,n_z_bins,n_y_bins,n_x_bins))
+		#for i in range(0,len(tal)):
+		#	tal_num = tal[i]
+		#	e_dex = erg[i]
+		#	for z_dex in range(0,n_z_bins):
+		#		combined_values_ww[e_dex,z_dex,:,:] = numpy.divide(1.0,combined_values[e_dex,z_dex,:,:,])
+		#sum_values_ww=numpy.zeros((n_z_bins,n_y_bins,n_x_bins))
+		#for e_dex in range(0,n_e_bins):
+		#	sum_values[:,:,:] = numpy.divide(1.0,sum_values[:,:,:])
+		#  replace Inf with zeros
+		#combined_values_ww[combined_values_ww == numpy.inf] = 0.0
+		#sum_values_ww[          sum_values_ww == numpy.inf] = 0.0
+		# plot
+		#import matplotlib.pyplot as plt
+		#from matplotlib.colors import LogNorm
+		#plt.imshow(sum_values[n_z_bins/2,:,:],interpolation='nearest',norm=LogNorm(vmin=1e-4,vmax=1),cmap=plt.get_cmap('spectral'))
+		#plt.show()
+		#
+		#  write the array into wwout format
+ 		#
+		#f = open(output,'w')
+		#now=datetime.datetime.now()
+		#string = "   %10d %10d %10d %10d        "%(1,1,1,10)+now.strftime("%d/%m/%y %H:%M:%S")
+		#f.write(string)
+		#string = "   %10d"%(n_e_bins)
+		#f.write(string)
+		#string = "   %6.4E  %6.4E  %6.4E  %6.4E  %6.4E  %6.4E"%(,,,,,)
+		#f.write(string)
+		#string = "   %6.4E  %6.4E  %6.4E  %6.4E"%(,,,)
+		#f.write(string)
+
