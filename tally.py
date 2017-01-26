@@ -448,7 +448,7 @@ class tally:
 		this_file.close()
 
 
-	def plot(self,all=False,ax=None,obj=[0],cos=[0],seg=[0],mul=[0],t_or_d=[0],color=None,options=[],prepend_label=False,ylim=False,xlim=False,renorm_to_sum=False):
+	def plot(self,all=False,ax=None,obj=[0],cos=[0],seg=[0],mul=[0],t_or_d=[0],color=None,options=[],prepend_label=False,ylim=False,xlim=False,renorm_to_sum=False,norm=1.0):
 		import numpy as np
 		import pylab as pl
 		import matplotlib.pyplot as plt
@@ -503,11 +503,13 @@ class tally:
 						for c in plot_cosines:
 							### GET DATA
 							dex  		= self._hash(obj=o,cos=c,seg=s,mul=m,td=td)
-							tally 		= self.vals[dex]['data'][:-1]  # clip off totals from ends
-							err 		= self.vals[dex]['err'][:-1]
-							t_or_d 		= self.vals[dex]['t_or_d']
-							cosine_bin	= self.vals[dex]['cosine_bin']
-							name		= self.vals[dex]['object']
+							tally 		= np.array(self.vals[dex]['data'][:-1])*norm  # clip off totals from ends, multiply by specified norm
+							err 		=          self.vals[dex]['err'][:-1]
+							t_or_d 		=          self.vals[dex]['t_or_d']
+							cosine_bin	=          self.vals[dex]['cosine_bin']
+							name		=          self.vals[dex]['object']
+							if norm!=1.0:
+								prepend_label = r'NORM=%3.2E'%norm
 							if len(tally) < 2:
 								print "tally has length <=1, aborting."
 								if show:
@@ -548,7 +550,6 @@ class tally:
 									tally_norm = np.multiply(tally_norm,6.241e15)  # convert protons to milliAmpere*seconds
 							if renorm_to_sum:
 								tally_norm = tally_norm/np.sum(np.multiply(tally_norm,np.divide(widths,avg)))
-
 
 							if prepend_label:
 								label = prepend_label+r' obj %2d (%4d) seg %d cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1])
