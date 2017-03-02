@@ -1749,16 +1749,18 @@ if typeflag:
 		E_bins   = numpy.array([1e-11,to_energy(2.0),600])
 		# E_bins   = numpy.array([1e-11,to_energy(2.0),600])
 		# for high stats
-		x_bins   = numpy.linspace(-425,425,1701)
-		y_bins   = numpy.linspace(-153.5,286.0,880)
+		#x_bins   = numpy.linspace(-425,425,1701)
+		#y_bins   = numpy.linspace(-153.5,286.0,880)
+		# AMOR
+		x_bins   = numpy.linspace(383,433,2)
+		y_bins   = numpy.linspace(15,93,2)
 		# for low stats
 		#x_bins   = numpy.linspace(-70,70,281)
 		#y_bins   = numpy.linspace(-20,20,81)
 		# for just AMOR/SANS
 		#x_bins   = numpy.linspace( 60,70,81)
 		#y_bins   = numpy.linspace(-20,20,321)
-		#theta_bins = numpy.array([0,1,2,3,4,5,10,20])*numpy.pi/180.0   # 90 included as sanity check, ss should only write tracks in normal dir
-		theta_bins = numpy.array([0,90])*numpy.pi/180.0
+		theta_bins = numpy.array([0,1,2,3,4,5,6,10])*numpy.pi/180.0   # 90 included as sanity check, ss should only write tracks in normal dir
 		phi_bins = numpy.linspace(0,2*numpy.pi,2) 
 		dist     = numpy.zeros((  len(E_bins)-1 , len(theta_bins)-1 , len(phi_bins)-1 , len(y_bins)-1 , len(x_bins)-1 ),dtype=numpy.float64)
 		#  surface plane parameters

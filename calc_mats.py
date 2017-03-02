@@ -8,8 +8,6 @@ import copy
 
 calculate_materials.verbose=0
 
-execfile("natural_abundances.py")
-execfile("compounds.py")
 execfile("material_collection.py")
 
 total_width = len('                                         ')

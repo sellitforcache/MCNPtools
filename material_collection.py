@@ -159,9 +159,9 @@ ti3alc.finalize()
 # Y2O3
 #
 y2o3 = calculate_materials.mixture('Y2O3')
-y203.mass_density=5.010
-y2o3.add_mixture('Y',2,mode='atom')
-y2o3.add_mixture('O',3,mode='atom')
+y2o3.mass_density=5.010
+y2o3.add_mixture('Y',2.0,mode='atom')
+y2o3.add_mixture('O',3.0,mode='atom')
 y2o3.finalize()
 
 #
@@ -180,7 +180,7 @@ cr9_ods.finalize()
 # 14Cr-ODS
 #
 cr14_ods = calculate_materials.mixture('14Cr-ODS')
-cr14_ods.mass_density=7.8)
+cr14_ods.mass_density=7.8
 cr14_ods.add_mixture( 'Fe'   , 82.85 , mode='mass')
 cr14_ods.add_mixture( 'Cr'   , 14.0  , mode='mass')
 cr14_ods.add_mixture( 'W'    ,  2.5  , mode='mass')
@@ -192,7 +192,7 @@ cr14_ods.finalize()
 # Fe-Cr alloy
 #
 fecr = calculate_materials.mixture('FeCr')
-fecr.mass_density=7.8)
+fecr.mass_density=7.8
 fecr.add_mixture( 'Fe', 88.0 , mode='mass')
 fecr.add_mixture( 'Cr', 12.0 , mode='mass')
 fecr.finalize()
@@ -461,7 +461,7 @@ granatsand1.finalize()
 #  Granatsand, "Neuer Abschirmsand"
 #  4.1 g/cc solid, 2.4 bulk, from http://www.abritec.ch/index.php?nav=5,32
 granatsand2 = calculate_materials.mixture('Granatsand 2')
-granatsand2.mass_density=2.40)
+granatsand2.mass_density=2.40
 granatsand2.add_mixture(  'Lu'	,	15.3		, mode='mass')
 granatsand2.add_mixture(  'Yb'	,	18.4		, mode='mass')
 granatsand2.add_mixture(  'Gd'	,	103.		, mode='mass')
@@ -660,6 +660,15 @@ bpe5.add_mixture( 'B',  5.00000, mode='mass')
 bpe5.finalize()
 
 #
+#  5% boron polyethylene 
+#
+bpe_b4c5 = calculate_materials.mixture('borated polyethylene 5wt% B4C')
+bpe_b4c5.mass_density=1.07
+bpe_b4c5.add_mixture( 'HDPE', 0.95, mode='mass')
+bpe_b4c5.add_mixture( 'B4C',  0.05, mode='mass')
+bpe_b4c5.finalize()
+
+#
 #  30% boron polyethylene 
 #
 bpe30 = calculate_materials.mixture('borated polyethylene 30%')
@@ -706,3 +715,14 @@ gravel.add_mixture('Mn'  , 0.000386, mode='mass')
 gravel.add_mixture('Fe'  , 0.033377, mode='mass')
 gravel.add_mixture('Pb'  , 0.001255, mode='mass')
 gravel.finalize()
+
+#
+#  dry air @ 20 degC
+#
+dryair = calculate_materials.mixture('dry air')
+dryair.mass_density=0.00120479
+dryair.add_mixture('C' , 0.000150, mode='atom')
+dryair.add_mixture('N' , 0.784431, mode='atom')
+dryair.add_mixture('O' , 0.210748, mode='atom')
+dryair.add_mixture('Ar', 0.004671, mode='atom')
+dryair.finalize()
