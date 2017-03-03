@@ -348,6 +348,8 @@ class mctal:
 
 	def write_weight_windows_from_meshtal(self,tals=False,erg=False,output='wwout'):
 		import numpy, datetime
+		import matplotlib.pyplot as plt
+		from matplotlib.colors import LogNorm
 		try:
 			null = iter(tals)
 		except TypeError, te:
@@ -359,16 +361,18 @@ class mctal:
 		#
 		#  Make list of data
 		#
-		# make a vector of accepted particle symbols
-		possible_particles = []
-		for i in self.tallies[self.tallies.keys()[0]].particles:
-			possible_particles.append(self.tallies[self.tallies.keys()[0]].particles[i][1])
+		# make a vector of particle symbols
+		particle_dict = self.tallies[self.tallies.keys()[0]].particles
+		particle_symbols = []
+		for i in particle_dict:
+			particle_symbols.append(particle_dict[i][1])
+			print i
 		# check to make sure is meshtally and meshes are the same
 		check_num = tals[0]
 		for i in range(0,len(tals)):
 			tal_num = tals[i]
-			if tal_num in possible_particles:
-				print tal_num+" written as zeros"
+			if tal_num in particle_symbols:
+				print tal_num+" values are zeros"
 			else:
 				if not self.tallies[tal_num].is_meshtal:
 					"Tally %d is not a mesh tally.  Aborting."
@@ -388,51 +392,66 @@ class mctal:
 		#
 		ww_arrays = {}
 		for i in range(0,n_particles):
-			# read in value
-			combined_values = numpy.zeros((n_e_bins,n_z_bins,n_y_bins,n_x_bins))
-			for i in range(0,len(tals)):
-				tal_num = tals[i]
+			tal_num = tals[i]
+			if tal_num in particle_symbols:
+				twoD_values=numpy.zeros((n_y_bins,n_x_bins))
+				this_particle = tal_num
+			else:
+				# read in value
+				this_particle = self.tallies[tal_num].what_particles('symbol')
+				combined_values = numpy.zeros((n_e_bins,n_z_bins,n_y_bins,n_x_bins))
 				e_dex=0
 				for z_dex in range(0,n_z_bins):
 					combined_values[e_dex,z_dex,:,:] = combined_values[e_dex,z_dex,:,:,] + self.tallies[tal_num].vals[0][z_dex]['data']
-			# sum energies if asked to combine
-			threeD_values=numpy.zeros((n_z_bins,n_y_bins,n_x_bins))
-			for e_dex in range(0,n_e_bins):
-				threeD_values[:,:,:]=threeD_values[:,:,:]+combined_values[e_dex,:,:,:]
-			# sum z values?
-			twoD_values=numpy.zeros((n_y_bins,n_x_bins))
-			for z_dex in range(0,n_z_bins):
-				twoD_values[:,:]=threeD_values[z_dex,:,:]+twoD_values[:,:]
-			# invert the values? no! want to flatten population! just rescale so maximum is 1
-			#  replace Inf with zeros
-			twoD_values[          twoD_values == numpy.inf] = 0.0
-			# renorm so maximum (most likely the source) is 0.5
-			twoD_values = twoD_values* 0.5 / numpy.max(numpy.ndarray.flatten(twoD_values))
+				# sum energies if asked to combine
+				threeD_values=numpy.zeros((n_z_bins,n_y_bins,n_x_bins))
+				for e_dex in range(0,n_e_bins):
+					threeD_values[:,:,:]=threeD_values[:,:,:]+combined_values[e_dex,:,:,:]
+				# sum z values?
+				twoD_values=numpy.zeros((n_y_bins,n_x_bins))
+				for z_dex in range(0,n_z_bins):
+					twoD_values[:,:]=threeD_values[z_dex,:,:]+twoD_values[:,:]
+				# invert the values? no! want to flatten population! just rescale so maximum is 1
+				#  replace Inf with zeros
+				twoD_values[          twoD_values == numpy.inf] = 0.0
+				# renorm so maximum (most likely the source) is 0.5
+				twoD_values = twoD_values* 0.5 / numpy.max(numpy.ndarray.flatten(twoD_values))
+			ww_arrays[this_particle] = twoD_values
 			# plot
-			import matplotlib.pyplot as plt
-			from matplotlib.colors import LogNorm
-			plt.imshow(twoD_values[:,:],interpolation='nearest',norm=LogNorm(),cmap=plt.get_cmap('spectral'),origin='lower')
-			plt.colorbar()
-			plt.show()
+			#lt.imshow(ww_arrays[this_particle],interpolation='nearest',cmap=plt.get_cmap('spectral'),origin='lower')
+			#lt.colorbar()
+			#lt.show()
 		#
 		#  write the array into wwout format
  		#
-		#f = open(output,'w')
-		## write header
-		#now=datetime.datetime.now()
-		#string = "   %10d %10d %10d %10d        "%(1,1,1,10)+now.strftime("%d/%m/%y %H:%M:%S")
-		#f.write(string)
-		#string = ""
-		## write energy bin
-		#for i in range(0,n_e_bins):
-		#	string = string + "   %10d"%(erg[i])
-		#	if i%6==0 and i>0:
-		#		f.write(string+"\n")
-		#		string=""
-		#if len(string)>0:
-		#	f.write(string+"\n")
+		f = open(output,'w')
+		# write header
+		now=datetime.datetime.now()
+		string = "     % 8d  % 8d  % 8d  % 8d        "%(1,1,max(particle_dict.keys()),10)+"             "+now.strftime("%d/%m/%y %H:%M:%S")+"\n"
+		f.write(string)
+		string = ""
+		# create masked particle vector
+		particle_mask = []
+		for i in range(0,len(particle_symbols)):
+			if particle_symbols[i] in ww_arrays.keys():
+				particle_mask.append(1)
+			elif particle_symbols[i]>0:  # eliminate anti particles?
+				particle_mask.append(0)
+		print particle_mask
+		string = "    "
+		for i in range(1,len(particle_mask)+1):
+			string = string + " % 8d "%(particle_mask[i-1])
+			if i%7==0:
+				f.write(string+"\n")
+				string = "    "
+		if len(string)>0:
+			f.write(string+"\n")
 		#string = "   %6.4E  %6.4E  %6.4E  %6.4E  %6.4E  %6.4E"%(,,,,,)
 		#f.write(string)
 		#string = "   %6.4E  %6.4E  %6.4E  %6.4E"%(,,,)
 		#f.write(string)
+		#
+		#
+		#
+		f.close()
 
