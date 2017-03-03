@@ -350,6 +350,63 @@ class mctal:
 		import numpy, datetime
 		import matplotlib.pyplot as plt
 		from matplotlib.colors import LogNorm
+
+		def make_dimension_string(a0,array0):
+			# interleave the stupid ones
+			array = numpy.array(array0)
+			new_array = numpy.empty((array.size*3), dtype=array.dtype)
+			new_array[0::3] = numpy.ones((array.size), dtype=array.dtype)
+			new_array[1::3] = array
+			new_array[2::3] = numpy.ones((array.size), dtype=array.dtype)
+			# prepend a0
+			new_array = numpy.hstack((a0,new_array))
+			# do it
+			total_string=""
+			fstring = "  {0: 6.{1}f}    "
+			for i in range(0,int(len(new_array)/6)):
+				string = ""
+				string = string + fstring.format( new_array[6*i+0], 4-int(numpy.log10(max(1,abs(new_array[6*i+0])))))
+				string = string + fstring.format( new_array[6*i+1], 4-int(numpy.log10(max(1,abs(new_array[6*i+1])))))
+				string = string + fstring.format( new_array[6*i+2], 4-int(numpy.log10(max(1,abs(new_array[6*i+2])))))
+				string = string + fstring.format( new_array[6*i+3], 4-int(numpy.log10(max(1,abs(new_array[6*i+3])))))
+				string = string + fstring.format( new_array[6*i+4], 4-int(numpy.log10(max(1,abs(new_array[6*i+4])))))
+				string = string + fstring.format( new_array[6*i+5], 4-int(numpy.log10(max(1,abs(new_array[6*i+5])))))
+				string = string + "\n"
+				total_string= total_string + string
+			if len(new_array)%6:
+				string = ""
+				remaining = len(new_array)%6
+				last_index = int(len(new_array)/6)*6
+				for i in range(0,remaining):
+					string = string + fstring.format(new_array[last_index+i], 4-int(numpy.log10(max(1,abs(new_array[last_index+i])))))
+				string = string + "\n"
+				total_string= total_string + string
+			return total_string
+
+		def make_value_string(array):
+			total_string=""
+			fstring = "{0: 6.5E} "
+			for i in range(0,int(len(array)/6)):
+				string = ""
+				string = string + fstring.format( array[6*i+0])
+				string = string + fstring.format( array[6*i+1])
+				string = string + fstring.format( array[6*i+2])
+				string = string + fstring.format( array[6*i+3])
+				string = string + fstring.format( array[6*i+4])
+				string = string + fstring.format( array[6*i+5])
+				string = string + "\n"
+				total_string= total_string + string
+			if len(array)%6:
+				string = ""
+				remaining = len(array)%6
+				last_index = (i+1)*6
+				for i in range(0,remaining):
+					string = string + fstring.format(array[last_index+i])
+				string = string + "\n"
+				total_string= total_string + string
+			return total_string
+
+
 		try:
 			null = iter(tals)
 		except TypeError, te:
@@ -366,7 +423,6 @@ class mctal:
 		particle_symbols = []
 		for i in particle_dict:
 			particle_symbols.append(particle_dict[i][1])
-			print i
 		# check to make sure is meshtally and meshes are the same
 		check_num = tals[0]
 		for i in range(0,len(tals)):
@@ -415,21 +471,33 @@ class mctal:
 				#  replace Inf with zeros
 				twoD_values[          twoD_values == numpy.inf] = 0.0
 				# renorm so maximum (most likely the source) is 0.5
-				twoD_values = twoD_values* 0.5 / numpy.max(numpy.ndarray.flatten(twoD_values))
+				twoD_values = twoD_values* 0.5 / numpy.max(twoD_values.flatten())
+			# have to pad the damn origin
+			twoD_values = numpy.hstack( (twoD_values,numpy.zeros((twoD_values.shape[0],1))) ) 
+			twoD_values = numpy.vstack( (twoD_values,numpy.zeros((1,twoD_values.shape[1]))) )
+			twoD_values = [numpy.zeros(twoD_values.shape),twoD_values]
+			# add to dict 
 			ww_arrays[this_particle] = twoD_values
 			# plot
-			#lt.imshow(ww_arrays[this_particle],interpolation='nearest',cmap=plt.get_cmap('spectral'),origin='lower')
-			#lt.colorbar()
-			#lt.show()
+			#plt.imshow(ww_arrays[this_particle],interpolation='nearest',cmap=plt.get_cmap('spectral'),origin='lower')
+			#plt.colorbar()
+			#plt.show()
+		#
+		#
+		#
+		#
+		#
+		#
 		#
 		#  write the array into wwout format
  		#
 		f = open(output,'w')
+		#
 		# write header
 		now=datetime.datetime.now()
-		string = "     % 8d  % 8d  % 8d  % 8d        "%(1,1,max(particle_dict.keys()),10)+"             "+now.strftime("%d/%m/%y %H:%M:%S")+"\n"
+		string = "  % 8d  % 8d  % 8d  % 8d        "%(1,1,max(particle_dict.keys()),10)+"             "+now.strftime("%d/%m/%y %H:%M:%S")+"\n"
 		f.write(string)
-		string = ""
+		#
 		# create masked particle vector
 		particle_mask = []
 		for i in range(0,len(particle_symbols)):
@@ -437,19 +505,56 @@ class mctal:
 				particle_mask.append(1)
 			elif particle_symbols[i]>0:  # eliminate anti particles?
 				particle_mask.append(0)
-		print particle_mask
-		string = "    "
+		string = " "
 		for i in range(1,len(particle_mask)+1):
-			string = string + " % 8d "%(particle_mask[i-1])
+			string = string + "  % 7d "%(particle_mask[i-1])
 			if i%7==0:
 				f.write(string+"\n")
-				string = "    "
-		if len(string)>0:
+				string = " "
+		if len(string)>2:
 			f.write(string+"\n")
-		#string = "   %6.4E  %6.4E  %6.4E  %6.4E  %6.4E  %6.4E"%(,,,,,)
-		#f.write(string)
-		#string = "   %6.4E  %6.4E  %6.4E  %6.4E"%(,,,)
-		#f.write(string)
+		#
+		# write spatial vector header information
+		nfx	= n_x_bins+1
+		nfy	= n_y_bins+1
+		nfz	= 2
+		x0	= x_bins[ 0]-1.0
+		y0	= y_bins[ 0]-1.0
+		z0	= z_bins[ 0]-1.0
+		ncx	= n_x_bins+1
+		ncy	= n_y_bins+1
+		ncz	= 2
+		nwg	=1  # cart superimposed mesh
+		string =         "  {0: 6.{1}f}    ".format(nfx, 5-(int(numpy.log10(abs(nfx)))+1))
+		string = string +"  {0: 6.{1}f}    ".format(nfy, 5-(int(numpy.log10(abs(nfy)))+1))
+		string = string +"  {0: 6.{1}f}    ".format(nfz, 5-(int(numpy.log10(abs(nfz)))+1))
+		string = string +"  {0: 6.{1}f}    ".format( x0, 5-(int(numpy.log10(abs( x0)))+1))
+		string = string +"  {0: 6.{1}f}    ".format( y0, 5-(int(numpy.log10(abs( y0)))+1))
+		string = string +"  {0: 6.{1}f}    ".format( z0, 5-(int(numpy.log10(abs( z0)))+1))
+		f.write(string+"\n")
+		string =         "  {0: 6.{1}f}    ".format(ncx, 5-(int(numpy.log10(abs(ncx)))+1))
+		string = string +"  {0: 6.{1}f}    ".format(ncy, 5-(int(numpy.log10(abs(ncy)))+1))
+		string = string +"  {0: 6.{1}f}    ".format(ncz, 5-(int(numpy.log10(abs(ncz)))+1))
+		string = string +"  {0: 6.{1}f}    ".format(nwg, 5-(int(numpy.log10(abs(nwg)))+1))
+		f.write(string+"\n")
+		string = make_dimension_string( x0, x_bins )
+		f.write(string)
+		string = make_dimension_string( y0, y_bins )
+		f.write(string)
+		string = make_dimension_string( z0, [z_bins[0],z_bins[-1]] )
+		f.write(string)
+		#
+		# write values for all particles
+		for i in range(0,len(particle_mask)):  # to ensure order is same as vector
+			sym = particle_symbols[i]  
+			if sym in ww_arrays.keys():
+				dist_list = ww_arrays[sym]
+				dist = numpy.empty((dist_list[0].size + dist_list[1].size,), dtype=dist_list[1].dtype)
+				dist[0::2] = dist_list[0].transpose().flatten()
+				dist[1::2] = dist_list[1].transpose().flatten()
+				string = make_value_string(dist)  # transpose for column-major ordering fortran
+				f.write(string)
+		f.write("\n")
 		#
 		#
 		#
