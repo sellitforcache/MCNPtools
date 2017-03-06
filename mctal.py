@@ -346,7 +346,7 @@ class mctal:
 
 
 
-	def write_weight_windows_from_meshtal(self,tals=False,erg=False,output='wwout'):
+	def write_weight_windows_from_meshtal(self,tals=False,erg=False,output='wwout',norms=False):
 		import numpy, datetime
 		import matplotlib.pyplot as plt
 		from matplotlib.colors import LogNorm
@@ -397,6 +397,7 @@ class mctal:
 				string = string + "\n"
 				total_string= total_string + string
 			if len(array)%6:
+				print len(array), len(array)%6
 				string = ""
 				remaining = len(array)%6
 				last_index = (i+1)*6
@@ -418,6 +419,7 @@ class mctal:
 		#
 		#  Make list of data
 		#
+		print "writing to '%s'..."%output
 		# make a vector of particle symbols
 		particle_dict = self.tallies[self.tallies.keys()[0]].particles
 		particle_symbols = []
@@ -436,7 +438,11 @@ class mctal:
 				if self.tallies[check_num].objects[1]!=self.tallies[tal_num].objects[1] or self.tallies[check_num].objects[2]!=self.tallies[tal_num].objects[2] or self.tallies[check_num].objects[3]!=self.tallies[tal_num].objects[3]:
 					print "Mesh structure of specified tallies do not mactch!  Aborting."
 					return
-				print self.tallies[tal_num].what_particles('symbol')+" values from tally %d"%(tal_num)
+				if norms:
+					this_norm = norms[i]
+				else:
+					this_norm = 0.5
+				print self.tallies[tal_num].what_particles('symbol')+" values from tally %d, normed to %4.3E"%(tal_num,this_norm)
 		x_bins   =     self.tallies[check_num].objects[1]
 		y_bins   =     self.tallies[check_num].objects[2]
 		z_bins   =     self.tallies[check_num].objects[3]
@@ -444,6 +450,7 @@ class mctal:
 		n_y_bins = len(self.tallies[check_num].objects[2])-1
 		n_z_bins = len(self.tallies[check_num].objects[3])-1
 		n_particles = len(tals)
+		e_bins = [7000.]  # only upper
 		n_e_bins = 1
 		#
 		ww_arrays = {}
@@ -470,20 +477,24 @@ class mctal:
 				# invert the values? no! want to flatten population! just rescale so maximum is 1
 				#  replace Inf with zeros
 				twoD_values[          twoD_values == numpy.inf] = 0.0
-				# renorm so maximum (most likely the source) is 0.5
-				twoD_values = twoD_values* 0.5 / numpy.max(twoD_values.flatten())
+				# reform to specified norm
+				if norms:
+					twoD_values = twoD_values* norms[i] / numpy.max(twoD_values.flatten())
+				else:
+					# renorm so maximum (most likely the source) is 0.5
+					twoD_values = twoD_values* 0.5      / numpy.max(twoD_values.flatten())
 			# have to pad the damn origin
-			twoD_values = numpy.hstack( (numpy.zeros((twoD_values.shape[0],1))+1e-14,twoD_values) ) 
-			twoD_values = numpy.vstack( (numpy.zeros((1,twoD_values.shape[1]))+1e-13,twoD_values) )
-			twoD_values = [numpy.zeros(twoD_values.shape)+1e-12,twoD_values]
+			twoD_values = numpy.hstack( (numpy.zeros((twoD_values.shape[0],1)),twoD_values) ) 
+			twoD_values = numpy.vstack( (numpy.zeros((1,twoD_values.shape[1])),twoD_values) )
+			twoD_values = [numpy.zeros(twoD_values.shape),twoD_values]
 			# add to dict 
 			ww_arrays[this_particle] = twoD_values
 			# plot
 			this_plot = ww_arrays[this_particle][1]
-			this_plot[this_plot<=0.0] = 1e-11
-			plt.imshow(this_plot,interpolation='nearest',norm=LogNorm(),cmap=plt.get_cmap('spectral'),origin='lower')
-			plt.colorbar()
-			plt.show()
+			#this_plot[this_plot<=0.0] = 1e-11
+			#plt.imshow(this_plot,interpolation='nearest',norm=LogNorm(),cmap=plt.get_cmap('spectral'),origin='lower')
+			#plt.colorbar()
+			#plt.show()
 		#
 		#
 		#
@@ -551,15 +562,14 @@ class mctal:
 			sym = particle_symbols[i]  
 			if sym in ww_arrays.keys():
 				dist_list = ww_arrays[sym]
-				dist = numpy.empty((dist_list[0].size + dist_list[1].size,), dtype=dist_list[1].dtype)
-				#dist[0::2] = dist_list[0].transpose().flatten()
-				#dist[1::2] = dist_list[1].transpose().flatten()
+				string = "{0: 6.5E} \n".format(e_bins[0])
 				dist = numpy.hstack((dist_list[0].flatten(),dist_list[1].flatten()))
-				string = make_value_string(dist)  # transpose for column-major ordering fortran
+				string = string + make_value_string(dist)  
 				f.write(string)
-		f.write("\n")
+		# f.write("\n")
 		#
 		#
 		#
 		f.close()
+		print 'done.'
 
