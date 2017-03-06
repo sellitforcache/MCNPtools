@@ -473,15 +473,17 @@ class mctal:
 				# renorm so maximum (most likely the source) is 0.5
 				twoD_values = twoD_values* 0.5 / numpy.max(twoD_values.flatten())
 			# have to pad the damn origin
-			twoD_values = numpy.hstack( (twoD_values,numpy.zeros((twoD_values.shape[0],1))) ) 
-			twoD_values = numpy.vstack( (twoD_values,numpy.zeros((1,twoD_values.shape[1]))) )
-			twoD_values = [numpy.zeros(twoD_values.shape),twoD_values]
+			twoD_values = numpy.hstack( (numpy.zeros((twoD_values.shape[0],1))+1e-14,twoD_values) ) 
+			twoD_values = numpy.vstack( (numpy.zeros((1,twoD_values.shape[1]))+1e-13,twoD_values) )
+			twoD_values = [numpy.zeros(twoD_values.shape)+1e-12,twoD_values]
 			# add to dict 
 			ww_arrays[this_particle] = twoD_values
 			# plot
-			#plt.imshow(ww_arrays[this_particle],interpolation='nearest',cmap=plt.get_cmap('spectral'),origin='lower')
-			#plt.colorbar()
-			#plt.show()
+			this_plot = ww_arrays[this_particle][1]
+			this_plot[this_plot<=0.0] = 1e-11
+			plt.imshow(this_plot,interpolation='nearest',norm=LogNorm(),cmap=plt.get_cmap('spectral'),origin='lower')
+			plt.colorbar()
+			plt.show()
 		#
 		#
 		#
@@ -550,8 +552,9 @@ class mctal:
 			if sym in ww_arrays.keys():
 				dist_list = ww_arrays[sym]
 				dist = numpy.empty((dist_list[0].size + dist_list[1].size,), dtype=dist_list[1].dtype)
-				dist[0::2] = dist_list[0].transpose().flatten()
-				dist[1::2] = dist_list[1].transpose().flatten()
+				#dist[0::2] = dist_list[0].transpose().flatten()
+				#dist[1::2] = dist_list[1].transpose().flatten()
+				dist = numpy.hstack((dist_list[0].flatten(),dist_list[1].flatten()))
 				string = make_value_string(dist)  # transpose for column-major ordering fortran
 				f.write(string)
 		f.write("\n")
