@@ -351,6 +351,33 @@ class mctal:
 		import matplotlib.pyplot as plt
 		from matplotlib.colors import LogNorm
 
+		#
+		# functions for specifiying cutoffs
+		#
+		def elsefunction(x,y,z):
+			return True
+
+		def constraint1(x,y,z): 
+			if y<=10:
+				return True
+			else:
+				return False
+
+		def constraint2(x,y,z): 
+			if y<=26:
+				return True
+			else:
+				return False
+
+		def constraint3(x,y,z): 
+			if y<=50:
+				return True
+			else:
+				return False
+
+		# 
+		#
+		#
 		def compress_range(array,weight_range):
 			flat_array = array.flatten()
 			this_min = numpy.min(flat_array)
@@ -360,6 +387,9 @@ class mctal:
 					flat_array[i] = ( (flat_array[i] - this_min ) / (this_max-this_min)  ) * (weight_range[1]-weight_range[0]) + weight_range[0]
 			return numpy.reshape(flat_array, array.shape)
 
+		#
+		# generic string writing functions
+		#
 		def make_dimension_string(a0,array0):
 			# interleave the stupid ones
 			array = numpy.array(array0)
@@ -417,6 +447,11 @@ class mctal:
 			return total_string
 
 
+
+		#
+		#
+		# the real business
+		#
 		try:
 			null = iter(tals)
 		except TypeError, te:
@@ -492,14 +527,23 @@ class mctal:
 				else:
 					# renorm so maximum (most likely the source) is 0.5
 					twoD_values = twoD_values* 0.5      / numpy.max(twoD_values.flatten())
-				# apply weight cutoff
-				weight_cutoff 	= 1e-9
+				# apply weight cutoffs
+				print this_particle+" : applying weight cutoffs..."
 				weight_to 		= 10.0
-				print this_particle+" : applying weight cutoff %2.1E -> %2.1E"%(weight_cutoff,weight_to)
+				weight_cutoff 	= { constraint1    :1e-6,
+				                    constraint2    :1e-7,
+				                    constraint3    :1e-8,
+				                    elsefunction   :1e-10}
+				for xi in range(0,n_x_bins):
+					for yi in range(0,n_y_bins):
+						for f in weight_cutoff.keys():
+							if f(xi,yi,0):
+								if twoD_values[yi,xi] < weight_cutoff[f]:
+									twoD_values[yi,xi] = weight_to
 				# compress the range
-				weight_range = [1e-9,norms[i]]
-				print this_particle+" : applying weight compression into range %2.1E -> %2.1E"%(weight_range[0],weight_range[1])
-				twoD_values = compress_range(twoD_values,weight_range)
+				#weight_range = [1e-9,norms[i]]
+				#print this_particle+" : applying weight compression into range %2.1E -> %2.1E"%(weight_range[0],weight_range[1])
+				#twoD_values = compress_range(twoD_values,weight_range)
 			# have to pad the damn origin
 			twoD_values = numpy.hstack( (numpy.zeros((twoD_values.shape[0],1)),twoD_values) ) 
 			twoD_values = numpy.vstack( (numpy.zeros((1,twoD_values.shape[1])),twoD_values) )
@@ -507,11 +551,12 @@ class mctal:
 			# add to dict 
 			ww_arrays[this_particle] = twoD_values
 			# plot
-			#this_plot = ww_arrays[this_particle][1]
-			#this_plot[this_plot<=0.0] = 1e-11
-			#plt.imshow(this_plot,interpolation='nearest',norm=LogNorm(),cmap=plt.get_cmap('spectral'),origin='lower')
-			#plt.colorbar()
-			#plt.show()
+			if tal_num not in particle_symbols:
+				this_plot = ww_arrays[this_particle][1]
+				this_plot[this_plot<=0.0] = 1e-15
+				plt.imshow(this_plot,interpolation='nearest',norm=LogNorm(vmin=1e-9,vmax=norms[i]),cmap=plt.get_cmap('spectral'),origin='lower')
+				plt.colorbar()
+				plt.show()
 		#
 		#
 		#
