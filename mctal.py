@@ -378,21 +378,107 @@ class mctal:
 		# 
 		#
 		#
-		def compress_range(array,weight_range):
+		def rescale_range(array,weight_range):
 			flat_array = array.flatten()
 			this_min = numpy.min(flat_array)
 			this_max = numpy.max(flat_array)
+			if weight_range[0] == True:
+				new_min = this_min
+			else:
+				new_min = weight_range[0]
+			if weight_range[1] == True:
+				new_max = this_max
+			else:
+				new_max = weight_range[1]
 			for i in range(0,len(flat_array)):
 				if flat_array[i] > 0.0:
-					flat_array[i] = ( (flat_array[i] - this_min ) / (this_max-this_min)  ) * (weight_range[1]-weight_range[0]) + weight_range[0]
+					flat_array[i] = ( (flat_array[i] - this_min ) / (this_max-this_min)  ) * (new_max-new_min) + new_min
 			return numpy.reshape(flat_array, array.shape)
+
+		def rescale_range_log(array,weight_range0):
+			flat_array 		= array.flatten()
+			weight_range 	= numpy.log10(weight_range0)
+			this_min 		= numpy.log10(numpy.min(flat_array))
+			this_max 		= numpy.log10(numpy.max(flat_array))
+			flat_array 		= numpy.log10(flat_array)
+			if weight_range[0] == True:
+				new_min = this_min
+			else:
+				new_min = weight_range[0]
+			if weight_range[1] == True:
+				new_max = this_max
+			else:
+				new_max = weight_range[1]
+			for i in range(0,len(flat_array)):
+				if flat_array[i] > -numpy.inf:
+					flat_array[i] = ( (flat_array[i] - this_min ) / (this_max-this_min)  ) * (new_max-new_min) + new_min
+			return numpy.power(10,numpy.reshape(flat_array, array.shape))
+
+		def apply_directional_gradient_log(array,factor=0.5,axis=1):
+			log_array = numpy.log10(array)
+			if abs(axis)==0:
+				if axis>0:
+					this_max = log_array[-1,:]
+				else:
+					this_max = log_array[0,:]	
+			if abs(axis)==1:
+				if axis>0:
+					this_max = log_array[:,0]
+				else:
+					this_max = log_array[:,-1]	
+			this_min 	= numpy.min(log_array,axis=abs(axis))
+			new_max 	= this_max 
+			new_min 	= numpy.log10(factor)+this_min
+			if abs(axis)==0:
+				for i in range(0,log_array.shape[1]):
+					print this_min[i]
+					log_array[:,i] = numpy.multiply( numpy.divide( (log_array[:,i] - this_min[i] ) , (this_max[i]-this_min[i])  ) , (new_max[i]-new_min[i]) ) + new_min[i]
+			elif abs(axis)==1:
+				for i in range(0,log_array.shape[0]):
+					log_array[i,:] = numpy.multiply( numpy.divide( (log_array[i,:] - this_min[i] ) , (this_max[i]-this_min[i])  ) , (new_max[i]-new_min[i]) ) + new_min[i]
+			return numpy.power(10,log_array)
+
+		def apply_gradient_log(array,factor=0.9):
+			# flip the boundary
+			tra_array = numpy.fliplr(array)
+			tra_array = numpy.flipud(tra_array)
+			tra_array = numpy.log10(tra_array)
+			# make borders in lower right
+			new_array0 = numpy.zeros(tra_array.shape)
+			new_array0[0,:] = tra_array[0,:]
+			new_array0[:,0] = tra_array[:,0]
+			new_array1 = numpy.zeros(tra_array.shape)
+			new_array1[0,:] = tra_array[0,:]
+			new_array1[:,0] = tra_array[:,0]
+			# calculate gradient
+			grad = numpy.gradient(tra_array)
+			# go from by row recalclating with adjusted gradients?
+			for i in range(1,new_array0.shape[0]):
+				for j in range(1,new_array0.shape[1]):
+					grad_0 = grad[0][i,j] + numpy.log10(factor)
+					grad_1 = grad[1][i,j] + numpy.log10(factor)
+					x0 = numpy.array([  new_array0[i-1,j]])#,  new_array[i,j-1] ])#,                  new_array[i-1,j-1]  ])
+					g0 = numpy.array([            grad_0])#,            grad_1 ])#,  numpy.linalg.norm([grad_0,grad_1])  ])
+					new_array0[i,j] = numpy.average(numpy.add(g0,x0))
+					x0 = numpy.array([  new_array1[i,j-1]])#,  new_array[i,j-1] ])#,                  new_array[i-1,j-1]  ])
+					g0 = numpy.array([            grad_1])#,            grad_1 ])#,  numpy.linalg.norm([grad_0,grad_1])  ])
+					new_array1[i,j] = numpy.average(numpy.add(g0,x0))
+			# un-flip
+			new_array = numpy.add(new_array0,new_array1)
+			plt.figure()
+			plt.imshow(new_array,interpolation='nearest',cmap=plt.get_cmap('spectral'),origin='lower')
+			plt.colorbar()
+			plt.show()
+			new_array = numpy.flipud(new_array)
+			new_array = numpy.fliplr(new_array)
+			return numpy.power(10,new_array)
 
 		#
 		# generic string writing functions
 		#
 		def make_dimension_string(a0,array0):
 			# interleave the stupid ones
-			array = numpy.array(array0)
+			array = numpy.array (array0)
 			new_array = numpy.empty((array.size*3), dtype=array.dtype)
 			new_array[0::3] = numpy.ones((array.size), dtype=array.dtype)
 			new_array[1::3] = array
@@ -436,7 +522,6 @@ class mctal:
 				string = string + "\n"
 				total_string= total_string + string
 			if len(array)%6:
-				print len(array), len(array)%6
 				string = ""
 				remaining = len(array)%6
 				last_index = (i+1)*6
@@ -487,9 +572,9 @@ class mctal:
 				else:
 					this_norm = 0.5
 				print self.tallies[tal_num].what_particles('symbol')+" values from tally %d, normed to %4.3E"%(tal_num,this_norm)
-		x_bins   =     self.tallies[check_num].objects[1]
-		y_bins   =     self.tallies[check_num].objects[2]
-		z_bins   =     self.tallies[check_num].objects[3]
+		x_bins   = numpy.array(self.tallies[check_num].objects[1])
+		y_bins   = numpy.array(self.tallies[check_num].objects[2])
+		z_bins   = numpy.array(self.tallies[check_num].objects[3])
 		n_x_bins = len(self.tallies[check_num].objects[1])-1
 		n_y_bins = len(self.tallies[check_num].objects[2])-1
 		n_z_bins = len(self.tallies[check_num].objects[3])-1
@@ -540,23 +625,43 @@ class mctal:
 							if f(xi,yi,0):
 								if twoD_values[yi,xi] < weight_cutoff[f]:
 									twoD_values[yi,xi] = weight_to
-				# compress the range
-				#weight_range = [1e-9,norms[i]]
-				#print this_particle+" : applying weight compression into range %2.1E -> %2.1E"%(weight_range[0],weight_range[1])
-				#twoD_values = compress_range(twoD_values,weight_range)
+				## rescale the weight range in an area
+				import copy
+				x_range = [-numpy.inf, -358.0]
+				y_range = [210.0, numpy.inf]
+				x_selector = numpy.where(numpy.multiply( x_bins >= x_range[0] , x_bins < x_range[1] ))[0]
+				y_selector = numpy.where(numpy.multiply( y_bins >= y_range[0] , y_bins < y_range[1] ))[0]
+				subarray = copy.deepcopy(twoD_values[y_selector[0]:y_selector[-1],x_selector[0]:x_selector[-1]])
+				plt.figure()
+				plt.imshow(subarray,interpolation='nearest',norm=LogNorm(vmin=1e-11,vmax=norms[i]),cmap=plt.get_cmap('spectral'),origin='lower')
+				plt.colorbar()
+				weight_range = [1e-11,max(subarray.flatten())]
+				print this_particle+" : applying weight rescaling into range %2.1E -> %2.1E, x=[% 2.1E, % 2.1E] y=[% 2.1E, % 2.1E]"%(weight_range[0],weight_range[1],x_range[0],x_range[1],y_range[0],y_range[1])
+				subarray = rescale_range_log(subarray, weight_range)#factor=0.1,axis=-1) 
+				plt.figure()
+				plt.imshow(subarray,interpolation='nearest',norm=LogNorm(vmin=1e-11,vmax=norms[i]),cmap=plt.get_cmap('spectral'),origin='lower')
+				plt.colorbar()
+				plt.show()
+				
+				this_plot = copy.deepcopy(twoD_values)
+				this_plot[this_plot<=0.0] = 1e-15
+				plt.figure()
+				plt.imshow(this_plot,interpolation='nearest',norm=LogNorm(vmin=1e-11,vmax=norms[i]),cmap=plt.get_cmap('spectral'),origin='lower')
+				plt.colorbar()
+				#
+				twoD_values[y_selector[0]:y_selector[-1],x_selector[0]:x_selector[-1]] = subarray
+				this_plot = copy.deepcopy(twoD_values)
+				this_plot[this_plot<=0.0] = 1e-15
+				plt.figure()
+				plt.imshow(this_plot,interpolation='nearest',norm=LogNorm(vmin=1e-11,vmax=norms[i]),cmap=plt.get_cmap('spectral'),origin='lower')
+				plt.colorbar()
+				plt.show()
 			# have to pad the damn origin
 			twoD_values = numpy.hstack( (numpy.zeros((twoD_values.shape[0],1)),twoD_values) ) 
 			twoD_values = numpy.vstack( (numpy.zeros((1,twoD_values.shape[1])),twoD_values) )
 			twoD_values = [numpy.zeros(twoD_values.shape),twoD_values]
 			# add to dict 
 			ww_arrays[this_particle] = twoD_values
-			# plot
-			if tal_num not in particle_symbols:
-				this_plot = ww_arrays[this_particle][1]
-				this_plot[this_plot<=0.0] = 1e-15
-				plt.imshow(this_plot,interpolation='nearest',norm=LogNorm(vmin=1e-9,vmax=norms[i]),cmap=plt.get_cmap('spectral'),origin='lower')
-				plt.colorbar()
-				plt.show()
 		#
 		#
 		#
