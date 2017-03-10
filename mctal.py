@@ -347,7 +347,7 @@ class mctal:
 
 
 	def write_weight_windows_from_meshtal(self,tals=False,erg=False,output='wwout',norms=False):
-		import numpy, datetime
+		import numpy, datetime, copy, os
 		import matplotlib.pyplot as plt
 		from matplotlib.colors import LogNorm
 
@@ -357,20 +357,51 @@ class mctal:
 		def elsefunction(x,y,z):
 			return True
 
-		def constraint1(x,y,z): 
-			if y<=10:
+		def constraint1_neg(x,y,z): 
+			if y<=10 and x<0:
 				return True
 			else:
 				return False
 
-		def constraint2(x,y,z): 
-			if y<=26:
+		def constraint2_neg(x,y,z): 
+			if y<=26 and x<0:
 				return True
 			else:
 				return False
 
-		def constraint3(x,y,z): 
-			if y<=50:
+		def constraint3_neg(x,y,z): 
+			if y<=50 and x<0:
+				return True
+			else:
+				return False
+
+		def constraint1_pos(x,y,z): 
+			if y<=10 and x>=0:
+				return True
+			else:
+				return False
+
+		def constraint2_pos(x,y,z): 
+			if y<=26 and x>=0:
+				return True
+			else:
+				return False
+
+		def constraint3_pos(x,y,z): 
+			if y<=50 and x>=0:
+				return True
+			else:
+				return False
+
+
+		def constraint4_neg(x,y,z): 
+			if y<=7 and x<0:
+				return True
+			else:
+				return False
+
+		def constraint4_pos(x,y,z): 
+			if y<=7 and x>=0:
 				return True
 			else:
 				return False
@@ -612,46 +643,94 @@ class mctal:
 				else:
 					# renorm so maximum (most likely the source) is 0.5
 					twoD_values = twoD_values* 0.5      / numpy.max(twoD_values.flatten())
+				#
+				#
+				this_plot = copy.deepcopy(twoD_values)
+				this_plot[this_plot<=0.0] = 1e-15
+				plt.figure()
+				plt.imshow(this_plot,interpolation='nearest',norm=LogNorm(vmin=1e-11,vmax=norms[i]),cmap=plt.get_cmap('spectral'),origin='lower')
+				plt.colorbar()
+				# save bitmap for masking
+				plt.imsave('outfile-'+this_particle+'.png', numpy.log10(this_plot),cmap=plt.get_cmap('spectral'))
+				#
+				# load mask image and apply
+				#
+				mask_file = 'mask-'+this_particle+'.png'
+				if os.path.isfile(mask_file):
+					print "applying mask from "+mask_file
+					import scipy.misc
+					image = scipy.misc.imread(mask_file)
+					mask = image[:,:,3]
+					plt.figure()
+					plt.imshow(mask,origin='lower',vmin=0,vmax=1,cmap=plt.get_cmap('spectral'))
+					# 
+					mask[mask>0]=1.0
+					twoD_values = numpy.multiply(mask,twoD_values)  # pngs the last is the alpha transpareceny layer
+				#
+				# mask out source area, then renormalize (good for central streaming area)
+				#
+				mask = numpy.ones(twoD_values.shape)
+				x_range = [-218, 156]
+				y_range = [-123, 201]
+				x_selector = numpy.where(numpy.multiply( x_bins >= x_range[0] , x_bins < x_range[1] ))[0]
+				y_selector = numpy.where(numpy.multiply( y_bins >= y_range[0] , y_bins < y_range[1] ))[0]
+				mask[y_selector[0]:y_selector[-1],x_selector[0]:x_selector[-1]]=0.0
+				twoD_values = numpy.multiply(mask,twoD_values)
+				twoD_values = twoD_values* norms[i] / numpy.max(twoD_values.flatten())
+				#
 				# apply weight cutoffs
 				print this_particle+" : applying weight cutoffs..."
 				weight_to 		= 10.0
-				weight_cutoff 	= { constraint1    :1e-6,
-				                    constraint2    :1e-7,
-				                    constraint3    :1e-8,
-				                    elsefunction   :1e-10}
+				weight_cutoff 	= {elsefunction   	  :1e-12}#,
+								   #constraint3_pos    :1e-8,
+								   #constraint1_pos    :1e-7,
+								   #constraint2_pos    :5e-7,
+								   #constraint3_neg    :1e-6, 
+								   #constraint4_neg    :1e-5, 
+								   #constraint4_pos    :1e-5, 
+								   #constraint1_neg    :1e-5, 
+								   #constraint2_neg    :5e-5}
+				#
 				for xi in range(0,n_x_bins):
 					for yi in range(0,n_y_bins):
 						for f in weight_cutoff.keys():
 							if f(xi,yi,0):
 								if twoD_values[yi,xi] < weight_cutoff[f]:
 									twoD_values[yi,xi] = weight_to
-				## rescale the weight range in an area
-				import copy
-				x_range = [-numpy.inf, -358.0]
-				y_range = [210.0, numpy.inf]
-				x_selector = numpy.where(numpy.multiply( x_bins >= x_range[0] , x_bins < x_range[1] ))[0]
-				y_selector = numpy.where(numpy.multiply( y_bins >= y_range[0] , y_bins < y_range[1] ))[0]
-				subarray = copy.deepcopy(twoD_values[y_selector[0]:y_selector[-1],x_selector[0]:x_selector[-1]])
-				plt.figure()
-				plt.imshow(subarray,interpolation='nearest',norm=LogNorm(vmin=1e-11,vmax=norms[i]),cmap=plt.get_cmap('spectral'),origin='lower')
-				plt.colorbar()
-				weight_range = [1e-11,max(subarray.flatten())]
-				print this_particle+" : applying weight rescaling into range %2.1E -> %2.1E, x=[% 2.1E, % 2.1E] y=[% 2.1E, % 2.1E]"%(weight_range[0],weight_range[1],x_range[0],x_range[1],y_range[0],y_range[1])
-				subarray = rescale_range_log(subarray, weight_range)#factor=0.1,axis=-1) 
-				plt.figure()
-				plt.imshow(subarray,interpolation='nearest',norm=LogNorm(vmin=1e-11,vmax=norms[i]),cmap=plt.get_cmap('spectral'),origin='lower')
-				plt.colorbar()
-				plt.show()
-				
-				this_plot = copy.deepcopy(twoD_values)
-				this_plot[this_plot<=0.0] = 1e-15
-				plt.figure()
-				plt.imshow(this_plot,interpolation='nearest',norm=LogNorm(vmin=1e-11,vmax=norms[i]),cmap=plt.get_cmap('spectral'),origin='lower')
-				plt.colorbar()
+				# mask again to make sure the area isn't rescaled to the weight_to value!
+				twoD_values = numpy.multiply(mask,twoD_values)
 				#
-				twoD_values[y_selector[0]:y_selector[-1],x_selector[0]:x_selector[-1]] = subarray
+				#
+				## rescale the weight range in an area
+				#x_range = [-numpy.inf, -358.0]
+				#y_range = [210.0, numpy.inf]
+				#x_selector = numpy.where(numpy.multiply( x_bins >= x_range[0] , x_bins < x_range[1] ))[0]
+				#y_selector = numpy.where(numpy.multiply( y_bins >= y_range[0] , y_bins < y_range[1] ))[0]
+				#subarray = copy.deepcopy(twoD_values[y_selector[0]:y_selector[-1],x_selector[0]:x_selector[-1]])
+				#plt.figure()
+				#plt.imshow(subarray,interpolation='nearest',norm=LogNorm(vmin=1e-11,vmax=norms[i]),cmap=plt.get_cmap('spectral'),origin='lower')
+				#plt.colorbar()
+				#weight_range = [1e-11,max(subarray.flatten())]
+				#print this_particle+" : applying weight rescaling into range %2.1E -> %2.1E, x=[% 2.1E, % 2.1E] y=[% 2.1E, % 2.1E]"%(weight_range[0],weight_range[1],x_range[0],x_range[1],y_range[0],y_range[1])
+				#subarray = rescale_range_log(subarray, weight_range)#factor=0.1,axis=-1) 
+				#plt.figure()
+				#plt.imshow(subarray,interpolation='nearest',norm=LogNorm(vmin=1e-11,vmax=norms[i]),cmap=plt.get_cmap('spectral'),origin='lower')
+				#plt.colorbar()
+				#plt.show()
+				#
+				#this_plot = copy.deepcopy(twoD_values)
+				#this_plot[this_plot<=0.0] = 1e-15
+				#plt.figure()
+				#plt.imshow(this_plot,interpolation='nearest',norm=LogNorm(vmin=1e-11,vmax=norms[i]),cmap=plt.get_cmap('spectral'),origin='lower')
+				#plt.colorbar()
+				#
+				#twoD_values[y_selector[0]:y_selector[-1],x_selector[0]:x_selector[-1]] = subarray
+				#
+				#
+				#
+				#
 				this_plot = copy.deepcopy(twoD_values)
-				this_plot[this_plot<=0.0] = 1e-15
+				#this_plot[this_plot<=0.0] = 1e-15
 				plt.figure()
 				plt.imshow(this_plot,interpolation='nearest',norm=LogNorm(vmin=1e-11,vmax=norms[i]),cmap=plt.get_cmap('spectral'),origin='lower')
 				plt.colorbar()
