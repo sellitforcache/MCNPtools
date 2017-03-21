@@ -205,6 +205,30 @@ class tally:
 				else:
 					print "DATA LENGHTH NOT EVENLY DIVISIBLE BY COARSEN FACTOR, IGNORING..."
 
+		### despike data?  parse format
+		for opt in options:
+			res = re.match('despike',opt)
+			if res:
+				coarsen_opts = opt.split('=')
+				if len(coarsen_opts)==1:
+					factor = 2
+				elif len(coarsen_opts)==2:
+					factor = float(coarsen_opts[1])
+				else:
+					factor = float(coarsen_opts[1])
+					print "MULTIPLE = SIGNS IN DESPIKE.  WHY?  ACCEPTING FIRST VALUE."
+				print "data that is greater than %2.1E times neightboring bins replaced with neighboring bin average ..."%factor
+				label = label + ' DESPIKE FACTOR %2.1E '%factor
+				for i in range(0, len(values)):
+					if i==0:
+						avg=values[i+1]
+					elif i==len(values)-1:
+						avg=values[i-1]
+					else:
+						avg=(values[i-1]+values[i+1])/2.0
+					if values[i]>=factor*avg:
+						values[i]=avg
+
 		### make rectangles
 		x=[]
 		y=[]

@@ -679,24 +679,26 @@ class mctal:
 				twoD_values = twoD_values* norms[i] / numpy.max(twoD_values.flatten())
 				#
 				# apply weight cutoffs
-				print this_particle+" : applying weight cutoffs..."
 				weight_to 		= 10.0
-				weight_cutoff 	= {elsefunction   	  :1e-12}#,
-								   #constraint3_pos    :1e-8,
-								   #constraint1_pos    :1e-7,
-								   #constraint2_pos    :5e-7,
-								   #constraint3_neg    :1e-6, 
-								   #constraint4_neg    :1e-5, 
-								   #constraint4_pos    :1e-5, 
-								   #constraint1_neg    :1e-5, 
-								   #constraint2_neg    :5e-5}
+				this_plot[this_plot<=1e-12] = weight_to
+				#print this_particle+" : applying weight cutoffs..."
+				#weight_cutoff 	= {elsefunction   	  :1e-12},
+				#				   constraint3_pos    :1e-8,
+				#				   constraint1_pos    :1e-7,
+				#				   constraint2_pos    :5e-7,
+				#				   constraint3_neg    :1e-6, 
+				#				   constraint4_neg    :1e-5, 
+				#				   constraint4_pos    :1e-5, 
+				#				   constraint1_neg    :1e-5, 
+				#				   constraint2_neg    :5e-5}
+				##
+				#for xi in range(0,n_x_bins):
+				#	for yi in range(0,n_y_bins):
+				#		for f in weight_cutoff.keys():
+				#			if f(xi,yi,0):
+				#				if twoD_values[yi,xi] < weight_cutoff[f]:
+				#					twoD_values[yi,xi] = weight_to
 				#
-				for xi in range(0,n_x_bins):
-					for yi in range(0,n_y_bins):
-						for f in weight_cutoff.keys():
-							if f(xi,yi,0):
-								if twoD_values[yi,xi] < weight_cutoff[f]:
-									twoD_values[yi,xi] = weight_to
 				# mask again to make sure the area isn't rescaled to the weight_to value!
 				twoD_values = numpy.multiply(mask,twoD_values)
 				#
