@@ -652,35 +652,17 @@ class mctal:
 				plt.colorbar()
 				# save bitmap for masking
 				plt.imsave('outfile-'+this_particle+'.png', numpy.log10(this_plot),cmap=plt.get_cmap('spectral'))
-				#
-				# load mask image and apply
-				#
-				mask_file = 'mask-'+this_particle+'.png'
-				if os.path.isfile(mask_file):
-					print "applying mask from "+mask_file
-					import scipy.misc
-					image = scipy.misc.imread(mask_file)
-					mask = image[:,:,3]
-					plt.figure()
-					plt.imshow(mask,origin='lower',vmin=0,vmax=1,cmap=plt.get_cmap('spectral'))
-					# 
-					mask[mask>0]=1.0
-					twoD_values = numpy.multiply(mask,twoD_values)  # pngs the last is the alpha transpareceny layer
-				#
 				# mask out source area, then renormalize (good for central streaming area)
 				#
 				mask = numpy.ones(twoD_values.shape)
-				x_range = [-218, 156]
-				y_range = [-123, 201]
+				x_range = [-178, 690 ]#[-218, 156]
+				y_range = [-120, 200 ]#[-123, 201]
 				x_selector = numpy.where(numpy.multiply( x_bins >= x_range[0] , x_bins < x_range[1] ))[0]
 				y_selector = numpy.where(numpy.multiply( y_bins >= y_range[0] , y_bins < y_range[1] ))[0]
 				mask[y_selector[0]:y_selector[-1],x_selector[0]:x_selector[-1]]=0.0
 				twoD_values = numpy.multiply(mask,twoD_values)
 				twoD_values = twoD_values* norms[i] / numpy.max(twoD_values.flatten())
 				#
-				# apply weight cutoffs
-				weight_to 		= 10.0
-				this_plot[this_plot<=1e-12] = weight_to
 				#print this_particle+" : applying weight cutoffs..."
 				#weight_cutoff 	= {elsefunction   	  :1e-12},
 				#				   constraint3_pos    :1e-8,
@@ -699,8 +681,27 @@ class mctal:
 				#				if twoD_values[yi,xi] < weight_cutoff[f]:
 				#					twoD_values[yi,xi] = weight_to
 				#
-				# mask again to make sure the area isn't rescaled to the weight_to value!
-				twoD_values = numpy.multiply(mask,twoD_values)
+				#
+				# load mask image and apply
+				#
+				mask_file = 'mask-'+this_particle+'.png'
+				if os.path.isfile(mask_file):
+					print "applying mask from "+mask_file
+					import scipy.misc
+					image = scipy.misc.imread(mask_file)
+					mask = image[:,:,3]
+					plt.figure()
+					plt.imshow(mask,origin='lower',vmin=0,vmax=1,cmap=plt.get_cmap('spectral'))
+					# 
+					mask[mask>0]=1.0
+					twoD_values = numpy.multiply(mask,twoD_values)  # pngs the last is the alpha transpareceny layer
+					#
+					# apply cutoff for the spatial mask
+					weight_to 		= 10.0
+					# invert mask and add
+					mask = (mask - 1.0) * -weight_to
+					twoD_values = numpy.add(mask,twoD_values)  # pngs the last is the alpha transpareceny layer
+				#
 				#
 				#
 				## rescale the weight range in an area
