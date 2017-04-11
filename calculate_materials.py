@@ -746,6 +746,13 @@ He.atom_fractions[2004]=0.99999863
 He.mass_density=0.00018
 He.finalize()
 
+
+# helium
+He3=mixture('He3')
+He3.atom_fractions[2003]=1
+He3.mass_density=0.0001248
+He3.finalize()
+
 # lithium
 Li=mixture('Li')
 Li.atom_fractions[3006]=7.59

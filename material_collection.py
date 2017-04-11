@@ -726,3 +726,13 @@ dryair.add_mixture('N' , 0.784431, mode='atom')
 dryair.add_mixture('O' , 0.210748, mode='atom')
 dryair.add_mixture('Ar', 0.004671, mode='atom')
 dryair.finalize()
+
+
+#
+#  low efficiency He3 counter
+#
+low_eff_he3 = calculate_materials.mixture('low eff he3')
+low_eff_he3.mass_density=3.485e-3
+low_eff_he3.add_mixture('Kr'  , 500., mode='atom')
+low_eff_he3.add_mixture('He3' ,   1., mode='atom')
+low_eff_he3.finalize()
