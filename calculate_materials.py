@@ -79,14 +79,28 @@ class mixture(object):
 		self.__init__(self.name)
 		if verbose: print "removed element %s from the class dictionary and re-initialized all data.  the instance has not necessarily been deleted from the python namespace yet!"%self.name
 
-	def finalize(self):
+	def calc_mass_density(self,constant='volume',total_pressure=1.0,temp=293.15):
+		if constant != 'volume':
+			print "only constant volume density calculations supported, aborting."
+			return
+		#
+		R = 82.057 # cm3 amt / (k mol)
+		m_avg = 0.0
+		for isotope in self.atom_fractions.keys():
+			m_avg = m_avg + self.atom_fractions[isotope] * amu[isotope]
+		#
+		self.mass_density = m_avg * total_pressure / ( R * temp )
+		print "c !!!!!CALCULATED MASS DENSITY LIKE A GAS: constant volume, %3.2f atm total pressure, %4.2f K"%(total_pressure,temp)
+
+
+	def finalize(self,constant='volume',total_pressure=1.0,temp=293.15):
 		import numpy
 
 		if self.mode == 'atom':
 			# check that there is a mass density present (mass densities of input mixtures is not used)
-			if self.mass_density==0.0:
-				print "mass density needs to be input to finalize, aborting."
-				return
+			#if self.mass_density==0.0:
+				#print "mass density needs to be input to finalize, aborting."
+				#return
 			# check that there is a nonzero list of mixtures
 			if len(self.mixtures_list)==0:
 				print "no mixtures in list while in %s mode, aborting."%self.mode
@@ -107,6 +121,7 @@ class mixture(object):
 			# calculate the mixture mass factions
 			for i in range(0,len(self.mixtures_list)):
 				self.mixtures_list[i][2] = self.mixtures_list[i][0].avg_amu * self.mixtures_list[i][1] / mix_avg_amu
+			#
 			# calculate the mixture volume, if the densities are conserved
 			mix_vol = 0.0
 			for i in range(0,len(self.mixtures_list)):
@@ -116,6 +131,9 @@ class mixture(object):
 				self.mixtures_list[i][3] = self.mixtures_list[i][2]/self.mixtures_list[i][0].mass_density / mix_vol
 			# make full isotope list
 			self.make_isotope_lists_from_mixture_list()
+			# calculate mass density if not given, gas-like
+			if self.mass_density==0.0:
+				self.calc_mass_density(constant=constant,total_pressure=total_pressure,temp=temp)
 
 		elif self.mode == 'mass':
 			# check that there is a mass density present (mass densities of input mixtures is not used)
