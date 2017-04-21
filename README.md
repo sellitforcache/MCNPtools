@@ -1,16 +1,6 @@
 MCNPtools
 ========
-**Ryan M. Bergmann, Paul Scherrer Institut, Dec. 10, 2014.**
+** Ryan M. Bergmann, Paul Scherrer Institut, Dec. 10, 2014... but updated all the time! **
 
-Python scripts that are useful for building MCNP geometries and analyzing results.
+Python scripts that are useful analyzing MCNP results and creating some ww for inputs in new runs.
 
-### USAGE:
-
-Arguments:
-- input_file:   
-- output_file:   
-
-Example:
-``` bash
-$ ./makeCyl.py
-```
