@@ -492,6 +492,9 @@ class tally:
 			plt.rc('font', family='serif')
 			plt.rc('font', size=16)
 
+		### color scheme
+		plt.style.use('ggplot')
+
 		### init axes if not passed one
 		if ax:
 			show = False

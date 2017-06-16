@@ -655,8 +655,8 @@ class mctal:
 				# mask out source area, then renormalize (good for central streaming area)
 				#
 				mask = numpy.ones(twoD_values.shape)
-				x_range = [-178, 690 ]#[-218, 156]
-				y_range = [-120, 200 ]#[-123, 201]
+				x_range = [-523+85, 335 ]#[-218, 156]
+				y_range = [-120, 251 ]   #[-123, 201]
 				x_selector = numpy.where(numpy.multiply( x_bins >= x_range[0] , x_bins < x_range[1] ))[0]
 				y_selector = numpy.where(numpy.multiply( y_bins >= y_range[0] , y_bins < y_range[1] ))[0]
 				mask[y_selector[0]:y_selector[-1],x_selector[0]:x_selector[-1]]=0.0
