@@ -272,9 +272,10 @@ for i in range(1,len(sys.argv)):
 
 # calculate total normalization factors
 additive = 0.0
-total_weight_total = 0.0
+total_weight_per_nps_total = 0.0
 for d in source_list:
-    total_weight_total = total_weight_total + d['total_weight'] 
+	total_weight_per_nps_total = total_weight_per_nps_total + d['total_weight']/d['surface_nps']
+
 
 # make the unrolled vector lists
 for j in range(0,len(source_list)):
@@ -305,15 +306,18 @@ for j in range(0,len(source_list)):
 	histograms_flux		= d['histograms_flux']
 	histograms_wght		= d['histograms_wght']
 	spec_res 			= d['spec_res']
-	print "total weight on surface %5d = %6.5E"%(this_sc,total_weight)
-	print "fractional weight on surface %5d = %6.5E"%(this_sc,total_weight/total_weight_total)
+
+	total_weight_per_nps = total_weight/surface_nps 
+	print "nps on surface", surface_nps
+	print "total weight on surface %5d = %6.5E"%(this_sc,total_weight_per_nps)
+	print "fractional weight on surface %5d = %6.5E"%(this_sc,total_weight_per_nps/total_weight_per_nps_total)
 
 	cosine_bins = numpy.cos(theta_bins)
 
 	# xfrm (main index)
 	for i in range(0,(len(cosine_bins)-1)):
 		xfrm_bins_total.append(j+xfrm_starting_index)
-		xfrm_values_total.append(dist[i][0]/total_weight_total)
+		xfrm_values_total.append(dist[i][0]/total_weight_per_nps_total)  # ugh so confusing, this has already been divided by nps at this point!  dists are always nps, the total_weight is NOT normalized!
 
 	surface_rotation_xy.append(numpy.arctan(surface_normal[1]/surface_normal[0])*180.0/numpy.pi)
 	surface_centers.append(surface_center)
@@ -374,7 +378,7 @@ f.write('        erg=ftr=d3\n')
 f.write('        x=0.0\n')
 f.write('        y=ftr=d4\n')
 f.write('        z=ftr=d5\n')
-f.write('        wgt=%10.8E\n'%(total_weight_total/surface_nps))
+f.write('        wgt=%10.8E\n'%(total_weight_per_nps_total))
 f.write('c \n')
 f.write('c TRANSFORMS\n')
 f.write('c \n')
