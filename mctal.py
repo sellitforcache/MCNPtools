@@ -347,7 +347,7 @@ class mctal:
 
 
 	def write_weight_windows_from_meshtal(self,tals=False,erg=False,output='wwout',norms=False):
-		import numpy, datetime, copy, os
+		import numpy, datetime, copy, os, cPickle
 		import matplotlib.pyplot as plt
 		from matplotlib.colors import LogNorm
 
@@ -612,6 +612,7 @@ class mctal:
 		n_particles = len(tals)
 		e_bins = [7000.]  # only upper
 		n_e_bins = 1
+		limits_old = []
 		#
 		ww_arrays = {}
 		for i in range(0,n_particles):
@@ -621,17 +622,32 @@ class mctal:
 				this_particle = tal_num
 			else:
 				#
-				# check if a image file exists, use it
+				# check if a image file exists, use it if there.  
 				#
 				this_particle = self.tallies[tal_num].what_particles('symbol')
-				map_file = 'map-'+this_particle+'.png'
+				map_file  = 'map-'+this_particle+'.png'
+				lims_file = 'map-'+this_particle+'.lims'
 				if os.path.isfile(map_file):
 					print "overriding flux with map from "+map_file
 					import scipy.misc
-					image = scipy.misc.imread(map_file)
-					twoD_values = image
+					if os.path.isfile(lims_file):
+						flims = open(lims_file,'r')
+						lims_new = cPickle.load(flims)
+						flims.close()
+					else:
+						print "ERROR - limits file '%s' does not exist!"%lims_file
+						return
+					# image file saved in log scale...
+					twoD_values = scipy.misc.imread(map_file,mode='F')
+					# adjust so max is 1 
+					lims_img = [twoD_values.min(),twoD_values.max()]
+					lims_new = numpy.log10([7.5571E-19  ,  2.8899E-04])
+					mult = (lims_new[1]-lims_new[0])/(lims_img[1]-lims_img[0])
+					twoD_values = ( twoD_values - lims_img[1]) * mult + lims_new[1]
+					# return to linear scale
+					twoD_values = numpy.power(10.,twoD_values)
 					plt.figure()
-					plt.imshow(twoD_values,origin='lower',vmin=0,vmax=1,cmap=plt.get_cmap('spectral'))
+					plt.imshow(twoD_values,origin='lower',cmap=plt.get_cmap('spectral'))
 				else:
 					# read in value
 					combined_values = numpy.zeros((n_e_bins,n_z_bins,n_y_bins,n_x_bins))
@@ -646,15 +662,21 @@ class mctal:
 					twoD_values=numpy.zeros((n_y_bins,n_x_bins))
 					for z_dex in range(0,n_z_bins):
 						twoD_values[:,:]=threeD_values[z_dex,:,:]+twoD_values[:,:]
+					#
+					limits_old = [ twoD_values[twoD_values>0.0].min() , twoD_values.max() ]
+					print "writign limits to '%s'"%lims_file
+					flims=open(lims_file,'w')
+					cPickle.dump(limits_old,flims)
+					flims.close()
 					# invert the values? no! want to flatten population! just rescale so maximum is 1
-					#  replace Inf with zeros
-					twoD_values[          twoD_values == numpy.inf] = 0.0
-					# reform to specified norm
-					if norms:
-						twoD_values = twoD_values* norms[i] / numpy.max(twoD_values.flatten())
-					else:
-						# renorm so maximum (most likely the source) is 0.5
-						twoD_values = twoD_values* 0.5      / numpy.max(twoD_values.flatten())
+				#  replace Inf with zeros
+				twoD_values[          twoD_values == numpy.inf] = 0.0
+				# reform to specified norm
+				if norms:
+					twoD_values = twoD_values* norms[i] / numpy.max(twoD_values.flatten())
+				else:
+					# renorm so maximum (most likely the source) is 0.5
+					twoD_values = twoD_values* 0.5      / numpy.max(twoD_values.flatten())
 				# 
 				# renorm and mask source
 				#
@@ -665,6 +687,8 @@ class mctal:
 				plt.colorbar()
 				# save bitmap for masking
 				plt.imsave('outfile-'+this_particle+'.png', numpy.log10(this_plot),cmap=plt.get_cmap('spectral'))
+				# save grayscale image for map modifications
+				plt.imsave(    'map-'+this_particle+'.png', numpy.log10(this_plot),cmap=plt.get_cmap('gray'))
 				# mask out source area, then renormalize (good for central streaming area)
 				#
 				mask = numpy.ones(twoD_values.shape)
