@@ -620,30 +620,43 @@ class mctal:
 				twoD_values=numpy.zeros((n_y_bins,n_x_bins))
 				this_particle = tal_num
 			else:
-				# read in value
-				this_particle = self.tallies[tal_num].what_particles('symbol')
-				combined_values = numpy.zeros((n_e_bins,n_z_bins,n_y_bins,n_x_bins))
-				e_dex=0
-				for z_dex in range(0,n_z_bins):
-					combined_values[e_dex,z_dex,:,:] = combined_values[e_dex,z_dex,:,:,] + self.tallies[tal_num].vals[0][z_dex]['data']
-				# sum energies if asked to combine
-				threeD_values=numpy.zeros((n_z_bins,n_y_bins,n_x_bins))
-				for e_dex in range(0,n_e_bins):
-					threeD_values[:,:,:]=threeD_values[:,:,:]+combined_values[e_dex,:,:,:]
-				# sum z values?
-				twoD_values=numpy.zeros((n_y_bins,n_x_bins))
-				for z_dex in range(0,n_z_bins):
-					twoD_values[:,:]=threeD_values[z_dex,:,:]+twoD_values[:,:]
-				# invert the values? no! want to flatten population! just rescale so maximum is 1
-				#  replace Inf with zeros
-				twoD_values[          twoD_values == numpy.inf] = 0.0
-				# reform to specified norm
-				if norms:
-					twoD_values = twoD_values* norms[i] / numpy.max(twoD_values.flatten())
-				else:
-					# renorm so maximum (most likely the source) is 0.5
-					twoD_values = twoD_values* 0.5      / numpy.max(twoD_values.flatten())
 				#
+				# check if a image file exists, use it
+				#
+				this_particle = self.tallies[tal_num].what_particles('symbol')
+				map_file = 'map-'+this_particle+'.png'
+				if os.path.isfile(map_file):
+					print "overriding flux with map from "+map_file
+					import scipy.misc
+					image = scipy.misc.imread(map_file)
+					twoD_values = image
+					plt.figure()
+					plt.imshow(twoD_values,origin='lower',vmin=0,vmax=1,cmap=plt.get_cmap('spectral'))
+				else:
+					# read in value
+					combined_values = numpy.zeros((n_e_bins,n_z_bins,n_y_bins,n_x_bins))
+					e_dex=0
+					for z_dex in range(0,n_z_bins):
+						combined_values[e_dex,z_dex,:,:] = combined_values[e_dex,z_dex,:,:,] + self.tallies[tal_num].vals[0][z_dex]['data']
+					# sum energies if asked to combine
+					threeD_values=numpy.zeros((n_z_bins,n_y_bins,n_x_bins))
+					for e_dex in range(0,n_e_bins):
+						threeD_values[:,:,:]=threeD_values[:,:,:]+combined_values[e_dex,:,:,:]
+					# sum z values?
+					twoD_values=numpy.zeros((n_y_bins,n_x_bins))
+					for z_dex in range(0,n_z_bins):
+						twoD_values[:,:]=threeD_values[z_dex,:,:]+twoD_values[:,:]
+					# invert the values? no! want to flatten population! just rescale so maximum is 1
+					#  replace Inf with zeros
+					twoD_values[          twoD_values == numpy.inf] = 0.0
+					# reform to specified norm
+					if norms:
+						twoD_values = twoD_values* norms[i] / numpy.max(twoD_values.flatten())
+					else:
+						# renorm so maximum (most likely the source) is 0.5
+						twoD_values = twoD_values* 0.5      / numpy.max(twoD_values.flatten())
+				# 
+				# renorm and mask source
 				#
 				this_plot = copy.deepcopy(twoD_values)
 				this_plot[this_plot<=0.0] = 1e-15
@@ -655,8 +668,8 @@ class mctal:
 				# mask out source area, then renormalize (good for central streaming area)
 				#
 				mask = numpy.ones(twoD_values.shape)
-				x_range = [-178, 690 ]#[-218, 156]
-				y_range = [-120, 200 ]#[-123, 201]
+				x_range = [-178, 690 ]#[-219, 156]#[-523, 156]#
+				y_range = [-120, 200 ]#[-123, 201]#[-123, 201]#
 				x_selector = numpy.where(numpy.multiply( x_bins >= x_range[0] , x_bins < x_range[1] ))[0]
 				y_selector = numpy.where(numpy.multiply( y_bins >= y_range[0] , y_bins < y_range[1] ))[0]
 				mask[y_selector[0]:y_selector[-1],x_selector[0]:x_selector[-1]]=0.0

@@ -1,5 +1,5 @@
-#! /usr/local/bin/python -W ignore
 #! /home/l_bergmann/anaconda/bin/python -W ignore
+#  /usr/local/bin/python -W ignore
 #
 # ss2dist, the MCNP surface source to histogram distribution maker
 # Ryan M. Bergmann, March 2015 
@@ -13,9 +13,9 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.colors as colors
 import matplotlib.cm as cmx
 from matplotlib import gridspec
-from MCNPtools import to_energy
-from MCNPtools import to_temperature
-from MCNPtools import to_wavelength
+from MCNPtools.to_energy import to_energy
+from MCNPtools.to_temperature import to_temperature
+from MCNPtools.to_wavelength import to_wavelength
 from scipy.integrate import quad
 
 class SourceSurf(object):
@@ -1294,7 +1294,8 @@ if typeflag:
 		E_bins   = numpy.power(10.0,numpy.linspace( -11, numpy.log10(600), spec_res+1))
 		x_bins   = numpy.linspace(-26,26,27)
 		y_bins   = numpy.linspace(-10,10,11)
-		theta_bins = numpy.hstack((numpy.linspace(0.0,10.0,21),numpy.array([90.0])))*numpy.pi/180.0
+		#theta_bins = numpy.hstack((numpy.linspace(0.0,10.0,21),numpy.array([90.0])))*numpy.pi/180.0
+		theta_bins = numpy.array([0.0,8.0,90])*numpy.pi/180.0
 		cosine_bins = numpy.cos(theta_bins)[::-1]
 		dist     = []
 		#  surface plane parameters
