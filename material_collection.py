@@ -260,6 +260,21 @@ glass_borosilicate.add_mixture( 'K ', 0.003321, mode='mass')
 glass_borosilicate.finalize()
 
 #
+# borosilicate glass PSI from NAA irradiation
+#
+glass_borosilicate_PSI = calculate_materials.mixture('Borosilicate Glass PSI NAA')
+glass_borosilicate_PSI.mass_density=2.23
+glass_borosilicate_PSI.add_mixture( 'B ', 0.040066,  mode='mass')
+glass_borosilicate_PSI.add_mixture( 'O ', 0.539559,  mode='mass')
+glass_borosilicate_PSI.add_mixture( 'Na', 0.028191,  mode='mass')
+glass_borosilicate_PSI.add_mixture( 'Al', 0.011644,  mode='mass')
+glass_borosilicate_PSI.add_mixture( 'Si', 0.377220,  mode='mass')
+glass_borosilicate_PSI.add_mixture( 'K ', 0.003321,  mode='mass')
+glass_borosilicate_PSI.add_mixture( 'Sc', 0.58*1e-6, mode='mass') 
+glass_borosilicate_PSI.add_mixture( 'La', 3.87*1e-6, mode='mass')
+glass_borosilicate_PSI.finalize()
+
+#
 # plate glass
 #
 glass_plate = calculate_materials.mixture('Plate Glass')
@@ -269,6 +284,41 @@ glass_plate.add_mixture(  'Na', 0.096441, mode='mass')
 glass_plate.add_mixture(  'Si', 0.336553, mode='mass') 
 glass_plate.add_mixture(  'Ca', 0.107205, mode='mass')
 glass_plate.finalize()
+
+#
+# plate glass PSI from NAA irradiation
+#
+glass_plate_PSI = calculate_materials.mixture('Plate Glass PSI NAA')
+glass_plate_PSI.mass_density=2.40
+glass_plate_PSI.add_mixture(  'O ', 0.459800,  mode='mass') 
+glass_plate_PSI.add_mixture(  'Na', 0.096441,  mode='mass') 
+glass_plate_PSI.add_mixture(  'Si', 0.336553,  mode='mass') 
+glass_plate_PSI.add_mixture(  'Ca', 0.107205,  mode='mass')
+glass_plate_PSI.add_mixture(  'Sc', 0.58*1e-6, mode='mass') 
+glass_plate_PSI.add_mixture(  'La', 3.87*1e-6, mode='mass')
+glass_plate_PSI.finalize()
+
+
+#
+# m=2 guide layers
+#
+guide_layers = calculate_materials.mixture('Guide Layers')
+guide_layers.mass_density=2.40
+guide_layers.add_mixture(  'Ni', 7.07348E-01,   mode='volume') 
+guide_layers.add_mixture(  'Ti', 2.92652E-01,   mode='volume') 
+guide_layers.finalize()
+
+
+#
+# m=2 guide layers, PSI from NAA irradiation
+#
+guide_layers_PSI = calculate_materials.mixture('Guide Layers PSI NAA')
+guide_layers_PSI.mass_density=2.40
+guide_layers_PSI.add_mixture(  'Ni', 0.82573012,   mode='mass') 
+guide_layers_PSI.add_mixture(  'Ti', 0.17426988,   mode='mass') 
+guide_layers_PSI.add_mixture(  'Co', 5.96*1e-6,    mode='mass') 
+guide_layers_PSI.add_mixture(  'Cr', 8000*1e-6,    mode='mass') 
+guide_layers_PSI.finalize()
 
 #
 # Schrottbeton/heavy concrete/heavy mortar
