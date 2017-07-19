@@ -693,7 +693,7 @@ borax.finalize()
 #
 #  light water 
 #
-light_water = calculate_materials.mixture('light_water')
+light_water = calculate_materials.mixture('light water')
 light_water.add_mixture( 'O', 1.0, mode='atom')
 light_water.add_mixture( 'H', 2.0, mode='atom')
 light_water.mass_density=1.0
@@ -776,6 +776,15 @@ dryair.add_mixture('N' , 0.784431, mode='atom')
 dryair.add_mixture('O' , 0.210748, mode='atom')
 dryair.add_mixture('Ar', 0.004671, mode='atom')
 dryair.finalize()
+
+#
+#  45% RH air @ 24 degC
+#
+air_45RH_24C = calculate_materials.mixture('air 45RH 24C')
+air_45RH_24C.mass_density=0.0011935
+air_45RH_24C.add_mixture('dry air'     , 0.99172, mode='mass')
+air_45RH_24C.add_mixture('light water' , 0.00828, mode='mass')
+air_45RH_24C.finalize()
 
 
 #
