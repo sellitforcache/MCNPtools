@@ -642,7 +642,7 @@ class mctal:
 					# adjust so max is 1 
 					lims_img = [twoD_values.min(),twoD_values.max()]
 					lims_new = numpy.log10([7.5571E-19  ,  2.8899E-04])
-					mult = (lims_new[1]-lims_new[0])/(lims_img[1]-lims_img[0])
+					mult = (lims_new[1]-lims_new[0])/(lims_img[1]-lims_img[0])`
 					twoD_values = ( twoD_values - lims_img[1]) * mult + lims_new[1]
 					# return to linear scale
 					twoD_values = numpy.power(10.,twoD_values)
@@ -660,11 +660,11 @@ class mctal:
 						threeD_values[:,:,:]=threeD_values[:,:,:]+combined_values[e_dex,:,:,:]
 					# sum z values?
 					twoD_values=numpy.zeros((n_y_bins,n_x_bins))
-					for z_dex in range(0,n_z_bins):
+					for z_dex in [15,16,17]:#range(0,n_z_bins):
 						twoD_values[:,:]=threeD_values[z_dex,:,:]+twoD_values[:,:]
 					#
 					limits_old = [ twoD_values[twoD_values>0.0].min() , twoD_values.max() ]
-					print "writign limits to '%s'"%lims_file
+					print "writing limits to '%s'"%lims_file
 					flims=open(lims_file,'w')
 					cPickle.dump(limits_old,flims)
 					flims.close()
@@ -672,6 +672,8 @@ class mctal:
 				#  replace Inf with zeros
 				twoD_values[          twoD_values == numpy.inf] = 0.0
 				# reform to specified norm
+				#if this_particle=='h':
+				#	twoD_values = numpy.ones(twoD_values.shape)
 				if norms:
 					twoD_values = twoD_values* norms[i] / numpy.max(twoD_values.flatten())
 				else:
@@ -681,9 +683,9 @@ class mctal:
 				# renorm and mask source
 				#
 				this_plot = copy.deepcopy(twoD_values)
-				this_plot[this_plot<=0.0] = 1e-15
+				this_plot[this_plot<=1e-25] = 1e-25
 				plt.figure()
-				plt.imshow(this_plot,interpolation='nearest',norm=LogNorm(vmin=1e-11,vmax=norms[i]),cmap=plt.get_cmap('spectral'),origin='lower')
+				plt.imshow(this_plot,interpolation='nearest',norm=LogNorm(),cmap=plt.get_cmap('spectral'),origin='lower')
 				plt.colorbar()
 				# save bitmap for masking
 				plt.imsave('outfile-'+this_particle+'.png', numpy.log10(this_plot),cmap=plt.get_cmap('spectral'))
@@ -691,14 +693,24 @@ class mctal:
 				plt.imsave(    'map-'+this_particle+'.png', numpy.log10(this_plot),cmap=plt.get_cmap('gray'))
 				# mask out source area, then renormalize (good for central streaming area)
 				#
-				mask = numpy.ones(twoD_values.shape)
-				x_range = [-178, 690 ]#[-219, 156]#[-523, 156]#
-				y_range = [-120, 200 ]#[-123, 201]#[-123, 201]#
-				x_selector = numpy.where(numpy.multiply( x_bins >= x_range[0] , x_bins < x_range[1] ))[0]
-				y_selector = numpy.where(numpy.multiply( y_bins >= y_range[0] , y_bins < y_range[1] ))[0]
-				mask[y_selector[0]:y_selector[-1],x_selector[0]:x_selector[-1]]=0.0
-				twoD_values = numpy.multiply(mask,twoD_values)
-				twoD_values = twoD_values* norms[i] / numpy.max(twoD_values.flatten())
+				# mask = numpy.ones(twoD_values.shape)
+				# x_range = [-178, 690 ]#[-219, 156]#[-523, 156]#
+				# y_range = [-120, 200 ]#[-123, 201]#[-123, 201]#
+				# x_selector = numpy.where(numpy.multiply( x_bins >= x_range[0] , x_bins < x_range[1] ))[0]
+				# y_selector = numpy.where(numpy.multiply( y_bins >= y_range[0] , y_bins < y_range[1] ))[0]
+				# mask[y_selector[0]:y_selector[-1],x_selector[0]:x_selector[-1]]=0.0
+				# twoD_values = numpy.multiply(mask,twoD_values)
+				# twoD_values = twoD_values* norms[i] / numpy.max(twoD_values.flatten())
+				#
+				#
+				# convolve to smooth if grid is fine
+				from scipy.signal import convolve2d
+				n=7
+				filt = numpy.ones((n,n))/(n*n)
+				twoD_values = convolve2d(twoD_values,filt,boundary='symm',mode='same') 
+				twoD_values[twoD_values<=1e-25] = 1e-25
+				#
+				#
 				#
 				#print this_particle+" : applying weight cutoffs..."
 				#weight_cutoff 	= {elsefunction   	  :1e-12},
@@ -772,7 +784,7 @@ class mctal:
 				this_plot = copy.deepcopy(twoD_values)
 				#this_plot[this_plot<=0.0] = 1e-15
 				plt.figure()
-				plt.imshow(this_plot,interpolation='nearest',norm=LogNorm(vmin=1e-11,vmax=norms[i]),cmap=plt.get_cmap('spectral'),origin='lower')
+				plt.imshow(this_plot,interpolation='nearest',norm=LogNorm(),cmap=plt.get_cmap('spectral'),origin='lower')
 				plt.colorbar()
 				plt.show()
 			# have to pad the damn origin
