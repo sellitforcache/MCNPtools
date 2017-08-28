@@ -786,6 +786,14 @@ air_45RH_24C.add_mixture('dry air'     , 0.99172, mode='mass')
 air_45RH_24C.add_mixture('light water' , 0.00828, mode='mass')
 air_45RH_24C.finalize()
 
+#
+# pure He3
+#
+He3=calculate_materials.mixture('He3')
+He3.atom_fractions[2003]=1.0
+He3.mass_density=0.00018
+He3.finalize()
+
 
 #
 #  low efficiency He3 counter
@@ -795,3 +803,12 @@ low_eff_he3.mass_density=3.485e-3
 low_eff_he3.add_mixture('Kr'  , 500., mode='atom')
 low_eff_he3.add_mixture('He3' ,   1., mode='atom')
 low_eff_he3.finalize()
+
+#
+#  normal efficiency He3 counter
+#
+normal_eff_he3 = calculate_materials.mixture('normal eff he3')
+normal_eff_he3.mass_density=4.468741e-3
+normal_eff_he3.add_mixture('Kr'  , 1.2, mode='atom')
+normal_eff_he3.add_mixture('He3' , 2.3, mode='atom')
+normal_eff_he3.finalize()

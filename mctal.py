@@ -632,7 +632,7 @@ class mctal:
 					import scipy.misc
 					if os.path.isfile(lims_file):
 						flims = open(lims_file,'r')
-						lims_new = cPickle.load(flims)
+						lims_new = numpy.log10(cPickle.load(flims))
 						flims.close()
 					else:
 						print "ERROR - limits file '%s' does not exist!"%lims_file
@@ -641,13 +641,15 @@ class mctal:
 					twoD_values = scipy.misc.imread(map_file,mode='F')
 					# adjust so max is 1 
 					lims_img = [twoD_values.min(),twoD_values.max()]
-					lims_new = numpy.log10([7.5571E-19  ,  2.8899E-04])
-					mult = (lims_new[1]-lims_new[0])/(lims_img[1]-lims_img[0])`
+					print lims_new
+					#lims_new = numpy.log10([7.5571E-19  ,  2.8899E-04])
+					mult = (lims_new[1]-lims_new[0])/(lims_img[1]-lims_img[0])
 					twoD_values = ( twoD_values - lims_img[1]) * mult + lims_new[1]
 					# return to linear scale
 					twoD_values = numpy.power(10.,twoD_values)
 					plt.figure()
 					plt.imshow(twoD_values,origin='lower',cmap=plt.get_cmap('spectral'))
+					plt.gca().set_title('original distribution from map file')
 				else:
 					# read in value
 					combined_values = numpy.zeros((n_e_bins,n_z_bins,n_y_bins,n_x_bins))
@@ -668,12 +670,15 @@ class mctal:
 					flims=open(lims_file,'w')
 					cPickle.dump(limits_old,flims)
 					flims.close()
+					plt.figure()
+					plt.imshow(twoD_values,origin='lower',cmap=plt.get_cmap('spectral'))
+					plt.gca().set_title('original distribution from mctal file')
 					# invert the values? no! want to flatten population! just rescale so maximum is 1
 				#  replace Inf with zeros
 				twoD_values[          twoD_values == numpy.inf] = 0.0
 				# reform to specified norm
-				#if this_particle=='h':
-				#	twoD_values = numpy.ones(twoD_values.shape)
+				if this_particle=='h':
+					twoD_values = numpy.ones(twoD_values.shape)
 				if norms:
 					twoD_values = twoD_values* norms[i] / numpy.max(twoD_values.flatten())
 				else:
@@ -686,6 +691,7 @@ class mctal:
 				this_plot[this_plot<=1e-25] = 1e-25
 				plt.figure()
 				plt.imshow(this_plot,interpolation='nearest',norm=LogNorm(),cmap=plt.get_cmap('spectral'),origin='lower')
+				plt.gca().set_title('renormed distribution')
 				plt.colorbar()
 				# save bitmap for masking
 				plt.imsave('outfile-'+this_particle+'.png', numpy.log10(this_plot),cmap=plt.get_cmap('spectral'))
@@ -741,6 +747,7 @@ class mctal:
 					mask = image[:,:,3]
 					plt.figure()
 					plt.imshow(mask,origin='lower',vmin=0,vmax=1,cmap=plt.get_cmap('spectral'))
+					plt.gca().set_title('mask')
 					# 
 					mask[mask>0]=1.0
 					twoD_values = numpy.multiply(mask,twoD_values)  # pngs the last is the alpha transpareceny layer
@@ -785,6 +792,7 @@ class mctal:
 				#this_plot[this_plot<=0.0] = 1e-15
 				plt.figure()
 				plt.imshow(this_plot,interpolation='nearest',norm=LogNorm(),cmap=plt.get_cmap('spectral'),origin='lower')
+				plt.gca().set_title('final WW distribution')
 				plt.colorbar()
 				plt.show()
 			# have to pad the damn origin
