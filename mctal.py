@@ -346,7 +346,7 @@ class mctal:
 
 
 
-	def write_weight_windows_from_meshtal(self,tals=False,erg=False,output='wwout',norms=False):
+	def write_weight_windows_from_meshtal(self,tals=False,erg=False,output='wwout',norms=False,normpoints=False,energies=False):
 		import numpy, datetime, copy, os, cPickle
 		import matplotlib.pyplot as plt
 		from matplotlib.colors import LogNorm
@@ -586,221 +586,206 @@ class mctal:
 		for i in particle_dict:
 			particle_symbols.append(particle_dict[i][1])
 		# check to make sure is meshtally and meshes are the same
-		check_num = tals[0]
+		if energies:
+			check_num = tals[0][0]
+		else:
+			check_num = tals[0]
 		for i in range(0,len(tals)):
-			tal_num = tals[i]
-			if tal_num in particle_symbols:
-				print tal_num+" values are zeros"
+			if energies:
+				e_bins   = numpy.array(energies) # 
 			else:
-				if not self.tallies[tal_num].is_meshtal:
-					"Tally %d is not a mesh tally.  Aborting."
-					return 
-				if self.tallies[check_num].objects[1]!=self.tallies[tal_num].objects[1] or self.tallies[check_num].objects[2]!=self.tallies[tal_num].objects[2] or self.tallies[check_num].objects[3]!=self.tallies[tal_num].objects[3]:
-					print "Mesh structure of specified tallies do not mactch!  Aborting."
-					return
-				if norms:
-					this_norm = norms[i]
+				e_bins   = [-numpy.Inf,numpy.Inf]  # only upper
+			for j in range(0,len(tals[i])):
+				tal_num = tals[i][j]
+				if tal_num in particle_symbols:
+					print tal_num+" values are zeros"
 				else:
-					this_norm = 0.5
-				print self.tallies[tal_num].what_particles('symbol')+" values from tally %d, normed to %4.3E"%(tal_num,this_norm)
+					if not self.tallies[tal_num].is_meshtal:
+						"Tally %d is not a mesh tally.  Aborting."
+						return 
+					if self.tallies[check_num].objects[1]!=self.tallies[tal_num].objects[1] or self.tallies[check_num].objects[2]!=self.tallies[tal_num].objects[2] or self.tallies[check_num].objects[3]!=self.tallies[tal_num].objects[3]:
+						print "Mesh structure of specified tallies do not mactch!  Aborting."
+						return
+					if norms:
+						this_norm = norms[i][j]
+					else:
+						this_norm = 0.5
+					print self.tallies[tal_num].what_particles('symbol')+" values from tally %d, normed to %4.3E, energies %4.3E-%4.3E"%(tal_num,this_norm,e_bins[j],e_bins[j+1])
+		#
+		#
 		x_bins   = numpy.array(self.tallies[check_num].objects[1])
 		y_bins   = numpy.array(self.tallies[check_num].objects[2])
 		z_bins   = numpy.array(self.tallies[check_num].objects[3])
+		e_bins   = numpy.array(energies)
 		n_x_bins = len(self.tallies[check_num].objects[1])-1
 		n_y_bins = len(self.tallies[check_num].objects[2])-1
 		n_z_bins = len(self.tallies[check_num].objects[3])-1
+		n_e_bins = len(e_bins)-1
 		n_particles = len(tals)
-		e_bins = [7000.]  # only upper
-		n_e_bins = 1
+		plot_lims = [x_bins[0],x_bins[-1],y_bins[0],y_bins[-1]]
 		limits_old = []
+		#
+		# init final container
 		#
 		ww_arrays = {}
 		for i in range(0,n_particles):
-			tal_num = tals[i]
+			tal_num = tals[i][0]
 			if tal_num in particle_symbols:
-				twoD_values=numpy.zeros((n_y_bins,n_x_bins))
 				this_particle = tal_num
 			else:
-				#
-				# check if a image file exists, use it if there.  
-				#
-				this_particle = self.tallies[tal_num].what_particles('symbol')
-				map_file  = 'map-'+this_particle+'.png'
-				lims_file = 'map-'+this_particle+'.lims'
-				if os.path.isfile(map_file):
-					print "overriding flux with map from "+map_file
-					import scipy.misc
-					if os.path.isfile(lims_file):
-						flims = open(lims_file,'r')
-						lims_new = numpy.log10(cPickle.load(flims))
-						flims.close()
-					else:
-						print "ERROR - limits file '%s' does not exist!"%lims_file
-						return
-					# image file saved in log scale...
-					twoD_values = scipy.misc.imread(map_file,mode='F')
-					# adjust so max is 1 
-					lims_img = [twoD_values.min(),twoD_values.max()]
-					print lims_new
-					#lims_new = numpy.log10([7.5571E-19  ,  2.8899E-04])
-					mult = (lims_new[1]-lims_new[0])/(lims_img[1]-lims_img[0])
-					twoD_values = ( twoD_values - lims_img[1]) * mult + lims_new[1]
-					# return to linear scale
-					twoD_values = numpy.power(10.,twoD_values)
-					plt.figure()
-					plt.imshow(twoD_values,origin='lower',cmap=plt.get_cmap('spectral'))
-					plt.gca().set_title('original distribution from map file')
+				this_particle = self.tallies[tals[i][0]].what_particles('symbol')
+			print "initializing container for '%s'"%this_particle
+			ww_arrays[this_particle] = []
+		#
+		# do through particles
+		#
+		for i in range(0,n_particles):
+			#
+			# go through energies
+			#
+			for e in range(0,n_e_bins):
+				if len(tals[i])==1:
+					tal_num = tals[i][0]
 				else:
-					# read in value
-					combined_values = numpy.zeros((n_e_bins,n_z_bins,n_y_bins,n_x_bins))
-					e_dex=0
-					for z_dex in range(0,n_z_bins):
-						combined_values[e_dex,z_dex,:,:] = combined_values[e_dex,z_dex,:,:,] + self.tallies[tal_num].vals[0][z_dex]['data']
-					# sum energies if asked to combine
-					threeD_values=numpy.zeros((n_z_bins,n_y_bins,n_x_bins))
-					for e_dex in range(0,n_e_bins):
-						threeD_values[:,:,:]=threeD_values[:,:,:]+combined_values[e_dex,:,:,:]
-					# sum z values?
+					tal_num = tals[i][e]
+				#
+				if tal_num in particle_symbols:
 					twoD_values=numpy.zeros((n_y_bins,n_x_bins))
-					for z_dex in [15,16,17]:#range(0,n_z_bins):
-						twoD_values[:,:]=threeD_values[z_dex,:,:]+twoD_values[:,:]
-					#
-					limits_old = [ twoD_values[twoD_values>0.0].min() , twoD_values.max() ]
-					print "writing limits to '%s'"%lims_file
-					flims=open(lims_file,'w')
-					cPickle.dump(limits_old,flims)
-					flims.close()
-					plt.figure()
-					plt.imshow(twoD_values,origin='lower',cmap=plt.get_cmap('spectral'))
-					plt.gca().set_title('original distribution from mctal file')
-					# invert the values? no! want to flatten population! just rescale so maximum is 1
-				#  replace Inf with zeros
-				twoD_values[          twoD_values == numpy.inf] = 0.0
-				# reform to specified norm
-				if this_particle=='h':
-					twoD_values = numpy.ones(twoD_values.shape)
-				if norms:
-					twoD_values = twoD_values* norms[i] / numpy.max(twoD_values.flatten())
+					this_particle = tal_num
 				else:
-					# renorm so maximum (most likely the source) is 0.5
-					twoD_values = twoD_values* 0.5      / numpy.max(twoD_values.flatten())
-				# 
-				# renorm and mask source
-				#
-				this_plot = copy.deepcopy(twoD_values)
-				this_plot[this_plot<=1e-25] = 1e-25
-				plt.figure()
-				plt.imshow(this_plot,interpolation='nearest',norm=LogNorm(),cmap=plt.get_cmap('spectral'),origin='lower')
-				plt.gca().set_title('renormed distribution')
-				plt.colorbar()
-				# save bitmap for masking
-				plt.imsave('outfile-'+this_particle+'.png', numpy.log10(this_plot),cmap=plt.get_cmap('spectral'))
-				# save grayscale image for map modifications
-				plt.imsave(    'map-'+this_particle+'.png', numpy.log10(this_plot),cmap=plt.get_cmap('gray'))
-				# mask out source area, then renormalize (good for central streaming area)
-				#
-				# mask = numpy.ones(twoD_values.shape)
-				# x_range = [-178, 690 ]#[-219, 156]#[-523, 156]#
-				# y_range = [-120, 200 ]#[-123, 201]#[-123, 201]#
-				# x_selector = numpy.where(numpy.multiply( x_bins >= x_range[0] , x_bins < x_range[1] ))[0]
-				# y_selector = numpy.where(numpy.multiply( y_bins >= y_range[0] , y_bins < y_range[1] ))[0]
-				# mask[y_selector[0]:y_selector[-1],x_selector[0]:x_selector[-1]]=0.0
-				# twoD_values = numpy.multiply(mask,twoD_values)
-				# twoD_values = twoD_values* norms[i] / numpy.max(twoD_values.flatten())
-				#
-				#
-				# convolve to smooth if grid is fine
-				from scipy.signal import convolve2d
-				n=7
-				filt = numpy.ones((n,n))/(n*n)
-				twoD_values = convolve2d(twoD_values,filt,boundary='symm',mode='same') 
-				twoD_values[twoD_values<=1e-25] = 1e-25
-				#
-				#
-				#
-				#print this_particle+" : applying weight cutoffs..."
-				#weight_cutoff 	= {elsefunction   	  :1e-12},
-				#				   constraint3_pos    :1e-8,
-				#				   constraint1_pos    :1e-7,
-				#				   constraint2_pos    :5e-7,
-				#				   constraint3_neg    :1e-6, 
-				#				   constraint4_neg    :1e-5, 
-				#				   constraint4_pos    :1e-5, 
-				#				   constraint1_neg    :1e-5, 
-				#				   constraint2_neg    :5e-5}
-				##
-				#for xi in range(0,n_x_bins):
-				#	for yi in range(0,n_y_bins):
-				#		for f in weight_cutoff.keys():
-				#			if f(xi,yi,0):
-				#				if twoD_values[yi,xi] < weight_cutoff[f]:
-				#					twoD_values[yi,xi] = weight_to
-				#
-				#
-				# load mask image and apply
-				#
-				mask_file = 'mask-'+this_particle+'.png'
-				if os.path.isfile(mask_file):
-					print "applying mask from "+mask_file
-					import scipy.misc
-					image = scipy.misc.imread(mask_file)
-					mask = image[:,:,3]
-					plt.figure()
-					plt.imshow(mask,origin='lower',vmin=0,vmax=1,cmap=plt.get_cmap('spectral'))
-					plt.gca().set_title('mask')
-					# 
-					mask[mask>0]=1.0
-					twoD_values = numpy.multiply(mask,twoD_values)  # pngs the last is the alpha transpareceny layer
 					#
-					# apply cutoff for the spatial mask
-					weight_to 		= 10.0
-					# invert mask and add
-					mask = (mask - 1.0) * -weight_to
-					twoD_values = numpy.add(mask,twoD_values)  # pngs the last is the alpha transpareceny layer
-				#
-				#
-				#
-				## rescale the weight range in an area
-				#x_range = [-numpy.inf, -358.0]
-				#y_range = [210.0, numpy.inf]
-				#x_selector = numpy.where(numpy.multiply( x_bins >= x_range[0] , x_bins < x_range[1] ))[0]
-				#y_selector = numpy.where(numpy.multiply( y_bins >= y_range[0] , y_bins < y_range[1] ))[0]
-				#subarray = copy.deepcopy(twoD_values[y_selector[0]:y_selector[-1],x_selector[0]:x_selector[-1]])
-				#plt.figure()
-				#plt.imshow(subarray,interpolation='nearest',norm=LogNorm(vmin=1e-11,vmax=norms[i]),cmap=plt.get_cmap('spectral'),origin='lower')
-				#plt.colorbar()
-				#weight_range = [1e-11,max(subarray.flatten())]
-				#print this_particle+" : applying weight rescaling into range %2.1E -> %2.1E, x=[% 2.1E, % 2.1E] y=[% 2.1E, % 2.1E]"%(weight_range[0],weight_range[1],x_range[0],x_range[1],y_range[0],y_range[1])
-				#subarray = rescale_range_log(subarray, weight_range)#factor=0.1,axis=-1) 
-				#plt.figure()
-				#plt.imshow(subarray,interpolation='nearest',norm=LogNorm(vmin=1e-11,vmax=norms[i]),cmap=plt.get_cmap('spectral'),origin='lower')
-				#plt.colorbar()
-				#plt.show()
-				#
-				#this_plot = copy.deepcopy(twoD_values)
-				#this_plot[this_plot<=0.0] = 1e-15
-				#plt.figure()
-				#plt.imshow(this_plot,interpolation='nearest',norm=LogNorm(vmin=1e-11,vmax=norms[i]),cmap=plt.get_cmap('spectral'),origin='lower')
-				#plt.colorbar()
-				#
-				#twoD_values[y_selector[0]:y_selector[-1],x_selector[0]:x_selector[-1]] = subarray
-				#
-				#
-				#
-				#
-				this_plot = copy.deepcopy(twoD_values)
-				#this_plot[this_plot<=0.0] = 1e-15
-				plt.figure()
-				plt.imshow(this_plot,interpolation='nearest',norm=LogNorm(),cmap=plt.get_cmap('spectral'),origin='lower')
-				plt.gca().set_title('final WW distribution')
-				plt.colorbar()
-				plt.show()
-			# have to pad the damn origin
-			twoD_values = numpy.hstack( (numpy.zeros((twoD_values.shape[0],1)),twoD_values) ) 
-			twoD_values = numpy.vstack( (numpy.zeros((1,twoD_values.shape[1])),twoD_values) )
-			twoD_values = [numpy.zeros(twoD_values.shape),twoD_values]
-			# add to dict 
-			ww_arrays[this_particle] = twoD_values
+					# check if a image file exists, use it if there.  
+					#
+					this_particle = self.tallies[tal_num].what_particles('symbol')
+					map_file  = 'map-'+this_particle+'-%d'%e+'.png'
+					lims_file = 'map-'+this_particle+'-%d'%e+'.lims'
+					if os.path.isfile(map_file):
+						print "overriding flux with map from "+map_file
+						import scipy.misc
+						if os.path.isfile(lims_file):
+							flims = open(lims_file,'r')
+							lims_new = cPickle.load(flims)
+							flims.close()
+						else:
+							print "ERROR - limits file '%s' does not exist!"%lims_file
+							return
+						# image file saved in log scale...
+						twoD_values = scipy.misc.imread(map_file,mode='F')
+						# adjust so max is 1 
+						lims_img = [twoD_values.min(),twoD_values.max()]
+						print lims_new
+						#lims_new = numpy.log10([7.5571E-19  ,  2.8899E-04])
+						lims_new[0] = lims_new[1]-20.
+						#lims_new[1] = lims_new[1]+16
+						mult = (lims_new[1]-lims_new[0])/(lims_img[1]-lims_img[0])
+						twoD_values = ( twoD_values - lims_img[1]) * mult + lims_new[1]
+						# return to linear scale
+						twoD_values = numpy.power(10.,twoD_values)
+						plt.figure()
+						plt.imshow(twoD_values,origin='lower',cmap=plt.get_cmap('spectral'),extent=plot_lims)
+						plt.gca().set_title('original distribution from map file')
+					else:
+						# read in value
+						combined_values = numpy.zeros((n_e_bins,n_z_bins,n_y_bins,n_x_bins))
+						e_dex=0
+						for z_dex in range(0,n_z_bins):
+							combined_values[e_dex,z_dex,:,:] = combined_values[e_dex,z_dex,:,:,] + self.tallies[tal_num].vals[0][z_dex]['data']
+						# sum energies if asked to combine
+						threeD_values=numpy.zeros((n_z_bins,n_y_bins,n_x_bins))
+						for e_dex in range(0,n_e_bins):
+							threeD_values[:,:,:]=threeD_values[:,:,:]+combined_values[e_dex,:,:,:]
+						# sum z values?
+						twoD_values=numpy.zeros((n_y_bins,n_x_bins))
+						for z_dex in [15,16,17]:#range(0,n_z_bins):
+							twoD_values[:,:]=threeD_values[z_dex,:,:]+twoD_values[:,:]
+						#
+						limits_old = numpy.log10([ twoD_values[twoD_values>0.0].min() , twoD_values.max() ])
+						print "writing limits to '%s'"%lims_file
+						flims=open(lims_file,'w')
+						cPickle.dump(limits_old,flims)
+						flims.close()
+						plt.figure()
+						plt.imshow(twoD_values,origin='lower',cmap=plt.get_cmap('spectral'),extent=plot_lims)
+						plt.gca().set_title('original distribution from mctal file')
+						# save grayscale image for map modifications
+						print "Saving log-scaled grayscale image as map-%s-%d.png..."%(this_particle,e)
+						plt.imsave(    'map-'+this_particle+'-%d'%e+'.png', numpy.log10(twoD_values),cmap=plt.get_cmap('gray'))
+						# invert the values? no! want to flatten population! just rescale so maximum is 1
+					#  replace Inf with zeros
+					twoD_values[          twoD_values == numpy.inf] = 0.0
+					# reform to specified norm
+					if this_particle=='h':
+						twoD_values = numpy.ones(twoD_values.shape)
+					#  choose the point value as the "maximum" otherwise use global max
+					if normpoints:
+						if len(normpoints[i])==2:
+							xdex = numpy.where( x_bins > normpoints[i][0])[0][0]
+							ydex = numpy.where( y_bins > normpoints[i][1])[0][0]
+							maxval = twoD_values[ydex][xdex]
+							print "maxval ",maxval
+						else:
+							maxval = numpy.max(twoD_values.flatten())
+					# norm to specified value
+					if norms:
+						twoD_values = twoD_values* norms[i][j] / maxval
+					else:
+						# renorm so maximum (most *likely* the source) is 0.5
+						twoD_values = twoD_values* 0.5      / maxval
+					# 
+					# mask source and mask
+					#
+					this_plot = copy.deepcopy(twoD_values)
+					this_plot[this_plot<=1e-25] = 1e-25
+					plt.figure()
+					plt.imshow(this_plot,interpolation='nearest',norm=LogNorm(),cmap=plt.get_cmap('spectral'),origin='lower',extent=plot_lims)
+					plt.gca().set_title('renormed distribution')
+					plt.colorbar()
+					# save bitmap for masking
+					plt.imsave('outfile-'+this_particle+'-%d'%e+'.png', numpy.log10(this_plot),cmap=plt.get_cmap('spectral'))
+					#
+					# convolve to smooth if grid is fine
+					#from scipy.signal import convolve2d
+					#n=7
+					#filt = numpy.ones((n,n))/(n*n)
+					#twoD_values = convolve2d(twoD_values,filt,boundary='symm',mode='same') 
+					#twoD_values[twoD_values<=1e-25] = 1e-25
+					#
+					# load mask image and apply
+					#
+					mask_file = 'mask-'+this_particle+'-%d'%e+'.png'
+					if os.path.isfile(mask_file):
+						print "applying mask from "+mask_file
+						import scipy.misc
+						image = scipy.misc.imread(mask_file)
+						mask = image[:,:,3]
+						plt.figure()
+						plt.imshow(mask,origin='lower',vmin=0,vmax=1,cmap=plt.get_cmap('spectral'),extent=plot_lims)
+						plt.gca().set_title('mask')
+						# 
+						mask[mask>0]=1.0
+						twoD_values = numpy.multiply(mask,twoD_values)  # pngs the last is the alpha transpareceny layer
+						#
+						# apply cutoff for the spatial mask
+						weight_to 		= 0.5#10.0
+						# invert mask and add
+						mask = (mask - 1.0) * -weight_to
+						twoD_values = numpy.add(mask,twoD_values)  # pngs the last is the alpha transpareceny layer
+					#
+					#
+					#
+					this_plot = copy.deepcopy(twoD_values)
+					#this_plot[this_plot<=0.0] = 1e-15
+					plt.figure()
+					plt.imshow(this_plot,interpolation='nearest',norm=LogNorm(),cmap=plt.get_cmap('spectral'),origin='lower',extent=plot_lims)
+					plt.gca().set_title('final WW distribution')
+					plt.colorbar()
+					plt.show()
+				# have to pad the damn origin
+				twoD_values = numpy.hstack( (numpy.zeros((twoD_values.shape[0],1)),twoD_values) ) 
+				twoD_values = numpy.vstack( (numpy.zeros((1,twoD_values.shape[1])),twoD_values) )
+				twoD_values = [numpy.zeros(twoD_values.shape),twoD_values]
+				# add to dict 
+				ww_arrays[this_particle].append(twoD_values)
 		#
 		#
 		#
@@ -821,7 +806,7 @@ class mctal:
 		particle_mask = []
 		for i in range(0,len(particle_symbols)):
 			if particle_symbols[i] in ww_arrays.keys():
-				particle_mask.append(1)
+				particle_mask.append(n_e_bins)
 			elif particle_symbols[i]>0:  # eliminate anti particles?
 				particle_mask.append(0)
 		string = " "
@@ -867,9 +852,11 @@ class mctal:
 		for i in range(0,len(particle_mask)):  # to ensure order is same as vector
 			sym = particle_symbols[i]  
 			if sym in ww_arrays.keys():
-				dist_list = ww_arrays[sym]
-				string = "{0: 6.5E} \n".format(e_bins[0])
-				dist = numpy.hstack((dist_list[0].flatten(),dist_list[1].flatten()))
+				string = make_value_string(e_bins)  
+				dist=[]
+				for e in range(0,n_e_bins):
+					dist_list = ww_arrays[sym][e]
+					dist = numpy.hstack((dist,dist_list[0].flatten(),dist_list[1].flatten()))
 				string = string + make_value_string(dist)  
 				f.write(string)
 		# f.write("\n")
