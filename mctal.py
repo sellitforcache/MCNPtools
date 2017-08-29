@@ -643,11 +643,11 @@ class mctal:
 			#
 			# go through energies
 			#
-			for e in range(0,n_e_bins):
+			for j in range(0,n_e_bins):
 				if len(tals[i])==1:
 					tal_num = tals[i][0]
 				else:
-					tal_num = tals[i][e]
+					tal_num = tals[i][j]
 				#
 				if tal_num in particle_symbols:
 					twoD_values=numpy.zeros((n_y_bins,n_x_bins))
@@ -657,8 +657,8 @@ class mctal:
 					# check if a image file exists, use it if there.  
 					#
 					this_particle = self.tallies[tal_num].what_particles('symbol')
-					map_file  = 'map-'+this_particle+'-%d'%e+'.png'
-					lims_file = 'map-'+this_particle+'-%d'%e+'.lims'
+					map_file  = 'map-'+this_particle+'-%d'%j+'.png'
+					lims_file = 'map-'+this_particle+'-%d'%j+'.lims'
 					if os.path.isfile(map_file):
 						print "overriding flux with map from "+map_file
 						import scipy.misc
@@ -673,7 +673,7 @@ class mctal:
 						twoD_values = scipy.misc.imread(map_file,mode='F')
 						# adjust so max is 1 
 						lims_img = [twoD_values.min(),twoD_values.max()]
-						print lims_new
+						print "limts from %s:"%lims_file, lims_new
 						#lims_new = numpy.log10([7.5571E-19  ,  2.8899E-04])
 						lims_new[0] = lims_new[1]-20.
 						#lims_new[1] = lims_new[1]+16
@@ -709,7 +709,7 @@ class mctal:
 						plt.gca().set_title('original distribution from mctal file')
 						# save grayscale image for map modifications
 						print "Saving log-scaled grayscale image as map-%s-%d.png..."%(this_particle,e)
-						plt.imsave(    'map-'+this_particle+'-%d'%e+'.png', numpy.log10(twoD_values),cmap=plt.get_cmap('gray'))
+						plt.imsave(    'map-'+this_particle+'-%d'%j+'.png', numpy.log10(twoD_values),cmap=plt.get_cmap('gray'))
 						# invert the values? no! want to flatten population! just rescale so maximum is 1
 					#  replace Inf with zeros
 					twoD_values[          twoD_values == numpy.inf] = 0.0
@@ -719,10 +719,10 @@ class mctal:
 					#  choose the point value as the "maximum" otherwise use global max
 					if normpoints:
 						if len(normpoints[i])==2:
-							xdex = numpy.where( x_bins > normpoints[i][0])[0][0]
-							ydex = numpy.where( y_bins > normpoints[i][1])[0][0]
+							xdex = numpy.where( x_bins >= normpoints[i][0])[0][0]
+							ydex = numpy.where( y_bins >= normpoints[i][1])[0][0]
 							maxval = twoD_values[ydex][xdex]
-							print "maxval ",maxval
+							print "renorming point (%4.3E, %4.3E) = %4.3E to be %4.3E "%(normpoints[i][0],normpoints[i][1],maxval,norms[i][j])
 						else:
 							maxval = numpy.max(twoD_values.flatten())
 					# norm to specified value
@@ -741,7 +741,7 @@ class mctal:
 					plt.gca().set_title('renormed distribution')
 					plt.colorbar()
 					# save bitmap for masking
-					plt.imsave('outfile-'+this_particle+'-%d'%e+'.png', numpy.log10(this_plot),cmap=plt.get_cmap('spectral'))
+					plt.imsave('outfile-'+this_particle+'-%d'%j+'.png', numpy.log10(this_plot),cmap=plt.get_cmap('spectral'))
 					#
 					# convolve to smooth if grid is fine
 					#from scipy.signal import convolve2d
@@ -752,7 +752,7 @@ class mctal:
 					#
 					# load mask image and apply
 					#
-					mask_file = 'mask-'+this_particle+'-%d'%e+'.png'
+					mask_file = 'mask-'+this_particle+'-%d'%j+'.png'
 					if os.path.isfile(mask_file):
 						print "applying mask from "+mask_file
 						import scipy.misc
@@ -854,8 +854,8 @@ class mctal:
 			if sym in ww_arrays.keys():
 				string = make_value_string(e_bins)  
 				dist=[]
-				for e in range(0,n_e_bins):
-					dist_list = ww_arrays[sym][e]
+				for j in range(0,n_e_bins):
+					dist_list = ww_arrays[sym][j]
 					dist = numpy.hstack((dist,dist_list[0].flatten(),dist_list[1].flatten()))
 				string = string + make_value_string(dist)  
 				f.write(string)
