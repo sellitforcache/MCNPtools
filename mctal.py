@@ -346,7 +346,7 @@ class mctal:
 
 
 
-	def write_weight_windows_from_meshtal(self,tals=False,erg=False,output='wwout',norms=False,normpoints=False,energies=False):
+	def write_weight_windows_from_meshtal(self,tals=False,erg=False,output='wwout',norms=False,normpoints=False,energies=False,mask_weight=False):
 		import numpy, datetime, copy, os, cPickle
 		import matplotlib.pyplot as plt
 		from matplotlib.colors import LogNorm
@@ -766,7 +766,7 @@ class mctal:
 						twoD_values = numpy.multiply(mask,twoD_values)  # pngs the last is the alpha transpareceny layer
 						#
 						# apply cutoff for the spatial mask
-						weight_to 		= 0.5#10.0
+						weight_to 		= mask_weight[i][j]
 						# invert mask and add
 						mask = (mask - 1.0) * -weight_to
 						twoD_values = numpy.add(mask,twoD_values)  # pngs the last is the alpha transpareceny layer
