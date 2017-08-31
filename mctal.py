@@ -591,10 +591,10 @@ class mctal:
 		else:
 			check_num = tals[0]
 		for i in range(0,len(tals)):
-			if energies:
-				e_bins   = numpy.array(energies) # 
+			if len(energies[i])>=2:
+				this_e_bins   = numpy.array(energies[i]) # 
 			else:
-				e_bins   = [-numpy.Inf,numpy.Inf]  # only upper
+				this_e_bins   = [-numpy.Inf,numpy.Inf]  # only upper
 			for j in range(0,len(tals[i])):
 				tal_num = tals[i][j]
 				if tal_num in particle_symbols:
@@ -610,17 +610,17 @@ class mctal:
 						this_norm = norms[i][j]
 					else:
 						this_norm = 0.5
-					print self.tallies[tal_num].what_particles('symbol')+" values from tally %d, normed to %4.3E, energies %4.3E-%4.3E"%(tal_num,this_norm,e_bins[j],e_bins[j+1])
+					print self.tallies[tal_num].what_particles('symbol')+" values from tally %d, normed to %4.3E, energies %4.3E-%4.3E"%(tal_num,this_norm,this_e_bins[j],this_e_bins[j+1])
 		#
 		#
 		x_bins   = numpy.array(self.tallies[check_num].objects[1])
 		y_bins   = numpy.array(self.tallies[check_num].objects[2])
 		z_bins   = numpy.array(self.tallies[check_num].objects[3])
-		e_bins   = numpy.array(energies)
 		n_x_bins = len(self.tallies[check_num].objects[1])-1
 		n_y_bins = len(self.tallies[check_num].objects[2])-1
 		n_z_bins = len(self.tallies[check_num].objects[3])-1
-		n_e_bins = len(e_bins)-1
+		e_bins   = {}
+		n_e_bins = {}
 		n_particles = len(tals)
 		plot_lims = [x_bins[0],x_bins[-1],y_bins[0],y_bins[-1]]
 		limits_old = []
@@ -641,9 +641,16 @@ class mctal:
 		#
 		for i in range(0,n_particles):
 			#
+			#
+			#
+			this_e_bins   = numpy.array(energies[i])
+			this_n_e_bins = len(this_e_bins)-1
+			if this_n_e_bins < 0:
+				this_n_e_bins = 1
+			#
 			# go through energies
 			#
-			for j in range(0,n_e_bins):
+			for j in range(0,this_n_e_bins):
 				if len(tals[i])==1:
 					tal_num = tals[i][0]
 				else:
@@ -657,6 +664,8 @@ class mctal:
 					# check if a image file exists, use it if there.  
 					#
 					this_particle = self.tallies[tal_num].what_particles('symbol')
+					n_e_bins[this_particle]=this_n_e_bins
+					e_bins[this_particle]=this_e_bins
 					map_file  = 'map-'+this_particle+'-%d'%j+'.png'
 					lims_file = 'map-'+this_particle+'-%d'%j+'.lims'
 					if os.path.isfile(map_file):
@@ -675,7 +684,9 @@ class mctal:
 						lims_img = [twoD_values.min(),twoD_values.max()]
 						print "limts from %s:"%lims_file, lims_new
 						#lims_new = numpy.log10([7.5571E-19  ,  2.8899E-04])
-						lims_new[0] = lims_new[1]-20.
+						#print lims_new
+						lims_new[0] = lims_new[1]-40.
+						print lims_new
 						#lims_new[1] = lims_new[1]+16
 						mult = (lims_new[1]-lims_new[0])/(lims_img[1]-lims_img[0])
 						twoD_values = ( twoD_values - lims_img[1]) * mult + lims_new[1]
@@ -686,13 +697,13 @@ class mctal:
 						plt.gca().set_title('original distribution from map file')
 					else:
 						# read in value
-						combined_values = numpy.zeros((n_e_bins,n_z_bins,n_y_bins,n_x_bins))
+						combined_values = numpy.zeros((this_n_e_bins,n_z_bins,n_y_bins,n_x_bins))
 						e_dex=0
 						for z_dex in range(0,n_z_bins):
 							combined_values[e_dex,z_dex,:,:] = combined_values[e_dex,z_dex,:,:,] + self.tallies[tal_num].vals[0][z_dex]['data']
 						# sum energies if asked to combine
 						threeD_values=numpy.zeros((n_z_bins,n_y_bins,n_x_bins))
-						for e_dex in range(0,n_e_bins):
+						for e_dex in range(0,this_n_e_bins):
 							threeD_values[:,:,:]=threeD_values[:,:,:]+combined_values[e_dex,:,:,:]
 						# sum z values?
 						twoD_values=numpy.zeros((n_y_bins,n_x_bins))
@@ -708,7 +719,7 @@ class mctal:
 						plt.imshow(twoD_values,origin='lower',cmap=plt.get_cmap('spectral'),extent=plot_lims)
 						plt.gca().set_title('original distribution from mctal file')
 						# save grayscale image for map modifications
-						print "Saving log-scaled grayscale image as map-%s-%d.png..."%(this_particle,e)
+						print "Saving log-scaled grayscale image as map-%s-%d.png..."%(this_particle,j)
 						plt.imsave(    'map-'+this_particle+'-%d'%j+'.png', numpy.log10(twoD_values),cmap=plt.get_cmap('gray'))
 						# invert the values? no! want to flatten population! just rescale so maximum is 1
 					#  replace Inf with zeros
@@ -805,9 +816,10 @@ class mctal:
 		# create masked particle vector
 		particle_mask = []
 		for i in range(0,len(particle_symbols)):
-			if particle_symbols[i] in ww_arrays.keys():
-				particle_mask.append(n_e_bins)
-			elif particle_symbols[i]>0:  # eliminate anti particles?
+			this_particle = particle_symbols[i]
+			if this_particle in ww_arrays.keys():
+				particle_mask.append(n_e_bins[this_particle])
+			elif this_particle>0:  # eliminate anti particles?
 				particle_mask.append(0)
 		string = " "
 		for i in range(1,len(particle_mask)+1):
@@ -850,12 +862,19 @@ class mctal:
 		#
 		# write values for all particles
 		for i in range(0,len(particle_mask)):  # to ensure order is same as vector
-			sym = particle_symbols[i]  
-			if sym in ww_arrays.keys():
-				string = make_value_string(e_bins)  
+			this_particle = particle_symbols[i]  
+			if this_particle in ww_arrays.keys():
+				#
+				#
+				#
+				if len(e_bins[this_particle]>=2):
+					string = make_value_string(e_bins[this_particle])  
+					print string
+				else:
+					string = "{0: 6.5E} \n".format(1e10)
 				dist=[]
-				for j in range(0,n_e_bins):
-					dist_list = ww_arrays[sym][j]
+				for j in range(0,n_e_bins[this_particle]):
+					dist_list = ww_arrays[this_particle][j]
 					dist = numpy.hstack((dist,dist_list[0].flatten(),dist_list[1].flatten()))
 				string = string + make_value_string(dist)  
 				f.write(string)
