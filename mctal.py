@@ -22,7 +22,7 @@ class mctal:
 	
 	def read_mctal(self,filepath):
 
-		import MCNPtools.tally
+		import tally
 		import re, numpy
 
 		meshtal_flag = False
@@ -74,7 +74,7 @@ class mctal:
 			if self.verbose:
 				print "... reading tally "+str(k)
 			# init tally object
-			self.tallies[k] = MCNPtools.tally.tally(verbose=self.verbose,tex=self.tex)
+			self.tallies[k] = tally.tally(verbose=self.verbose,tex=self.tex)
 			# get header data, assert things
 			t1 = lines[n].split()
 			n = n+1
