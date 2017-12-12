@@ -274,7 +274,7 @@ class mctal:
 
 
 
-	def plot(self,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,t_or_d=False,options=False,ylim=False,renorm_to_sum=False,color=None,norm=1.0):
+	def plot(self,ax=None,tal=False,obj=False,cos=False,seg=False,mul=False,t_or_d=False,options=False,ylim=False,renorm_to_sum=False,color=None,norm=1.0,label=False):
 		### general plotting
 		import numpy, pylab
 		import matplotlib.pyplot as plt
@@ -333,7 +333,10 @@ class mctal:
 			if not mul:
 				mul = [0]
 			for t in tal:
-				self.tallies[t].plot(ax=ax,obj=obj,seg=seg,mul=mul,cos=cos,options=plot_options,prepend_label='{com:s}\n Tally {a:4d} :'.format(com=self.tallies[t].comment,a=t),ylim=ylim,renorm_to_sum=renorm_to_sum,color=color,norm=norm)
+				if label:
+					self.tallies[t].plot(ax=ax,obj=obj,seg=seg,mul=mul,cos=cos,options=plot_options,label=label,ylim=ylim,renorm_to_sum=renorm_to_sum,color=color,norm=norm)
+				else:
+					self.tallies[t].plot(ax=ax,obj=obj,seg=seg,mul=mul,cos=cos,options=plot_options,prepend_label='{com:s}\n Tally {a:4d} :'.format(com=self.tallies[t].comment,a=t),ylim=ylim,renorm_to_sum=renorm_to_sum,color=color,norm=norm)
 
 		### show
 		ax.set_title(self.title.strip())
@@ -707,7 +710,7 @@ class mctal:
 							threeD_values[:,:,:]=threeD_values[:,:,:]+combined_values[e_dex,:,:,:]
 						# sum z values?
 						twoD_values=numpy.zeros((n_y_bins,n_x_bins))
-						for z_dex in [15,16,17]:#range(0,n_z_bins):
+						for z_dex in range(0,n_z_bins):#[15,16,17]:#
 							twoD_values[:,:]=threeD_values[z_dex,:,:]+twoD_values[:,:]
 						#
 						limits_old = numpy.log10([ twoD_values[twoD_values>0.0].min() , twoD_values.max() ])

@@ -317,7 +317,7 @@ guide_layers_PSI.mass_density=2.40
 guide_layers_PSI.add_mixture(  'Ni', 0.82573012,   mode='mass') 
 guide_layers_PSI.add_mixture(  'Ti', 0.17426988,   mode='mass') 
 guide_layers_PSI.add_mixture(  'Co', 5.96*1e-6,    mode='mass') 
-guide_layers_PSI.add_mixture(  'Cr', 8000*1e-6,    mode='mass') 
+guide_layers_PSI.add_mixture(  'Cr', 1800*1e-6,    mode='mass') 
 guide_layers_PSI.finalize()
 
 #
@@ -800,8 +800,8 @@ He3.finalize()
 #
 low_eff_he3 = calculate_materials.mixture('low eff he3')
 low_eff_he3.mass_density=3.485e-3
-low_eff_he3.add_mixture('Kr'  , 500., mode='atom')
-low_eff_he3.add_mixture('He3' ,   1., mode='atom')
+low_eff_he3.add_mixture('Kr'  , 1.2, mode='atom')
+low_eff_he3.add_mixture('He3' , 0.05., mode='atom')
 low_eff_he3.finalize()
 
 #
@@ -934,8 +934,8 @@ beam_steel_ICPOES.add_mixture('Hf' ,  1.06930439e+01, mode='mass')
 beam_steel_ICPOES.add_mixture('Pd' ,  1.06930439e+01, mode='mass')
 beam_steel_ICPOES.add_mixture('Rh' ,  5.34652193e+00, mode='mass')
 beam_steel_ICPOES.add_mixture('Tl' ,  5.34652193e+00, mode='mass')
-beam_steel_ICPOES.add_mixture('U ' ,  1.06930439e+01, mode='mass')
-beam_steel_ICPOES.add_mixture('Th' ,  5.34652193e+00, mode='mass')
+#beam_steel_ICPOES.add_mixture('U ' ,  1.06930439e+01, mode='mass')
+#beam_steel_ICPOES.add_mixture('Th' ,  5.34652193e+00, mode='mass')
 beam_steel_ICPOES.add_mixture('Sm' ,  5.34652193e+00, mode='mass')
 beam_steel_ICPOES.add_mixture('Tb' ,  1.06930439e+01, mode='mass')
 beam_steel_ICPOES.add_mixture('Pr' ,  1.06930439e+01, mode='mass')
@@ -1089,3 +1089,115 @@ boral = calculate_materials.mixture('boral')
 boral.add_mixture('Al'  ,  80.0, mode='volume')  
 boral.add_mixture('B4C' ,  20.0, mode='volume')  
 boral.finalize()
+
+
+
+
+
+
+#
+# silicon dioxide
+#
+silicon_dioxide = calculate_materials.mixture('SiO2')
+silicon_dioxide.add_mixture('Si',  1., mode='atom')  
+silicon_dioxide.add_mixture('O' ,  2., mode='atom')  
+silicon_dioxide.mass_density=2.648
+silicon_dioxide.finalize()
+
+#
+# aluminum (III) oxide
+#
+aluminum3_oxide = calculate_materials.mixture('Al2O3')
+aluminum3_oxide.add_mixture('Al',  2., mode='atom')  
+aluminum3_oxide.add_mixture('O' ,  3., mode='atom')  
+aluminum3_oxide.mass_density=3.95
+aluminum3_oxide.finalize()
+
+#
+# titanium dioxide
+#
+titanium_dioxide = calculate_materials.mixture('TiO2')
+titanium_dioxide.add_mixture('Ti',  1., mode='atom')  
+titanium_dioxide.add_mixture('O' ,  2., mode='atom')  
+titanium_dioxide.mass_density=	4.23 
+titanium_dioxide.finalize()
+
+#
+# iron (II) oxide
+#
+iron2_oxide = calculate_materials.mixture('FeO')
+iron2_oxide.add_mixture('Fe',  1., mode='atom')  
+iron2_oxide.add_mixture('O' ,  1., mode='atom')  
+iron2_oxide.mass_density=5.745
+iron2_oxide.finalize()
+
+#
+# calcium oxide
+#
+calcium_oxide = calculate_materials.mixture('CaO')
+calcium_oxide.add_mixture('Ca',  1., mode='atom')  
+calcium_oxide.add_mixture('O' ,  1., mode='atom')  
+calcium_oxide.mass_density=3.34
+calcium_oxide.finalize()
+
+#
+# magnesium oxide
+#
+magnesium_oxide = calculate_materials.mixture('MgO')
+magnesium_oxide.add_mixture('Mg',  1., mode='atom')  
+magnesium_oxide.add_mixture('O' ,  1., mode='atom')  
+magnesium_oxide.mass_density=3.6
+magnesium_oxide.finalize()
+
+#
+# sodium oxide
+#
+sodium_oxide = calculate_materials.mixture('Na2O')
+sodium_oxide.add_mixture('Na',  2., mode='atom')  
+sodium_oxide.add_mixture('O' ,  1., mode='atom')  
+sodium_oxide.mass_density=2.27
+sodium_oxide.finalize()
+
+#
+# potassium oxide
+#
+potassium_oxide = calculate_materials.mixture('K2O')
+potassium_oxide.add_mixture('K' ,  2., mode='atom')  
+potassium_oxide.add_mixture('O' ,  1., mode='atom')  
+potassium_oxide.mass_density=2.32
+potassium_oxide.finalize()
+
+#
+# boron trioxide
+#
+boron_trioxide = calculate_materials.mixture('B2O3')
+boron_trioxide.add_mixture('B' ,   2., mode='atom')  
+boron_trioxide.add_mixture('O' ,   3., mode='atom')  
+boron_trioxide.mass_density=2.55
+boron_trioxide.finalize()
+
+#
+# phosphorus pentoxide
+#
+phosphorus_pentoxide = calculate_materials.mixture('P2O5')
+phosphorus_pentoxide.add_mixture('P' ,  2., mode='atom')  
+phosphorus_pentoxide.add_mixture('O' ,  5., mode='atom')  
+phosphorus_pentoxide.mass_density=2.39
+phosphorus_pentoxide.finalize()
+
+#
+# stone wool, from https://doi.org/10.1006/rtph.2000.1418
+#
+stone_wool = calculate_materials.mixture('stone wool')
+stone_wool.add_mixture('SiO2' ,  46.50, mode='mass')  
+stone_wool.add_mixture('Al2O3',  10.50, mode='mass')  
+stone_wool.add_mixture('TiO2' ,   2.00, mode='mass')  
+stone_wool.add_mixture('FeO'  ,   5.50, mode='mass')  
+stone_wool.add_mixture('CaO'  ,  17.50, mode='mass')  
+stone_wool.add_mixture('MgO'  ,  11.00, mode='mass')  
+stone_wool.add_mixture('Na2O' ,   2.78, mode='mass')  
+stone_wool.add_mixture('K2O'  ,   1.25, mode='mass')  
+stone_wool.add_mixture('B2O3' ,   1.00, mode='mass')  
+stone_wool.add_mixture('P2O5' ,   1.00, mode='mass')  
+stone_wool.mass_density=0.1
+stone_wool.finalize()

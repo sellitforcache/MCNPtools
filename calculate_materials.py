@@ -57,7 +57,7 @@ class mixture(object):
 			print "'"+name+"' not found in mixtures dictionary.  rejected."
 			return
 		if not isinstance(frac,float):
-			print "second input is not a float atomic fraction.  rejected."
+			print "second input (fraction) is not a FLOAT.  rejected."
 			return
 		if not isinstance(mode,str):
 			print "mode keyword input is not a string.  rejected."

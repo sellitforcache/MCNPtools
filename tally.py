@@ -467,7 +467,7 @@ class tally:
 		this_file.close()
 
 
-	def plot(self,all=False,ax=None,obj=[0],cos=[0],seg=[0],mul=[0],t_or_d=[0],color=None,options=[],prepend_label=False,ylim=False,xlim=False,renorm_to_sum=False,norm=1.0):
+	def plot(self,all=False,ax=None,obj=[0],cos=[0],seg=[0],mul=[0],t_or_d=[0],color=None,options=[],label=False,prepend_label=False,ylim=False,xlim=False,renorm_to_sum=False,norm=1.0):
 		import numpy as np
 		import pylab as pl
 		import matplotlib.pyplot as plt
@@ -573,10 +573,10 @@ class tally:
 							if renorm_to_sum:
 								tally_norm = tally_norm/np.sum(np.multiply(tally_norm,np.divide(widths,avg)))
 
-							if prepend_label:
-								label = prepend_label+r' obj %2d (%4d) seg %d cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1])
-							else:
+							if not label:
 								label = r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1])
+							if prepend_label:
+								label = prepend_label+label
 	
 							if 'ratio_mctal' in options:
 								total 		= self.vals[dex]['data'][-1]
