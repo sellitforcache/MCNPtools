@@ -594,7 +594,7 @@ class mctal:
 		else:
 			check_num = tals[0]
 		for i in range(0,len(tals)):
-			if len(energies[i])>=2:
+			if energies and len(energies[i]) >=2:
 				this_e_bins   = numpy.array(energies[i]) # 
 			else:
 				this_e_bins   = [-numpy.Inf,numpy.Inf]  # only upper

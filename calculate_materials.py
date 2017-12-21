@@ -249,11 +249,11 @@ class mixture(object):
 					self.mass_fractions[isotope] = self.mass_fractions[isotope] / frac_total
 				# calculate average amu from mass fractions
 				self.avg_amu = 0.0 
-				for i in range(0,len(self.mixtures_list)):
+				for isotope in self.mass_fractions.keys():
 					self.avg_amu = self.avg_amu + self.mass_fractions[isotope] / amu[isotope]
 				self.avg_amu = 1.0 / self.avg_amu
 				# calculate atom fractions
-				for i in range(0,len(self.mixtures_list)):
+				for isotope in self.mass_fractions.keys():
 					self.atom_fractions[isotope] = self.avg_amu * self.mass_fractions[isotope] / amu[isotope]
 
 		elif self.mode == 'finalized':
