@@ -521,7 +521,7 @@ class mctal:
 			new_array = numpy.hstack((a0,new_array))
 			# do it
 			total_string=""
-			fstring = "  {0: 6.{1}f}    "
+			fstring = " {:^ 11.4e} "
 			for i in range(0,int(len(new_array)/6)):
 				string = ""
 				string = string + fstring.format( new_array[6*i+0], 4-int(numpy.log10(max(1,abs(new_array[6*i+0])))))
@@ -662,6 +662,8 @@ class mctal:
 				if tal_num in particle_symbols:
 					twoD_values=numpy.zeros((n_y_bins,n_x_bins))
 					this_particle = tal_num
+					n_e_bins[this_particle]=this_n_e_bins
+					e_bins[this_particle]=this_e_bins
 				else:
 					#
 					# check if a image file exists, use it if there.  
@@ -844,17 +846,17 @@ class mctal:
 		ncy	= n_y_bins+1
 		ncz	= 2
 		nwg	=1  # cart superimposed mesh
-		string =         "  {0: 6.{1}f}    ".format(nfx, 5-(int(numpy.log10(abs(nfx)))+1))
-		string = string +"  {0: 6.{1}f}    ".format(nfy, 5-(int(numpy.log10(abs(nfy)))+1))
-		string = string +"  {0: 6.{1}f}    ".format(nfz, 5-(int(numpy.log10(abs(nfz)))+1))
-		string = string +"  {0: 6.{1}f}    ".format( x0, 5-(int(numpy.log10(abs( x0)))+1))
-		string = string +"  {0: 6.{1}f}    ".format( y0, 5-(int(numpy.log10(abs( y0)))+1))
-		string = string +"  {0: 6.{1}f}    ".format( z0, 5-(int(numpy.log10(abs( z0)))+1))
+		string =         " {:^ 11.4e} ".format(nfx)#{0: 6.{1}f}    ".format(nfx, 5-(int(numpy.log10(abs(nfx)))+1))
+		string = string +" {:^ 11.4e} ".format(nfy)#{0: 6.{1}f}    ".format(nfy, 5-(int(numpy.log10(abs(nfy)))+1))
+		string = string +" {:^ 11.4e} ".format(nfz)#{0: 6.{1}f}    ".format(nfz, 5-(int(numpy.log10(abs(nfz)))+1))
+		string = string +" {:^ 11.4e} ".format( x0)#{0: 6.{1}f}    ".format( x0, 5-(int(numpy.log10(abs( x0)))+1))
+		string = string +" {:^ 11.4e} ".format( y0)#{0: 6.{1}f}    ".format( y0, 5-(int(numpy.log10(abs( y0)))+1))
+		string = string +" {:^ 11.4e} ".format( z0)#{0: 6.{1}f}    ".format( z0, 5-(int(numpy.log10(abs( z0)))+1))
 		f.write(string+"\n")
-		string =         "  {0: 6.{1}f}    ".format(ncx, 5-(int(numpy.log10(abs(ncx)))+1))
-		string = string +"  {0: 6.{1}f}    ".format(ncy, 5-(int(numpy.log10(abs(ncy)))+1))
-		string = string +"  {0: 6.{1}f}    ".format(ncz, 5-(int(numpy.log10(abs(ncz)))+1))
-		string = string +"  {0: 6.{1}f}    ".format(nwg, 5-(int(numpy.log10(abs(nwg)))+1))
+		string =         " {:^ 11.4e} ".format(ncx)#{0: 6.{1}f}    ".format(ncx, 5-(int(numpy.log10(abs(ncx)))+1))
+		string = string +" {:^ 11.4e} ".format(ncy)#{0: 6.{1}f}    ".format(ncy, 5-(int(numpy.log10(abs(ncy)))+1))
+		string = string +" {:^ 11.4e} ".format(ncz)#{0: 6.{1}f}    ".format(ncz, 5-(int(numpy.log10(abs(ncz)))+1))
+		string = string +" {:^ 11.4e} ".format(nwg)#{0: 6.{1}f}    ".format(nwg, 5-(int(numpy.log10(abs(nwg)))+1))
 		f.write(string+"\n")
 		string = make_dimension_string( x0, x_bins )
 		f.write(string)
