@@ -300,9 +300,9 @@ class mctal:
 			plot_options=options[:]
 
 		if 'wavelength' in plot_options:
-			leg_loc = 1
+			leg_loc = 'best'
 		else:
-			leg_loc = 1
+			leg_loc = 'best'
 
 		### init axes if not passed one
 		if ax:

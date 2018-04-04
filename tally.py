@@ -482,9 +482,9 @@ class tally:
 				options.append('enormed')
 
 		if 'wavelength' in options:
-			leg_loc = 1
+			leg_loc = 'best'
 		else:
-			leg_loc = 1
+			leg_loc = 'best'
 		
 		### set TeX
 		if self.tex:
@@ -493,7 +493,7 @@ class tally:
 			plt.rc('font', size=16)
 
 		### color scheme
-		plt.style.use('ggplot')
+		#plt.style.use('ggplot')
 
 		### init axes if not passed one
 		if ax:
@@ -574,14 +574,16 @@ class tally:
 								tally_norm = tally_norm/np.sum(np.multiply(tally_norm,np.divide(widths,avg)))
 
 							if not label:
-								label = r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1])
+								plabel = r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1])
+							else:
+								plabel = label
 							if prepend_label:
-								label = prepend_label+label
+								plabel = prepend_label+label
 	
 							if 'ratio_mctal' in options:
 								total 		= self.vals[dex]['data'][-1]
 								total_err 	= self.vals[dex]['err'][-1]
-								label = label + '\n Total = {total:5.4f} +- {err:5.4f}'.format(total=total,err=total_err)
+								plabel = plabel + '\n Total = {total:5.4f} +- {err:5.4f}'.format(total=total,err=total_err)
 
 							### PLOT
 							if 'ratio_cos' in options:
@@ -591,10 +593,10 @@ class tally:
 									a_bin = cosine_bin[:]
 								else:
 									if prepend_label:
-										label = prepend_label+r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] / cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1],a_bin[0],a_bin[1])
+										plabel = prepend_label+r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] / cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1],a_bin[0],a_bin[1])
 									else:
-										label = r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] / cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1],a_bin[0],a_bin[1])
-									self._make_steps(ax,bins,avg,np.divide(tally_norm,a),color=color,options=options,label=label)
+										plabel = r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] / cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1],a_bin[0],a_bin[1])
+									self._make_steps(ax,bins,avg,np.divide(tally_norm,a),color=color,options=options,label=plabel)
 							if 'diff_cos' in options:
 								if c == plot_cosines[0]:
 									a     = tally_norm[:]
@@ -602,10 +604,10 @@ class tally:
 									a_bin = cosine_bin[:]
 								else:
 									if prepend_label:
-										label = prepend_label+r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] - cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1],a_bin[0],a_bin[1])
+										plabel = prepend_label+r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] - cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1],a_bin[0],a_bin[1])
 									else:
-										label = r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] - cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1],a_bin[0],a_bin[1])
-									self._make_steps(ax,bins,avg,np.subtract(tally_norm,a),color=color,options=options,label=label)
+										plabel = r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] - cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1],a_bin[0],a_bin[1])
+									self._make_steps(ax,bins,avg,np.subtract(tally_norm,a),color=color,options=options,label=plabel)
 							if 'sum_cos' in options:
 								if c == plot_cosines[0]:
 									this_sum = tally_norm[:]
@@ -623,14 +625,14 @@ class tally:
 									bin_min_d = bin_min
 									bin_max_d = bin_max
 								if prepend_label:
-									label = prepend_label+r'Obj %2d (%4d) seg %d cos [%5.4f - %5.4f]' % (o,name,s,bin_min_d,bin_max_d)
+									plabel = prepend_label+r'Obj %2d (%4d) seg %d cos [%5.4f - %5.4f]' % (o,name,s,bin_min_d,bin_max_d)
 								else:
-									label = r'Obj %2d (%4d) seg %d cos [%5.4f, %5.4f]' % (o,name,s,bin_min_d,bin_max_d)
-								self._make_steps(ax,bins,avg,this_sum,color=color,options=options,label=label)
+									plabel = r'Obj %2d (%4d) seg %d cos [%5.4f, %5.4f]' % (o,name,s,bin_min_d,bin_max_d)
+								self._make_steps(ax,bins,avg,this_sum,color=color,options=options,label=plabel)
 								#if 'err' in options:
 								#	ax.errorbar(avg,values,yerr=numpy.multiply(numpy.array(err),numpy.array(values)),linestyle='None',alpha=1.0,color='r')
 							else:
-								self._make_steps(ax,bins,avg,tally_norm,color=color,options=options,label=label)
+								self._make_steps(ax,bins,avg,tally_norm,color=color,options=options,label=plabel)
 								if 'err' in options:
 									ax.errorbar(avg,tally_norm,yerr=np.multiply(np.array(err),np.array(tally_norm)),linestyle='None',alpha=1.0,color='r')
 
