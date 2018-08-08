@@ -349,7 +349,7 @@ class mctal:
 
 
 
-	def write_weight_windows_from_meshtal(self,tals=False,erg=False,output='wwout',norms=False,normpoints=False,energies=False,mask_weight=False):
+	def write_weight_windows_from_meshtal(self,tals=False,erg=False,output='wwout',norms=False,normpoints=False,energies=False,mask_weight=False, kill_weight=False):
 		import numpy, datetime, copy, os, cPickle
 		import matplotlib.pyplot as plt
 		from matplotlib.colors import LogNorm
@@ -690,7 +690,7 @@ class mctal:
 						print "limts from %s:"%lims_file, lims_new
 						#lims_new = numpy.log10([7.5571E-19  ,  2.8899E-04])
 						#print lims_new
-						lims_new[0] = lims_new[1]-40.
+						#lims_new[0] = lims_new[1]-40.
 						print lims_new
 						#lims_new[1] = lims_new[1]+16
 						mult = (lims_new[1]-lims_new[0])/(lims_img[1]-lims_img[0])
@@ -717,6 +717,7 @@ class mctal:
 						#
 						limits_old = numpy.log10([ twoD_values[twoD_values>0.0].min() , twoD_values.max() ])
 						print "writing limits to '%s'"%lims_file
+						print limits_old
 						flims=open(lims_file,'w')
 						cPickle.dump(limits_old,flims)
 						flims.close()
@@ -751,7 +752,7 @@ class mctal:
 					# mask source and mask
 					#
 					this_plot = copy.deepcopy(twoD_values)
-					this_plot[this_plot<=1e-25] = 1e-25
+					#this_plot[this_plot<=1e-25] = 1e-25
 					plt.figure()
 					plt.imshow(this_plot,interpolation='nearest',norm=LogNorm(),cmap=plt.get_cmap('spectral'),origin='lower',extent=plot_lims)
 					plt.gca().set_title('renormed distribution')
@@ -786,6 +787,27 @@ class mctal:
 						# invert mask and add
 						mask = (mask - 1.0) * -weight_to
 						twoD_values = numpy.add(mask,twoD_values)  # pngs the last is the alpha transpareceny layer
+					#
+					# load kill image and apply
+					#
+					killmask_file = 'killmask-'+this_particle+'-%d'%j+'.png'
+					if os.path.isfile(killmask_file):
+						print "applying killmask_file from "+killmask_file
+						import scipy.misc
+						image = scipy.misc.imread(killmask_file)
+						killmask = image[:,:,3]
+						plt.figure()
+						plt.imshow(killmask,origin='lower',vmin=0,vmax=1,cmap=plt.get_cmap('spectral'),extent=plot_lims)
+						plt.gca().set_title('killmask')
+						# 
+						killmask[killmask>0]=1
+						twoD_values = numpy.multiply(killmask,twoD_values)  # pngs the last is the alpha transpareceny layer
+						#
+						# apply cutoff for the spatial killmask_file
+						weight_to 		= kill_weight[i][j]
+						# invert mask and add
+						killmask = (killmask - 1.0) * -weight_to
+						twoD_values = numpy.add(killmask,twoD_values)  # pngs the last is the alpha transpareceny layer
 					#
 					#
 					#

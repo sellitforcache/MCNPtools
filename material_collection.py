@@ -1201,3 +1201,32 @@ stone_wool.add_mixture('B2O3' ,   1.00, mode='mass')
 stone_wool.add_mixture('P2O5' ,   1.00, mode='mass')  
 stone_wool.mass_density=0.1
 stone_wool.finalize()
+
+#
+# inconel alloy 600 resistance wire
+#
+inconel600 = calculate_materials.mixture('inconel600')
+inconel600.add_mixture('Ni',72.00, mode='mass')
+inconel600.add_mixture('Cr',15.50, mode='mass')
+inconel600.add_mixture('Fe', 8.00, mode='mass')
+inconel600.add_mixture('Mn', 1.00, mode='mass')
+inconel600.add_mixture('Cu', 0.50, mode='mass')
+inconel600.add_mixture('Si', 0.50, mode='mass')
+inconel600.add_mixture('C', 0.150, mode='mass')
+inconel600.add_mixture('S', 0.015, mode='mass')
+inconel600.mass_density=8.47005084
+inconel600.finalize()
+
+
+
+#
+# inconel alloy 600 resistance wire
+#
+yag = calculate_materials.mixture('YAG')
+yag.add_mixture('Y' , 3.00, mode='atom')
+yag.add_mixture('Al', 5.00, mode='atom')
+yag.add_mixture('O' ,12.00, mode='atom')
+yag.mass_density=4.56
+yag.finalize()
+
+
