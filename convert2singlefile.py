@@ -2,6 +2,8 @@
 #  Script to convert newer MCNP inputs which have 'read file' cards 
 #  into a single file for use with MCNPX 2.4.0, which is openly distributed.
 #  Can be useful in situations where people are waiting for license approval.
+#  Also useful for using mcnp_pstudy, which expects a single file
+#  Also useful for writing files with long cell descriptions with repeated structure - then column selection text editors work well when all cards are on a single line and this script with split on 80 char for mcnp-reads
 #  ---- Ryan M. Bergmann, Paul Scherrer Institut, Nov. 10, 2014.
 
 import sys
