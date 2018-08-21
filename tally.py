@@ -42,7 +42,7 @@ class tally:
 	particles_shorthand={
 		  1 : ['neutron'					,'n ' ],
 		  2 : ['photon'						,'p ' ],
-		  3 : ['neutron, photon'			,'np' ], 
+		  3 : ['neutron, photon'			,'np' ],
 		  4 : ['electron'					,'e'  ],
 		  5 : ['neutron, electron'			,'ne' ],
 		  6 : ['photon, electron'			,'pe' ],
@@ -58,14 +58,14 @@ class tally:
 		self.particle_type 		= 0    # i>0 particle type, i<0 i=number of particle type, list following
 		self.detector_type		= 0    # j=type of detector tally (0=none)
 		self.particle_list 		= []   # list of included particles
-		self.comment 			= ''  
+		self.comment 			= ''
 		self.object_bins 		= 0
 		self.objects     		= []
 		self.totalvsdirect_bins = 1
 		self.user_bins 			= 0
 		self.segment_bins 		= 0
 		self.segments 			= []
-		self.multiplier_bins 	= 0 
+		self.multiplier_bins 	= 0
 		self.multiplier_flag 	= True
 		self.cosine_bins 		= 0
 		self.cosines 			= []
@@ -81,7 +81,7 @@ class tally:
 		self.tex				= tex
 		self.is_meshtal			= False
 
-	def what_particles(self,flag):
+	def what_particles(self,flag='symbol'):
 		### decode particle data to human-readable
 		if self.particle_type>0:
 			### shorthand list, can return directly
@@ -352,8 +352,8 @@ class tally:
 								sa = 2.0*np.pi*(self.vals[dex]['cosine_bin'][1]-self.vals[dex]['cosine_bin'][0])
 								tally_norm = np.divide(tally_norm,sa)
 
-							### SCALE 
-							if 'mA' in options: 
+							### SCALE
+							if 'mA' in options:
 								units = units + '/mA'
 								tally_norm = np.multiply(tally_norm,6.241e15)  # convert protons to milliAmpere*seconds
 								tally_total = tally_total*6.241e15
@@ -365,7 +365,7 @@ class tally:
 								label = prepend_label+r' obj %2d (%4d) seg %d cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1])
 							else:
 								label = r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1])
-	
+
 							### WRITE
 							this_file.write('\n\n'+label+'\n\n')
 							if 'wavelength' in options:
@@ -385,7 +385,7 @@ class tally:
 								units = 'n/cm2'
 							elif self.name%10 ==6:
 								units = 'MeV/g'
-							if 'mA' in options: 
+							if 'mA' in options:
 								units = units + '/mA'
 							else:
 								units = units + '/p'
@@ -485,7 +485,7 @@ class tally:
 			leg_loc = 'best'
 		else:
 			leg_loc = 'best'
-		
+
 		### set TeX
 		if self.tex:
 			plt.rc('text', usetex=True)
@@ -564,8 +564,8 @@ class tally:
 								sa = 2.0*np.pi*(self.vals[dex]['cosine_bin'][1]-self.vals[dex]['cosine_bin'][0])
 								tally_norm = np.divide(tally_norm,sa)
 
-							### SCALE 
-							if 'mA' in options: 
+							### SCALE
+							if 'mA' in options:
 								if 'ratio_mctal' in options:
 									print "renormalizing to mA invalid for ratios, ignoring"
 								else:
@@ -579,7 +579,7 @@ class tally:
 								plabel = label
 							if prepend_label:
 								plabel = prepend_label+label
-	
+
 							if 'ratio_mctal' in options:
 								total 		= self.vals[dex]['data'][-1]
 								total_err 	= self.vals[dex]['err'][-1]
@@ -661,11 +661,11 @@ class tally:
 		units = self.tally_units[last_integer]
 		label = units
 		if 'wavelength' in options:
-			label = r'$\Phi(\lambda)$ (' + label 
+			label = r'$\Phi(\lambda)$ (' + label
 		elif 'lethargy' in options:
-			label = r'$\Phi(u)$ (' + label 
+			label = r'$\Phi(u)$ (' + label
 		else:
-			label = r'$\Phi(E)$ (' + label 
+			label = r'$\Phi(E)$ (' + label
 
 		if 'mA' in options:
 			units = label.replace(r'p$^{-1}$',r'mAs$^{-1}$')
@@ -719,36 +719,36 @@ class tally:
 					self.vals[e].append(these_vals)
 		else:
 			total_bins = self.object_bins*(self.multiplier_bins*self.segment_bins*self.cosine_bins*self.totalvsdirect_bins)  ## update for user/multiplier
-	
+
 			# check based on e vec length
 			total_bins_e = len(self.vals)/(2*(len(self.energies)+1))
-			
+
 			# check consistency (should be thick by now)
 			assert(total_bins == total_bins_e)
 			self.total_bins = total_bins
 			if self.verbose:
 				print "...... %d non-energy bins in tally" % (self.total_bins)
-	
+
 			# make full vector of cosine edges if not a point detector
 			if self.cosine_bins==1:
 					self.cosines=[-1.0,1.0]
 			if (self.name % 10) != 5:
 				self.cosines.insert(0,-1.0)
-	
+
 			# make ful vector of energy edges
 			self.energies.insert(0,0.0)
 			self.energies.append('total')
-			
+
 			# bag and tag em
 			# indexing only for segment and cosine bins now, add others once I understand what they mean
 			new_vals = []
 			n = 0
-			num_seg=self.segment_bins	
+			num_seg=self.segment_bins
 			num_cos=self.cosine_bins
 			num_obj=self.object_bins
 			num_mul=self.multiplier_bins
 			num_td =self.totalvsdirect_bins
-	
+
 			for o in range(num_obj):
 				for td in range(num_td):
 					for s in range(num_seg):
@@ -783,5 +783,4 @@ class tally:
 								these_vals['err'] 			= subset[1::2]
 								new_vals.append(these_vals)
 								n = n+1
-			self.vals = new_vals 
-
+			self.vals = new_vals
