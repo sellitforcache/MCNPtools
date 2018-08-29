@@ -27,5 +27,6 @@ setup(name='MCNPtools',
       package_dir = {'MCNPtools': 'src'},
       cmdclass = {'build_ext': build_ext},
       include_dirs = [numpy.get_include()],
-      ext_modules = extensions
+      ext_modules = extensions,
+      scripts=['src/convert2singlefile.py','src/']
      )
