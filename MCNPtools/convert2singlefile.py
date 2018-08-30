@@ -2,48 +2,84 @@
 #  Script to convert newer MCNP inputs which have 'read file' cards 
 #  into a single file for use with MCNPX 2.4.0, which is openly distributed.
 #  Can be useful in situations where people are waiting for license approval.
-#  Also useful for using mcnp_pstudy, which expects a single file
-#  Also useful for writing files with long cell descriptions with repeated structure - then column selection text editors work well when all cards are on a single line and this script with split on 80 char for mcnp-reads
 #  ---- Ryan M. Bergmann, Paul Scherrer Institut, Nov. 10, 2014.
 
 import sys
 import re
 import datetime
+import string
+import os
+
+def wrap_check(input_line):
+	# split line if longer than 80 characters
+	if len(input_line)<=80:
+		return input_line
+	else:
+		split_string = input_line.split(' ')
+		out_string = ''
+		test_out = ''
+		for chunk in split_string:
+			if len(test_out + chunk + ' ') > 80:
+				out_string = out_string + test_out + '\n'
+				test_out = '     ' + chunk + ' '
+			else:
+				test_out = test_out + chunk + ' '
+		out_string = out_string + test_out[:-1]  # line should already have /n at the end, don't include last space appended...
+		return out_string
 
 def print_in_file(outputfile,fname,linenum):
+	# go to location, if any
+	fname_split = fname.split('/')
+	fname_local = fname_split[ -1]
+	fname_path  = string.join(fname_split[:-1])
+	origi_dir   = os.getcwd()
+	if len(fname_path)>0:
+		os.chdir(fname_path)
+
 	# try to open read-in file
 	try:
-		readfile = open(fname,"r")
+		readfile = open(fname_local,"r")
 	except:
-		print "Could not open read-in file '"+fname+"'. "
+		print "\n!!!!!!!\n Could not open read-in file '"+fname+"'. \n!!!!!!!\n"
+		exit()
 
 	#  print statement to terminal
-	print "   -> writing file '"+fname+"' at line "+str(linenum)
+	print "   -> writing file '"+fname_local+"' at line "+str(linenum)
 
 	# blank line regex
 	search_prog2 = re.compile("\s*\n")
+
+	### read file regex
+	search_prog = re.compile("read +file +([0-9a-zA-Z_.+-/]+)")
 
 	#  write the file in at this line, write start delimiter
 	outputfile.write("c START OF BLOCK WRITTEN BY convert2singlefile.py FROM FILE "+fname+"\n")
 	outputfile.write("c --> DATE AND TIME: "+datetime.datetime.isoformat(datetime.datetime.today())+"\n")
 	for line in readfile:
 		blankline = search_prog2.match(line)
+		readline  = search_prog.match(line)
 		if blankline:
-			print "          - skipping blank line in file "+fname
+			print "          - skipping blank line in file "+fname_local
+		elif readline:
+			fname2 = readline.group(1) 
+			print_in_file(outputfile,fname2,linenum)
 		else: 
-			outputfile.write(line)
+			outputfile.write(wrap_check(line))
 
 	# check to make sure last character is a return
 	if line[line.__len__()-1] != "\n":
-		print "          + appending final carriage return to inserted file "+fname
+		print "          + appending final carriage return to inserted file "+fname_local
 		outputfile.write("\n")
 
 	# write end delimiter
-	outputfile.write("c END OF BLOCK WRITTEN BY convert2singlefile.py FROM FILE "+fname+"\n")
+	outputfile.write("c END OF BLOCK WRITTEN BY convert2singlefile.py FROM FILE "+fname_local+"\n")
 	outputfile.write("c --> DATE AND TIME: "+datetime.datetime.isoformat(datetime.datetime.today())+"\n")
 
 	# close read-in file
 	readfile.close()
+
+	# return to original directory
+	os.chdir(origi_dir)
 
 
 ### get inputs
@@ -86,7 +122,7 @@ for line in inputfile:
 		print_in_file(outputfile,fname,linenum)
 		#print(line)
 	else:
-		outputfile.write(line)
+		outputfile.write(wrap_check(line))
 	linenum = linenum + 1
 
 
