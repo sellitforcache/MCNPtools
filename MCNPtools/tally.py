@@ -191,17 +191,36 @@ class tally:
 			res = re.match('coarsen',opt)
 			if res:
 				coarsen_opts = opt.split('=')
+				v1= 0
+				v2=None
+				v1s='0'
+				v2s=''
 				if len(coarsen_opts)==1:
 					bin_red = 2
 				elif len(coarsen_opts)==2:
-					bin_red = int(coarsen_opts[1])
+					bin_red = coarsen_opts[1]
 				else:
-					bin_red = int(coarsen_opts[1])
-					print "MULTIPLE = SIGNS IN SMOOTH.  WHY?  ACCEPTING FIRST VALUE."
-				if len(values)%bin_red==0:
+					bin_red = coarsen_opts[1]
+					print "MULTIPLE = SIGNS IN COARSEN.  WHY?  ACCEPTING FIRST VALUE."
+				#split again for slice options
+				s_options = bin_red.split(',')
+				if len(s_options)==1:
+					bin_red = int(bin_red)
+				else:
+					bin_red = int(s_options[0])
+					this_match = re.search('\[([0-9-]*):([0-9-]*)\]',s_options[1])
+					if this_match:
+						if len(this_match.group(1))>0:
+							v1=int(this_match.group(1))
+							v1s='%d'%v1
+						if len(this_match.group(2))>0:
+							v2=int(this_match.group(2))
+							v2s='%d'%v2
+						print "taking array slices of values and bins like [%s:%s]"%(v1s,v2s)
+				if len(values[v1:v2])%bin_red==0:
 					print "Reducing bins by factor of %d ..."%bin_red
 					label = label + ' COMBINED %d BINS'%bin_red
-					values,bins = self._coarsen(numpy.array(values),numpy.array(bins),bin_red=bin_red)
+					values,bins = self._coarsen(numpy.array(values[v1:v2]),numpy.array(bins[v1:v2]),bin_red=bin_red)
 				else:
 					print "DATA LENGHTH NOT EVENLY DIVISIBLE BY COARSEN FACTOR, IGNORING..."
 
