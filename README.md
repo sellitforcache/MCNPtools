@@ -10,6 +10,6 @@ Installation:
 $ python setup.py install
 ```
 
-This will install the MCNPtools module into your local Python distribution.  It will also install the convert2singlefile.py script into your /usr/local/bin directory.
+This will install the MCNPtools module into your local Python distribution.  It will also install the convert2singlefile.py script into your userbase/bin directory.
 
 Usage examples can be found in the _examples_ folder.

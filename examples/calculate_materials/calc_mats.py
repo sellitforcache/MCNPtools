@@ -1,44 +1,54 @@
 #! /home/l_bergmann/anaconda/bin/python -W ignore
-#  top level script for calculating the STIP-VI volume-averaged materials 
-#  Ryan M. Bergmann, June 2016 
+#  top level script for calculating the STIP-VI volume-averaged materials
+#  Ryan M. Bergmann, June 2016
 #  ryan.bergmann@psi.ch, ryanmbergmann@gmail.com
 
+# import the main module
 from MCNPtools import calculate_materials
+
+# import some materials libraries, makes them present in the global material dictionary, NOT directly in this namespace
+# this is done so things like SS316 already exist
+from MCNPtools import material_collection
+from MCNPtools import compounds
+
+# more imports
 import copy
 
+# set the verbose flag so that all the details of mixing aren't printed
 calculate_materials.verbose=0
 
-execfile("material_collection.py")
+# set the card printing flag
+calculate_materials.print_type='atom'
 
 total_width = len('                                         ')
 name = 'Ryan M. Bergmann'
 
 print "c |=========================================|"
-print "c |                                         |" 
-print "c |    Calculated by ryan.bergmann@psi.ch   |" 
-print "c |              June 10, 2016              |" 
-print "c |                                         |" 
-print "c |                                         |" 
+print "c |                                         |"
+print "c |    Calculated by ryan.bergmann@psi.ch   |"
+print "c |              June 10, 2016              |"
+print "c |                                         |"
+print "c |                                         |"
 print "c |=========================================|"
 print "c "
 print "c |=========================================|"
-print "c |                                         |" 
-print "c |                                         |"  
+print "c |                                         |"
+print "c |                                         |"
 print "c |          INDIVIDUAL MATERIALS           |"
-print "c |                                         |" 
-print "c |                                         |" 
+print "c |                                         |"
+print "c |                                         |"
 print "c |=========================================|"
- 
+
 
 for mat in calculate_materials.material._materials.keys():
 	calculate_materials.material._materials[mat].print_material_card()
 
 print "c |=========================================|"
-print "c |                                         |" 
-print "c |                                         |"  
+print "c |                                         |"
+print "c |                                         |"
 print "c | VOLUME AVERAGED MATERIALS FOR STIP RODS |"
-print "c |                                         |" 
-print "c |                                         |" 
+print "c |                                         |"
+print "c |                                         |"
 print "c |=========================================|"
 
 r1=calculate_materials.mixture('STIP-VII Rod 1')
