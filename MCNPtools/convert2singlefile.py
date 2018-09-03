@@ -13,22 +13,35 @@ import datetime
 import string
 import os
 
+def wrap_at_80(input_line):
+	mystring = '\n     '+input_line
+	if len(mystring) <= 80:
+		return mystring
+	else:
+		mo = re.match('.+([0-9+-])[^0-9+-]*$', mystring) # find last index of non-numeric so as not to split in a surface/cell number
+		mo.group()
+		return '\n     '+input_line[0:75]+wrap_at_80(input_line[75:])
+
+
 def wrap_check(input_line):
 	# split line if longer than 80 characters
 	if len(input_line)<=80:
 		return input_line
 	else:
-		split_string = input_line.split(' ')
-		out_string = ''
-		test_out = ''
-		for chunk in split_string:
-			if len(test_out + chunk + ' ') > 80:
-				out_string = out_string + test_out + '\n'
-				test_out = '     ' + chunk + ' '
-			else:
-				test_out = test_out + chunk + ' '
-		out_string = out_string + test_out[:-1]  # line should already have /n at the end, don't include last space appended...
-		return out_string
+	# recursive way
+		return input_line[0:80]+wrap_at_80(input_line[80:])
+	# iterative way
+	#	split_string = input_line.split(' ')
+	#	out_string = ''
+	#	test_out = ''
+	#	for chunk in split_string:
+	#		if len(test_out + chunk + ' ') > 80:
+	#			out_string = out_string + test_out + '\n'
+	#			test_out = '     ' + chunk + ' '
+	#		else:
+	#			test_out = test_out + chunk + ' '
+	#	out_string = out_string + test_out[:-1]  # line should already have /n at the end, don't include last space appended...
+	#	return out_string
 
 def print_in_file(outputfile,fname,linenum):
 	# go to location, if any
