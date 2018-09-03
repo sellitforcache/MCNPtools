@@ -14,34 +14,31 @@ import string
 import os
 
 def wrap_at_80(input_line):
-	mystring = '\n     '+input_line
-	if len(mystring) <= 80:
-		return mystring
+	# recursive way, split line if longer than 80 characters
+	if len(input_line) <= 80:
+		return input_line
 	else:
-		mo = re.match('.+([0-9+-])[^0-9+-]*$', mystring) # find last index of non-numeric so as not to split in a surface/cell number
-		mo.group()
-		return '\n     '+input_line[0:75]+wrap_at_80(input_line[75:])
+		mo = re.match('.+([^0-9+-]*)',input_line[1:80]) # find last index of non-numeric so as not to split in a surface/cell number
+		dex = mo.end(0) # end of match 1 is safe 
+		return input_line[0:dex+2]+wrap_at_80('\n     '+input_line[dex+2:])
 
 
 def wrap_check(input_line):
-	# split line if longer than 80 characters
+	# iterative way, split line if longer than 80 characters
 	if len(input_line)<=80:
 		return input_line
 	else:
-	# recursive way
-		return input_line[0:80]+wrap_at_80(input_line[80:])
-	# iterative way
-	#	split_string = input_line.split(' ')
-	#	out_string = ''
-	#	test_out = ''
-	#	for chunk in split_string:
-	#		if len(test_out + chunk + ' ') > 80:
-	#			out_string = out_string + test_out + '\n'
-	#			test_out = '     ' + chunk + ' '
-	#		else:
-	#			test_out = test_out + chunk + ' '
-	#	out_string = out_string + test_out[:-1]  # line should already have /n at the end, don't include last space appended...
-	#	return out_string
+		split_string = input_line.split(' ')
+		out_string = ''
+		test_out = ''
+		for chunk in split_string:
+			if len(test_out + chunk + ' ') > 80:
+				out_string = out_string + test_out + '\n'
+				test_out = '     ' + chunk + ' '
+			else:
+				test_out = test_out + chunk + ' '
+		out_string = out_string + test_out[:-1]  # line should already have /n at the end, don't include last space appended...
+		return out_string
 
 def print_in_file(outputfile,fname,linenum):
 	# go to location, if any
@@ -80,7 +77,7 @@ def print_in_file(outputfile,fname,linenum):
 			fname2 = readline.group(1)
 			print_in_file(outputfile,fname2,linenum)
 		else:
-			outputfile.write(wrap_check(line))
+			outputfile.write(wrap_at_80(line))
 
 	# check to make sure last character is a return
 	if line[line.__len__()-1] != "\n":
@@ -139,7 +136,7 @@ for line in inputfile:
 		print_in_file(outputfile,fname,linenum)
 		#print(line)
 	else:
-		outputfile.write(wrap_check(line))
+		outputfile.write(wrap_at_80(line))
 	linenum = linenum + 1
 
 
