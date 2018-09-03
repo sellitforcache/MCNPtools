@@ -1,8 +1,11 @@
 #! /usr/bin/env python
-#  Script to convert newer MCNP inputs which have 'read file' cards 
+#  Script to convert newer MCNP inputs which have 'read file' cards
 #  into a single file for use with MCNPX 2.4.0, which is openly distributed.
 #  Can be useful in situations where people are waiting for license approval.
-#  ---- Ryan M. Bergmann, Paul Scherrer Institut, Nov. 10, 2014.
+#  Also will wrap lines at 80 characters iteratively, which can be useful when
+#  dealing with inputs that have segmented volumes and column highlighting makes
+#  life easier.
+#  ---- Ryan M. Bergmann, Paul Scherrer Institut, 2014, 2018.
 
 import sys
 import re
@@ -61,9 +64,9 @@ def print_in_file(outputfile,fname,linenum):
 		if blankline:
 			print "          - skipping blank line in file "+fname_local
 		elif readline:
-			fname2 = readline.group(1) 
+			fname2 = readline.group(1)
 			print_in_file(outputfile,fname2,linenum)
-		else: 
+		else:
 			outputfile.write(wrap_check(line))
 
 	# check to make sure last character is a return
@@ -119,7 +122,7 @@ linenum = 1
 for line in inputfile:
 	results = search_prog.match(line)
 	if results:
-		fname = results.group(1) 
+		fname = results.group(1)
 		print_in_file(outputfile,fname,linenum)
 		#print(line)
 	else:
