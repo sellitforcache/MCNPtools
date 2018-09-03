@@ -2,6 +2,8 @@ the MCNPtools package contains a module called "calculate_materials", which in t
 
 The class has a global static dictionary that stores references to all instances, so the mixtures can simply be referred to by name [string].
 
+The class also has a method that prints MCNP material definition cards:  ```mixture.print_material_card()```
+
 ```python
 from MCNPtools import calculate_materials
 from MCNPtools import material_collection
@@ -33,3 +35,5 @@ air_45RH_24C.add_mixture('dry air'     , 0.99172, mode='mass') # using the presc
 air_45RH_24C.add_mixture('light water' , 0.00828, mode='mass') # if a mixture has been made, its name string can be used here
 air_45RH_24C.finalize()
 ```
+
+There is also an exmaple file, _calc_mats.py_, that can simply be executed after the MCNPtools package is installed to show functionality.
