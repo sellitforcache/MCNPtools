@@ -1,4 +1,4 @@
-the MCNPtools package contains a module called "calculate_materials", which in turn contains a class called "mixtures", which is the base of all the module functionality.  The recommended usage is to import the module and instantiate classes from the module namespace.  The point of the mixture class abstraction is to build mixtures on top of one another.  I.e. once a mixture is made, it can be used in another mixture as one of its bases.  Natural elemental composition are already built when the module is imported.
+the MCNPtools package contains a module called "calculate_materials", which in turn contains a class called "mixtures", which is the base of all the module functionality.  The recommended usage is to import the module and instantiate classes from the module namespace since this gives easier access to the class-wide variables.  The point of the mixture class abstraction is to build mixtures on top of one another.  I.e. once a mixture is made, it can be used in another mixture as one of its bases.  Natural elemental composition are already built when the module is imported.
 
 The class has a global static dictionary that stores references to all instances, so the mixtures can simply be referred to by name [string].
 
@@ -34,6 +34,11 @@ air_45RH_24C.mass_density=0.0011935
 air_45RH_24C.add_mixture('dry air'     , 0.99172, mode='mass') # using the prescribed name strings to add to the new mixture
 air_45RH_24C.add_mixture('light water' , 0.00828, mode='mass') # if a mixture has been made, its name string can be used here
 air_45RH_24C.finalize()
+#
+# print material card for MCNP
+#
+calculate_materials.print_type='atom' # can also be 'mass' for print mass fractions instead of atom fractions
+air_45RH_24C.print_material_card()
 ```
 
 There is also an exmaple file, _calc_mats.py_, that can simply be executed after the MCNPtools package is installed to show functionality.
