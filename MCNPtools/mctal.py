@@ -1,5 +1,5 @@
 class mctal:
-	
+
 	def __init__(self, filepath=None, verbose=False, tex=False):
 		### mctal header data
 		self.kod 		= '' 		# the name of the code, MCNPX.
@@ -19,7 +19,7 @@ class mctal:
 		self.picklepath = None 		# path for pickling
 		if self.filepath: 				# read in file if specified at instantiation
 			self.read_mctal(self.filepath)
-	
+
 	def read_mctal(self,filepath):
 
 		import tally
@@ -52,11 +52,11 @@ class mctal:
 
 		# split first line into its six parts
 		line1   		= lines[0].split()
-		self.kod 		= line1[0] 
-		self.ver 		= line1[1] 
-		self.probid 	= line1[2]+' '+line1[3] 
-		self.knod 		= int(line1[4]) 
-		self.nps 		= int(line1[5]) 
+		self.kod 		= line1[0]
+		self.ver 		= line1[1]
+		self.probid 	= line1[2]+' '+line1[3]
+		self.knod 		= int(line1[4])
+		self.nps 		= int(line1[5])
 		self.rnr 		= int(line1[6])
 
 		# next line is the title
@@ -68,7 +68,7 @@ class mctal:
 		# next is list of tally numbers
 		n = 3
 		n = read_array(lines,self.tally_n,n,mode='int')
-		
+
 		# go through tally data
 		for k in self.tally_n:
 			if self.verbose:
@@ -88,7 +88,7 @@ class mctal:
 				t1 = lines[n].split()
 				n = n+1
 				for p in t1:
-					self.tallies[k].particle_list.append(int(p)) 
+					self.tallies[k].particle_list.append(int(p))
 			for i in range(0,5):
 				if lines[n][0] != 'f':
 					self.tallies[k].comment 		= lines[n]
@@ -196,10 +196,10 @@ class mctal:
 			filepath = self.picklepath
 		else:
 			print "NOPE.  Filepath for pickle IO not specified"
-			return 
+			return
 
 		if filepath.lstrip()[0]!='/':   #assume relative path if first non-white character isn't /
-			filepath = os.getcwd()+'/'+filepath 
+			filepath = os.getcwd()+'/'+filepath
 			self.picklepath = filepath
 
 		if self.verbose:
@@ -220,10 +220,10 @@ class mctal:
 			return
 
 		if filepath.lstrip()[0]!='/':   #assume relative path if first non-white character isn't /
-			filepath = os.getcwd()+'/'+filepath 
+			filepath = os.getcwd()+'/'+filepath
 			self.picklepath = filepath
 
-		file_in = open(filepath,'rb') 
+		file_in = open(filepath,'rb')
 
 		if force:
 			a = cPickle.load(file_in)
@@ -339,13 +339,14 @@ class mctal:
 					self.tallies[t].plot(ax=ax,obj=obj,seg=seg,mul=mul,cos=cos,options=plot_options,prepend_label='{com:s}\n Tally {a:4d} :'.format(com=self.tallies[t].comment,a=t),ylim=ylim,renorm_to_sum=renorm_to_sum,color=color,norm=norm)
 
 		### show
-		ax.set_title(self.title.strip())
-		handles, labels = ax.get_legend_handles_labels()
-		ax.legend(handles,labels,loc=leg_loc,prop={'size':12})
-		ax.grid(True)
-
 		if show:
-			fig.show()
+			ax.set_title(self.title.strip())
+			handles, labels = ax.get_legend_handles_labels()
+			ax.legend(handles,labels,loc=leg_loc,prop={'size':12})
+			ax.grid(True)
+
+			if show:
+				fig.show()
 
 
 
@@ -360,56 +361,56 @@ class mctal:
 		def elsefunction(x,y,z):
 			return True
 
-		def constraint1_neg(x,y,z): 
+		def constraint1_neg(x,y,z):
 			if y<=10 and x<0:
 				return True
 			else:
 				return False
 
-		def constraint2_neg(x,y,z): 
+		def constraint2_neg(x,y,z):
 			if y<=26 and x<0:
 				return True
 			else:
 				return False
 
-		def constraint3_neg(x,y,z): 
+		def constraint3_neg(x,y,z):
 			if y<=50 and x<0:
 				return True
 			else:
 				return False
 
-		def constraint1_pos(x,y,z): 
+		def constraint1_pos(x,y,z):
 			if y<=10 and x>=0:
 				return True
 			else:
 				return False
 
-		def constraint2_pos(x,y,z): 
+		def constraint2_pos(x,y,z):
 			if y<=26 and x>=0:
 				return True
 			else:
 				return False
 
-		def constraint3_pos(x,y,z): 
+		def constraint3_pos(x,y,z):
 			if y<=50 and x>=0:
 				return True
 			else:
 				return False
 
 
-		def constraint4_neg(x,y,z): 
+		def constraint4_neg(x,y,z):
 			if y<=7 and x<0:
 				return True
 			else:
 				return False
 
-		def constraint4_pos(x,y,z): 
+		def constraint4_pos(x,y,z):
 			if y<=7 and x>=0:
 				return True
 			else:
 				return False
 
-		# 
+		#
 		#
 		#
 		def rescale_range(array,weight_range):
@@ -454,14 +455,14 @@ class mctal:
 				if axis>0:
 					this_max = log_array[-1,:]
 				else:
-					this_max = log_array[0,:]	
+					this_max = log_array[0,:]
 			if abs(axis)==1:
 				if axis>0:
 					this_max = log_array[:,0]
 				else:
-					this_max = log_array[:,-1]	
+					this_max = log_array[:,-1]
 			this_min 	= numpy.min(log_array,axis=abs(axis))
-			new_max 	= this_max 
+			new_max 	= this_max
 			new_min 	= numpy.log10(factor)+this_min
 			if abs(axis)==0:
 				for i in range(0,log_array.shape[1]):
@@ -595,7 +596,7 @@ class mctal:
 			check_num = tals[0]
 		for i in range(0,len(tals)):
 			if energies and len(energies[i]) >=2:
-				this_e_bins   = numpy.array(energies[i]) # 
+				this_e_bins   = numpy.array(energies[i]) #
 			else:
 				this_e_bins   = [-numpy.Inf,numpy.Inf]  # only upper
 			for j in range(0,len(tals[i])):
@@ -605,7 +606,7 @@ class mctal:
 				else:
 					if not self.tallies[tal_num].is_meshtal:
 						"Tally %d is not a mesh tally.  Aborting."
-						return 
+						return
 					if self.tallies[check_num].objects[1]!=self.tallies[tal_num].objects[1] or self.tallies[check_num].objects[2]!=self.tallies[tal_num].objects[2] or self.tallies[check_num].objects[3]!=self.tallies[tal_num].objects[3]:
 						print "Mesh structure of specified tallies do not mactch!  Aborting."
 						return
@@ -666,7 +667,7 @@ class mctal:
 					e_bins[this_particle]=this_e_bins
 				else:
 					#
-					# check if a image file exists, use it if there.  
+					# check if a image file exists, use it if there.
 					#
 					this_particle = self.tallies[tal_num].what_particles('symbol')
 					n_e_bins[this_particle]=this_n_e_bins
@@ -685,7 +686,7 @@ class mctal:
 							return
 						# image file saved in log scale...
 						twoD_values = scipy.misc.imread(map_file,mode='F')
-						# adjust so max is 1 
+						# adjust so max is 1
 						lims_img = [twoD_values.min(),twoD_values.max()]
 						print "limts from %s:"%lims_file, lims_new
 						#lims_new = numpy.log10([7.5571E-19  ,  2.8899E-04])
@@ -748,7 +749,7 @@ class mctal:
 					else:
 						# renorm so maximum (most *likely* the source) is 0.5
 						twoD_values = twoD_values* 0.5      / maxval
-					# 
+					#
 					# mask source and mask
 					#
 					this_plot = copy.deepcopy(twoD_values)
@@ -764,7 +765,7 @@ class mctal:
 					#from scipy.signal import convolve2d
 					#n=7
 					#filt = numpy.ones((n,n))/(n*n)
-					#twoD_values = convolve2d(twoD_values,filt,boundary='symm',mode='same') 
+					#twoD_values = convolve2d(twoD_values,filt,boundary='symm',mode='same')
 					#twoD_values[twoD_values<=1e-25] = 1e-25
 					#
 					# load mask image and apply
@@ -778,7 +779,7 @@ class mctal:
 						plt.figure()
 						plt.imshow(mask,origin='lower',vmin=0,vmax=1,cmap=plt.get_cmap('spectral'),extent=plot_lims)
 						plt.gca().set_title('mask')
-						# 
+						#
 						mask[mask>0]=1.0
 						twoD_values = numpy.multiply(mask,twoD_values)  # pngs the last is the alpha transpareceny layer
 						#
@@ -799,7 +800,7 @@ class mctal:
 						plt.figure()
 						plt.imshow(killmask,origin='lower',vmin=0,vmax=1,cmap=plt.get_cmap('spectral'),extent=plot_lims)
 						plt.gca().set_title('killmask')
-						# 
+						#
 						killmask[killmask>0]=1
 						twoD_values = numpy.multiply(killmask,twoD_values)  # pngs the last is the alpha transpareceny layer
 						#
@@ -819,10 +820,10 @@ class mctal:
 					plt.colorbar()
 					plt.show()
 				# have to pad the damn origin
-				twoD_values = numpy.hstack( (numpy.zeros((twoD_values.shape[0],1)),twoD_values) ) 
+				twoD_values = numpy.hstack( (numpy.zeros((twoD_values.shape[0],1)),twoD_values) )
 				twoD_values = numpy.vstack( (numpy.zeros((1,twoD_values.shape[1])),twoD_values) )
 				twoD_values = [numpy.zeros(twoD_values.shape),twoD_values]
-				# add to dict 
+				# add to dict
 				ww_arrays[this_particle].append(twoD_values)
 		#
 		#
@@ -889,13 +890,13 @@ class mctal:
 		#
 		# write values for all particles
 		for i in range(0,len(particle_mask)):  # to ensure order is same as vector
-			this_particle = particle_symbols[i]  
+			this_particle = particle_symbols[i]
 			if this_particle in ww_arrays.keys():
 				#
 				#
 				#
 				if len(e_bins[this_particle]>=2):
-					string = make_value_string(e_bins[this_particle])  
+					string = make_value_string(e_bins[this_particle])
 					print string
 				else:
 					string = "{0: 6.5E} \n".format(1e10)
@@ -903,7 +904,7 @@ class mctal:
 				for j in range(0,n_e_bins[this_particle]):
 					dist_list = ww_arrays[this_particle][j]
 					dist = numpy.hstack((dist,dist_list[0].flatten(),dist_list[1].flatten()))
-				string = string + make_value_string(dist)  
+				string = string + make_value_string(dist)
 				f.write(string)
 		# f.write("\n")
 		#
@@ -911,4 +912,3 @@ class mctal:
 		#
 		f.close()
 		print 'done.'
-

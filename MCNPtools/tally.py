@@ -52,6 +52,11 @@ class tally:
           2 : r'n cm$^{-2}$ p$^{-1}$',
 	      4 : r'n cm$^{-2}$ p$^{-1}$',
 	      5 : r'n cm$^{-2}$ p$^{-1}$'}
+	meshtally_units={
+          1 : r' cm$^{-2}$ primary$^{-1}$',
+          2 : r' ?',
+	      4 : r' MeV cm$^{-3}$ primary$^{-1}$',
+	      5 : r' cm$^{-2}$ primary$^{-1}$'}
 
 	def __init__(self,verbose=False,tex=False):
 		self.name 				= 0    # tally name number
@@ -486,12 +491,45 @@ class tally:
 		this_file.close()
 
 
+	def plot_meshtal(self,all=False,ax=None,obj=[0],norm='log'):
+		import matplotlib.pyplot as plt
+		from matplotlib.colors import LogNorm
+
+		last_integer = self.name % 10
+		units = self.meshtally_units[last_integer]
+
+		xgrid=self.objects[1]
+		ygrid=self.objects[2]
+		zgrid=self.objects[3]
+		this_extent = [xgrid[0],xgrid[-1],ygrid[0],ygrid[-1]]
+
+		z_dex = obj[0]
+
+		data = self.vals[0][z_dex]['data']
+
+		cax=ax.imshow(data,origin='lower',extent=this_extent,norm=LogNorm(),cmap=plt.get_cmap('nipy_spectral'),interpolation='nearest',aspect='auto')
+		f1=ax.get_figure()
+		cbar=f1.colorbar(cax)
+		cbar.ax.set_ylabel(units)
+		ax.grid(1)
+		ax.set_xlabel(r'z (cm)')
+		ax.set_ylabel(r'y (cm)')
+		ax.set_title('Averaged over z=[ % 3.2E , % 3.2E ]'%(zgrid[z_dex],zgrid[z_dex+1]))
+		ax.set_xlim([xgrid[0],xgrid[-1]])
+		ax.set_ylim([ygrid[0],ygrid[-1]])
+
+
 	def plot(self,all=False,ax=None,obj=[0],cos=[0],seg=[0],mul=[0],t_or_d=[0],color=None,options=[],label=False,prepend_label=False,ylim=False,xlim=False,renorm_to_sum=False,norm=1.0):
 		import numpy as np
 		import pylab as pl
 		import matplotlib.pyplot as plt
 
 		### I don't care that I'm overriding the built-in 'all' within this method
+
+		### check if mesh tally
+		if self.is_meshtal:
+			self.plot_meshtal(all=all,ax=ax,obj=obj)
+			return
 
 		### make consistency checks
 		if 'lethargy' in options:
@@ -592,12 +630,14 @@ class tally:
 							if renorm_to_sum:
 								tally_norm = tally_norm/np.sum(np.multiply(tally_norm,np.divide(widths,avg)))
 
-							if not label:
+							if not label and not prepend_label:
 								plabel = r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1])
-							else:
+							if label:
 								plabel = label
-							if prepend_label:
+							elif prepend_label and label:
 								plabel = prepend_label+label
+							elif prepend_label and not label:
+								plabel = prepend_label+r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1])
 
 							if 'ratio_mctal' in options:
 								total 		= self.vals[dex]['data'][-1]
