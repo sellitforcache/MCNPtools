@@ -1,4 +1,4 @@
-class tally:
+class Tally:
 	### static mappings, shared by all
 	###  MCNPX particle encodings
 	particles={
@@ -458,7 +458,7 @@ class tally:
 		avg 		= np.divide(np.array(bins[:-1])+np.array(bins[1:]),2.0)
 
 		#
-		# print mcnp cards, E dist only, for the moment!
+		# print mcnp cards, E dist only
 		#
 		if self.particle_type < 0:
 			ptype = self.what_particles('symbol')
@@ -799,7 +799,7 @@ class tally:
 			self.energies.append('total')
 
 			# bag and tag em
-			# indexing only for segment and cosine bins now, add others once I understand what they mean
+			# indexing only for segment and cosine bins now, add others once I understand what they mean...
 			new_vals = []
 			n = 0
 			num_seg=self.segment_bins

@@ -1,4 +1,4 @@
-class mctal:
+class Mctal:
 
 	def __init__(self, filepath=None, verbose=False, tex=False):
 		### mctal header data
@@ -74,7 +74,7 @@ class mctal:
 			if self.verbose:
 				print "... reading tally "+str(k)
 			# init tally object
-			self.tallies[k] = tally.tally(verbose=self.verbose,tex=self.tex)
+			self.tallies[k] = tally.Tally(verbose=self.verbose,tex=self.tex)
 			# get header data, assert things
 			t1 = lines[n].split()
 			n = n+1
