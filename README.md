@@ -19,4 +19,4 @@ This will install the MCNPtools module into your local Python distribution.  It 
 
 ## Usage
 
-Usage examples can be found in the _examples_ folder.
+Usage examples can be found in the _examples_ folder.  Each folder contains its own README.md file.
