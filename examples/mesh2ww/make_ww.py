@@ -1,8 +1,8 @@
-#! /home/l_bergmann/anaconda/bin/python -W ignore
+#! /usr/bin/env python 
 
 
 
-from MCNPtools.mctal import mctal
+from MCNPtools.mctal import Mctal
 tal=mctal('./case001-noww.mctal')
 tal.write_weight_windows_from_meshtal(output='2dflux.wwinp',
                                       tals =[[101]     ,[111]    ,'e','/','*','z'],

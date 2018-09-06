@@ -4,7 +4,7 @@ Ryan M. Bergmann, 2018.
 Python scripts that are useful for streamlining MCNP runs, managing material definition data, analyzing MCNP results, and creating weight windows from flux maps.
 
 Contains:
-* Mctal and Tally classes to parse mctal files.  Mctal class contains a method that can write weight windows based on mesh tally results
+* Mctal and Tally classes to parse mctal files.  Plotting methods to make life easier and to eliminate potential errors of doing it by hand.  Mctal class contains a method that can write weight windows based on mesh tally results
 * calculate_materials module that provides a Mixture class and useful data to perform general mixing of materials and then print MCNP input cards from the results
 * convert2singlefile.py script that inlines all 'read file' lines of a MCNP input file.  It also automatically wraps lines at 80 characters.
 
