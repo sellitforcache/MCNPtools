@@ -50,8 +50,9 @@ ax.grid(1)
 plt.show()
 
 # can also get the mes tally data -> it is *always* xy distributions and indexed in z (MCNP mesh tally coordinates)
-for i in range(0,tal.tallies[101].n_objects):
-  mesh_data = tal.tallies[101].vals[0][i]
+for i in range(0,len(tal.tallies[101].vals[0])): # first index is for energy?
+  mesh_data = tal.tallies[101].vals[0][i]['data']
+  mesh_err  = tal.tallies[101].vals[0][i]['err']
   f=plt.figure()
   ax=f.add_subplot(111)
   ax.imshow(mesh_data)
@@ -60,7 +61,6 @@ for i in range(0,tal.tallies[101].n_objects):
   ax.set_title('USING THE matplotlib PLOTTER INSTEAD OF THE MCNPTOOLS STEP PLOTTER')
   ax.grid(1)
   plt.show()
-
 ```
 
 The keyword arguments for the plot methods are (arguments of the tally binning keywords must be *lists*, even if single valued):
