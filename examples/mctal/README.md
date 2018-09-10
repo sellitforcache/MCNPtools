@@ -7,6 +7,7 @@ _plot.py_ is reproduced below to illustrate typical usage.
 from MCNPtools import Mctal
 import matplotlib.pyplot as plt
 import numpy
+from matplotlib.colors import LogNorm
 
 # load the file
 tal = Mctal('sample.m')
@@ -49,15 +50,20 @@ ax.set_title('USING THE matplotlib PLOTTER INSTEAD OF THE MCNPTOOLS STEP PLOTTER
 ax.grid(1)
 plt.show()
 
-# can also get the mes tally data -> it is *always* xy distributions and indexed in z (MCNP mesh tally coordinates)
-for i in range(0,len(tal.tallies[101].vals[0])): # first index is for energy?
+# can also get the mesh tally data -> it is *always* xy distributions and indexed in z (MCNP mesh tally coordinates)
+et_grid = tal.tallies[101].objects[0] # grids
+xgrid   = tal.tallies[101].objects[1]
+ygrid   = tal.tallies[101].objects[2]
+zgrid   = tal.tallies[101].objects[3]
+this_extent = [xgrid[0],xgrid[-1],ygrid[0],ygrid[-1]]
+for i in range(0,len(tal.tallies[101].vals[0])): # first index is for energy/time
   mesh_data = tal.tallies[101].vals[0][i]['data']
   mesh_err  = tal.tallies[101].vals[0][i]['err']
   f=plt.figure()
   ax=f.add_subplot(111)
-  ax.imshow(mesh_data)
-  ax.set_xlabel('MeV')
-  ax.set_ylabel('Tally Value')
+  ax.imshow(mesh_data,extent=this_extent,norm=LogNorm(),cmap=plt.get_cmap('nipy_spectral'),interpolation='nearest',aspect='auto')
+  ax.set_xlabel('x (cm)')
+  ax.set_ylabel('y (cm)')
   ax.set_title('USING THE matplotlib PLOTTER INSTEAD OF THE MCNPTOOLS STEP PLOTTER')
   ax.grid(1)
   plt.show()
