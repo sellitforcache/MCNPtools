@@ -575,6 +575,10 @@ class Tally:
 			plot_multipliers= mul
 			plot_t_or_d		= t_or_d
 
+		total_string={}
+		total_string[0]='TOTAL'
+		total_string[1]='FLAGGED'
+
 		### go through selected objets and plot them
 		for o in plot_objects:
 			for td in plot_t_or_d:
@@ -632,13 +636,13 @@ class Tally:
 								tally_norm = tally_norm/np.sum(np.multiply(tally_norm,np.divide(widths,avg)))
 
 							if not label and not prepend_label:
-								plabel = r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1])
+								plabel = r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] %s' % (o,name,s,cosine_bin[0],cosine_bin[1],total_string[td])
 							if label:
 								plabel = label
 							elif prepend_label and label:
 								plabel = prepend_label+label
 							elif prepend_label and not label:
-								plabel = prepend_label+r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e]' % (o,name,s,cosine_bin[0],cosine_bin[1])
+								plabel = prepend_label+r'Obj %2d (%4d) seg %d cos [%4.2e, %4.2e] %s' % (o,name,s,cosine_bin[0],cosine_bin[1],total_string[td])
 
 							if 'ratio_mctal' in options:
 								total 		= self.vals[dex]['data'][-1]
