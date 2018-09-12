@@ -116,6 +116,7 @@ class Tally:
 		assert(seg  < self.segment_bins)
 		assert(cos  < self.cosine_bins)
 		assert(mul  < self.multiplier_bins)
+		assert(td   < self.totalvsdirect_bins)
 		dex = obj*(self.segment_bins*self.cosine_bins*self.multiplier_bins*self.totalvsdirect_bins)+ td*(self.segment_bins*self.cosine_bins*self.multiplier_bins) +seg*(self.cosine_bins*self.multiplier_bins)+ mul*(self.cosine_bins) + cos
 		return dex
 
@@ -566,7 +567,7 @@ class Tally:
 			plot_segments	= range(self.segment_bins)
 			plot_cosines	= range(self.cosine_bins)
 			plot_multipliers= range(self.multiplier_bins)
-			plot_t_or_d		= [0]
+			plot_t_or_d		= range(self.totalvsdirect_bins)
 		else:
 			plot_objects	= obj
 			plot_segments	= seg
