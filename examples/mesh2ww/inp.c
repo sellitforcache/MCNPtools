@@ -1,2 +1,0 @@
-CONTINUE
-nps 1

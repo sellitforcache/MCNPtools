@@ -3,10 +3,10 @@ from MCNPtools.mctal import Mctal
 import re
 
 
-tal=Mctal('./flux2ww.m')
+tal=Mctal('./iteration_3/flux2ww.m')
 
 # look at target tally to get the average weight of the particles leaving
-f=open('flux2ww.o2','r')
+f=open('./iteration_1/flux2ww.o2','r')
 output_file_string = f.read()
 f.close()
 
@@ -38,5 +38,6 @@ tal.write_weight_windows_from_meshtal(output='2dflux.wwinp',
                                       norms=[[0.5*wgt_out['neutron']],[0.5**wgt_out['photon']],'' ,'' ,'' ,'' ],
                                       energies=  [[],[],[],[],[],[]],
                                       normpoints=[[],[],[],[],[],[]],
+                                      smooth=    [[31],[31],[],[],[],[]],
                                       mask_weight=[[  0.],[ 0.],[ 0.],[ 0.],[ 0.],[ 0.]],
                                       kill_weight=[[ 10.],[10.],[10.],[10.],[10.],[10.]])

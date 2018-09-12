@@ -350,7 +350,7 @@ class Mctal:
 
 
 
-	def write_weight_windows_from_meshtal(self,tals=False,erg=False,output='wwout',norms=False,normpoints=False,energies=False,mask_weight=False, kill_weight=False):
+	def write_weight_windows_from_meshtal(self,tals=False,erg=False,output='wwout',norms=False,normpoints=False,energies=False,mask_weight=False, kill_weight=False,smooth=False):
 		import numpy, datetime, copy, os, cPickle
 		import matplotlib.pyplot as plt
 		from matplotlib.colors import LogNorm
@@ -501,7 +501,7 @@ class Mctal:
 			# un-flip
 			new_array = numpy.add(new_array0,new_array1)
 			plt.figure()
-			plt.imshow(new_array,interpolation='nearest',cmap=plt.get_cmap('spectral'),origin='lower')
+			plt.imshow(new_array,interpolation='nearest',cmap=plt.get_cmap('nipy_spectral'),origin='lower')
 			plt.colorbar()
 			plt.show()
 			new_array = numpy.flipud(new_array)
@@ -685,22 +685,20 @@ class Mctal:
 							print "ERROR - limits file '%s' does not exist!"%lims_file
 							return
 						# image file saved in log scale...
-						twoD_values = scipy.misc.imread(map_file,mode='F')
-						# adjust so max is 1
+						twoD_values = scipy.misc.imread(map_file,mode='F').astype('float64')
 						lims_img = [twoD_values.min(),twoD_values.max()]
+						# rescale to limits file
 						print "limts from %s:"%lims_file, lims_new
-						#lims_new = numpy.log10([7.5571E-19  ,  2.8899E-04])
-						#print lims_new
-						#lims_new[0] = lims_new[1]-40.
-						print lims_new
-						#lims_new[1] = lims_new[1]+16
 						mult = (lims_new[1]-lims_new[0])/(lims_img[1]-lims_img[0])
-						twoD_values = ( twoD_values - lims_img[1]) * mult + lims_new[1]
+						twoD_values = ( twoD_values - lims_img[0] ) * mult + lims_new[0]
+						lims_img = [twoD_values.min(),twoD_values.max()]
 						# return to linear scale
 						twoD_values = numpy.power(10.,twoD_values)
+						lims_img = [twoD_values.min(),twoD_values.max()]
 						plt.figure()
-						plt.imshow(twoD_values,origin='lower',cmap=plt.get_cmap('spectral'),extent=plot_lims)
+						plt.imshow(twoD_values,origin='lower',norm=LogNorm(),cmap=plt.get_cmap('nipy_spectral'),extent=plot_lims)
 						plt.gca().set_title('original distribution from map file')
+						plt.colorbar()
 					else:
 						# read in value
 						combined_values = numpy.zeros((this_n_e_bins,n_z_bins,n_y_bins,n_x_bins))
@@ -717,13 +715,12 @@ class Mctal:
 							twoD_values[:,:]=threeD_values[z_dex,:,:]+twoD_values[:,:]
 						#
 						limits_old = numpy.log10([ twoD_values[twoD_values>0.0].min() , twoD_values.max() ])
-						print "writing limits to '%s'"%lims_file
-						print limits_old
+						print "writing limits to '%s'"%lims_file,limits_old
 						flims=open(lims_file,'w')
 						cPickle.dump(limits_old,flims)
 						flims.close()
 						plt.figure()
-						plt.imshow(twoD_values,origin='lower',cmap=plt.get_cmap('spectral'),extent=plot_lims)
+						plt.imshow(twoD_values,origin='lower',norm=LogNorm(),cmap=plt.get_cmap('nipy_spectral'),extent=plot_lims)
 						plt.gca().set_title('original distribution from mctal file')
 						# save grayscale image for map modifications
 						print "Saving log-scaled grayscale image as map-%s-%d.png..."%(this_particle,j)
@@ -731,9 +728,6 @@ class Mctal:
 						# invert the values? no! want to flatten population! just rescale so maximum is 1
 					#  replace Inf with zeros
 					twoD_values[          twoD_values == numpy.inf] = 0.0
-					# reform to specified norm
-					if this_particle=='h':
-						twoD_values = numpy.ones(twoD_values.shape)
 					#  choose the point value as the "maximum" otherwise use global max
 					if normpoints:
 						if len(normpoints[i])==2:
@@ -755,18 +749,20 @@ class Mctal:
 					this_plot = copy.deepcopy(twoD_values)
 					#this_plot[this_plot<=1e-25] = 1e-25
 					plt.figure()
-					plt.imshow(this_plot,interpolation='nearest',norm=LogNorm(),cmap=plt.get_cmap('spectral'),origin='lower',extent=plot_lims)
+					plt.imshow(this_plot,interpolation='nearest',norm=LogNorm(),cmap=plt.get_cmap('nipy_spectral'),origin='lower',extent=plot_lims)
 					plt.gca().set_title('renormed distribution')
 					plt.colorbar()
 					# save bitmap for masking
-					plt.imsave('outfile-'+this_particle+'-%d'%j+'.png', numpy.log10(this_plot),cmap=plt.get_cmap('spectral'))
+					plt.imsave('outfile-'+this_particle+'-%d'%j+'.png', numpy.log10(this_plot),cmap=plt.get_cmap('nipy_spectral'))
 					#
 					# convolve to smooth if grid is fine
-					#from scipy.signal import convolve2d
-					#n=7
-					#filt = numpy.ones((n,n))/(n*n)
-					#twoD_values = convolve2d(twoD_values,filt,boundary='symm',mode='same')
-					#twoD_values[twoD_values<=1e-25] = 1e-25
+					if smooth:
+						from scipy.signal import convolve2d
+						n=smooth[i][j]
+						print "smoothing over %d bins"%n
+						filt = numpy.ones((n,n))/(n*n)
+						twoD_values = convolve2d(twoD_values,filt,boundary='symm',mode='same')
+						#twoD_values[twoD_values<=1e-25] = 1e-25
 					#
 					# load mask image and apply
 					#
@@ -777,7 +773,7 @@ class Mctal:
 						image = scipy.misc.imread(mask_file)
 						mask = image[:,:,3]
 						plt.figure()
-						plt.imshow(mask,origin='lower',vmin=0,vmax=1,cmap=plt.get_cmap('spectral'),extent=plot_lims)
+						plt.imshow(mask,origin='lower',vmin=0,vmax=1,cmap=plt.get_cmap('nipy_spectral'),extent=plot_lims)
 						plt.gca().set_title('mask')
 						#
 						mask[mask>0]=1.0
@@ -798,7 +794,7 @@ class Mctal:
 						image = scipy.misc.imread(killmask_file)
 						killmask = image[:,:,3]
 						plt.figure()
-						plt.imshow(killmask,origin='lower',vmin=0,vmax=1,cmap=plt.get_cmap('spectral'),extent=plot_lims)
+						plt.imshow(killmask,origin='lower',vmin=0,vmax=1,cmap=plt.get_cmap('nipy_spectral'),extent=plot_lims)
 						plt.gca().set_title('killmask')
 						#
 						killmask[killmask>0]=1
@@ -815,7 +811,7 @@ class Mctal:
 					this_plot = copy.deepcopy(twoD_values)
 					#this_plot[this_plot<=0.0] = 1e-15
 					plt.figure()
-					plt.imshow(this_plot,interpolation='nearest',norm=LogNorm(),cmap=plt.get_cmap('spectral'),origin='lower',extent=plot_lims)
+					plt.imshow(this_plot,interpolation='nearest',norm=LogNorm(),cmap=plt.get_cmap('nipy_spectral'),origin='lower',extent=plot_lims)
 					plt.gca().set_title('final WW distribution')
 					plt.colorbar()
 					plt.show()
