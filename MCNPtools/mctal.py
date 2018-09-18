@@ -270,7 +270,7 @@ class Mctal:
 			if not mul:
 				mul = [0]
 			for t in tal:
-				self.tallies[t].write_csv(filename,obj=obj,seg=seg,mul=mul,cos=cos,options=plot_options,prepend_label='{com:s}\n Tally {a:4d} :'.format(com=self.tallies[t].comment,a=t))
+				self.tallies[t].write_csv(filename,obj=obj,seg=seg,mul=mul,cos=cos,t_or_d=t_or_d,options=plot_options,prepend_label='{com:s}\n Tally {a:4d} :'.format(com=self.tallies[t].comment,a=t))
 
 
 
@@ -334,9 +334,9 @@ class Mctal:
 				mul = [0]
 			for t in tal:
 				if label:
-					self.tallies[t].plot(ax=ax,obj=obj,seg=seg,mul=mul,cos=cos,options=plot_options,label=label,ylim=ylim,renorm_to_sum=renorm_to_sum,color=color,norm=norm)
+					self.tallies[t].plot(ax=ax,obj=obj,seg=seg,mul=mul,cos=cos,t_or_d=t_or_d,options=plot_options,label=label,ylim=ylim,renorm_to_sum=renorm_to_sum,color=color,norm=norm)
 				else:
-					self.tallies[t].plot(ax=ax,obj=obj,seg=seg,mul=mul,cos=cos,options=plot_options,prepend_label='{com:s}\n Tally {a:4d} :'.format(com=self.tallies[t].comment,a=t),ylim=ylim,renorm_to_sum=renorm_to_sum,color=color,norm=norm)
+					self.tallies[t].plot(ax=ax,obj=obj,seg=seg,mul=mul,cos=cos,t_or_d=t_or_d,options=plot_options,prepend_label='{com:s}\n Tally {a:4d} :'.format(com=self.tallies[t].comment,a=t),ylim=ylim,renorm_to_sum=renorm_to_sum,color=color,norm=norm)
 
 		### show
 		if show:
