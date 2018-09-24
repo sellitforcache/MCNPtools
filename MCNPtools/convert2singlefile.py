@@ -14,13 +14,22 @@ import string
 import os
 
 def wrap_at_80(input_line):
+	this_re = re.compile('.+([^.eE0-9+-]+)',flags=re.DOTALL)
 	# recursive way, split line if longer than 80 characters
 	if len(input_line) <= 80:
 		return input_line
 	else:
-		mo = re.match('.+([^0-9+-]*)',input_line[1:80]) # find last index of non-numeric so as not to split in a surface/cell number
-		dex = mo.end(0) # end of match 1 is safe 
-		return input_line[0:dex+2]+wrap_at_80('\n     '+input_line[dex+2:])
+		mo = this_re.match(input_line[:80]) # find last index of non-numeric so as not to split in a surface/cell number
+		if mo:
+			dex = mo.end(1) # end of match 1 is safe
+		else:
+			print "ERROR!"
+			exit(0)
+		if input_line[dex:].isspace():
+			return input_line[0:dex]+'\n'
+		else:
+			return input_line[0:dex]+wrap_at_80('\n     '+input_line[dex:])
+		
 
 
 def wrap_check(input_line):
