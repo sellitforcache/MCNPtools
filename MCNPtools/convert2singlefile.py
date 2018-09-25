@@ -16,7 +16,7 @@ import os
 def wrap_at_80(input_line):
 	this_re = re.compile('.+([^.eE0-9+-]+)',flags=re.DOTALL)
 	# recursive way, split line if longer than 80 characters
-	if len(input_line) <= 80:
+	if len(input_line) <= 80 or re.match('[cC] ',input_line):
 		return input_line
 	else:
 		mo = this_re.match(input_line[:80]) # find last index of non-numeric so as not to split in a surface/cell number
@@ -27,6 +27,8 @@ def wrap_at_80(input_line):
 			exit(0)
 		if input_line[dex:].isspace():
 			return input_line[0:dex]+'\n'
+		#elif input_line[dex:].isspace():
+		#	return ''
 		else:
 			return input_line[0:dex]+wrap_at_80('\n     '+input_line[dex:])
 		
