@@ -14,7 +14,7 @@ import string
 import os
 
 def wrap_at_80(input_line):
-	this_re         = re.compile('.+([^.eE0-9+-]+)',flags=re.DOTALL)
+	this_re         = re.compile('.+([^|!<>+_-~@/*?%^#:,.=\w+-]+)',flags=re.DOTALL)
 	this_re_comment = re.compile('.+([$])',flags=re.DOTALL)
 	# recursive way, split line if longer than 80 characters
 	if len(input_line) <= 80 or re.match('[cC] ',input_line) or re.search('[$]',input_line[:80]):  # return if <80, comment, or there is only comments after 80  ($)
